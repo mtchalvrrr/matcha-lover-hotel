@@ -31,7 +31,7 @@
 
                     <div class="stat-card">
                         <span>Pending review</span>
-                        <strong th:text="${#lists.size(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED'])}">0</strong>
+                        <strong th:text="${#lists.size(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED' or status == 'EARLY_CHECKOUT_REQUESTED'])}">0</strong>
                     </div>
                 </div>
 
