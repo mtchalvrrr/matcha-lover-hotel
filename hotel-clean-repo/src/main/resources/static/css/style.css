@@ -507,3 +507,11 @@ input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
   .manager-side-nav { flex-direction: column; }
   .history-search-form { grid-template-columns: minmax(0, 1fr); }
 }
+
+.stay-extension-options { margin-top: 16px; padding: 16px; border: 1px solid #dfe5dc; border-radius: 10px; background: #f7faf3; }
+.extension-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 12px; }
+.extension-form button { grid-column: 1 / -1; justify-self: start; }
+@media (max-width: 520px) {
+  .extension-form { grid-template-columns: minmax(0, 1fr); }
+  .extension-form button { grid-column: auto; width: 100%; }
+}
