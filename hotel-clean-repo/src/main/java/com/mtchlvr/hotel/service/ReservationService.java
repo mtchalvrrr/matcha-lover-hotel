@@ -134,7 +134,7 @@ public class ReservationService {
     public Reservation reserve(String email, Long roomId, LocalDate in, LocalTime inTime,
                                LocalDate out, LocalTime outTime) {
         if (in == null || out == null || inTime == null || outTime == null ||
-                in.isBefore(LocalDate.now()) ||
+                in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila"))) ||
                 !out.atTime(outTime).isAfter(in.atTime(inTime))) {
             throw new IllegalArgumentException(
                 "Choose a valid check-in date/time and a checkout after check-in."
