@@ -42,7 +42,7 @@
 <td><strong th:text="${r.customer.fullName}">Guest</strong><small class="cell-sub" th:text="${r.customer.email}">Email</small></td>
 <td th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Room</td>
 <td th:text="${r.checkIn} + ' → ' + ${r.checkOut}">Dates</td>
-<td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">APPROVED</span></td>
+<td><span class="status" th:text="${r.status == 'COMPLETED' ? 'Checked Out' : r.status}" th:classappend="${r.status.toLowerCase()}">APPROVED</span></td>
 <td><form th:action="@{'/manager/history/' + ${r.id} + '/delete'}" method="post" data-confirm="Permanently delete this history record? This cannot be undone."><button class="button tiny" type="submit">Delete</button></form></td>
 </tr>
 </tbody>
