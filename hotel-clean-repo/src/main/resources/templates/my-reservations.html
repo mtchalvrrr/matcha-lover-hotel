@@ -4,6 +4,14 @@
     <span class="eyebrow">CHECKOUT REMINDER</span>
     <h2 id="checkout-reminder-title">Time to check out.</h2>
     <p data-checkout-message>Today is your checkout day. Please settle your bill at reception.</p>
+    <div class="stay-extension-options" th:each="r : ${checkoutTodayReservations}">
+      <p><strong>Would you like to extend your stay in Room <span th:text="${r.room.roomNumber}">101</span>?</strong> Choose a new checkout date and time. We'll check availability before changing your reservation.</p>
+      <form th:action="@{'/customer/reservations/' + ${r.id} + '/extend'}" method="post" class="stack-form extension-form" data-confirm="Check availability and extend your stay if this room is available?">
+        <label>New checkout date<input type="date" name="newCheckOut" th:attr="min=${r.checkOut.plusDays(1)}" required></label>
+        <label>New checkout time<input type="time" name="newCheckOutTime" value="12:00" required></label>
+        <button class="button" type="submit">Check availability &amp; extend</button>
+      </form>
+    </div>
     <div th:if="${!#lists.isEmpty(earlyCheckoutReservationIds)}" style="display:flex;flex-direction:column;gap:10px;margin-top:18px">
       <p style="margin-bottom:0">Leaving before your scheduled checkout time?</p>
       <form th:each="r : ${reservations}" th:if="${earlyCheckoutReservationIds.contains(r.id)}" th:action="@{'/customer/reservations/' + ${r.id} + '/early-checkout'}" method="post" data-checkout-early-form data-confirm="Check out early now? Your checkout date and time and estimated room charge will be updated. Please settle your final bill at reception.">
