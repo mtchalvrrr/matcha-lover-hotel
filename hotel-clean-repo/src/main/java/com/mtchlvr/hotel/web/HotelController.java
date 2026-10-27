@@ -238,8 +238,50 @@ public class HotelController {
         return "reservation-requests";
     }
 
-    @GetMapping("/manager/history") public String managerHistory(Model model) {
-        model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc().stream().filter(Reservation::isHistoryVisible).toList());
+    @GetMapping("/manager/history")
+    public String managerHistory(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "all") String period,
+            @RequestParam(required = false) LocalDate date,
+            Model model) {
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        LocalDate referenceDate = date == null ? LocalDate.now(hotelZone) : date;
+        LocalDate rangeStart = null;
+        LocalDate rangeEnd = null;
+        switch (period == null ? "all" : period.toLowerCase(java.util.Locale.ROOT)) {
+            case "day" -> { rangeStart = referenceDate; rangeEnd = referenceDate; }
+            case "week" -> {
+                rangeStart = referenceDate.minusDays(referenceDate.getDayOfWeek().getValue() - 1L);
+                rangeEnd = rangeStart.plusDays(6);
+            }
+            case "month" -> {
+                rangeStart = referenceDate.withDayOfMonth(1);
+                rangeEnd = referenceDate.withDayOfMonth(referenceDate.lengthOfMonth());
+            }
+            case "year" -> {
+                rangeStart = referenceDate.withDayOfYear(1);
+                rangeEnd = referenceDate.withDayOfYear(referenceDate.lengthOfYear());
+            }
+            default -> period = "all";
+        }
+        final LocalDate from = rangeStart;
+        final LocalDate to = rangeEnd;
+        final String term = q == null ? "" : q.trim().toLowerCase(java.util.Locale.ROOT);
+        java.util.List<Reservation> history = reservations.findAllByOrderByCreatedAtDesc().stream()
+                .filter(this::isProcessedHistory)
+                .filter(r -> from == null || (!r.getCheckIn().isBefore(from) && !r.getCheckIn().isAfter(to)))
+                .filter(r -> term.isBlank() ||
+                        String.valueOf(r.getId()).contains(term) ||
+                        r.getCustomer().getFullName().toLowerCase(java.util.Locale.ROOT).contains(term) ||
+                        r.getCustomer().getEmail().toLowerCase(java.util.Locale.ROOT).contains(term) ||
+                        r.getRoom().getType().toLowerCase(java.util.Locale.ROOT).contains(term) ||
+                        r.getRoom().getRoomNumber().toLowerCase(java.util.Locale.ROOT).contains(term) ||
+                        r.getStatus().toLowerCase(java.util.Locale.ROOT).contains(term))
+                .toList();
+        model.addAttribute("reservations", history);
+        model.addAttribute("searchQuery", q == null ? "" : q);
+        model.addAttribute("period", period);
+        model.addAttribute("referenceDate", referenceDate);
         return "reservation-history";
     }
 
@@ -316,7 +358,7 @@ public class HotelController {
 
 
     private boolean isProcessedHistory(Reservation r) {
-        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED").contains(r.getStatus());
+        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED", "EARLY_CHECKOUT_REQUESTED", "EXTENSION_REQUESTED").contains(r.getStatus());
     }
 
     @PostMapping("/manager/history/{id}/delete")
