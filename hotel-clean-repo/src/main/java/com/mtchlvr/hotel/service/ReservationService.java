@@ -47,7 +47,7 @@ public class ReservationService {
     public boolean isAvailable(Room room, LocalDate in, LocalTime inTime,
                                LocalDate out, LocalTime outTime) {
         if (room == null || room.getId() == null || in == null || out == null ||
-                inTime == null || outTime == null || in.isBefore(LocalDate.now()) ||
+                inTime == null || outTime == null || in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila"))) ||
                 !room.isAvailable() || !room.isActive()) {
             return false;
         }
@@ -122,7 +122,7 @@ public class ReservationService {
     // Compatibility overload for existing callers and tests.
     @Transactional
     public Reservation reserve(String email, Long roomId, LocalDate in, LocalDate out) {
-        if (in == null || out == null || !out.isAfter(in) || in.isBefore(LocalDate.now())) {
+        if (in == null || out == null || !out.isAfter(in) || in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila")))) {
             throw new IllegalArgumentException(
                 "Choose a valid check-in date and a check-out date after it."
             );
