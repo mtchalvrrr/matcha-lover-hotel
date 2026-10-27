@@ -465,3 +465,53 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--forest); outlin
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+
+/* UX refinements: persistent manager navigation and photo-led customer/auth pages. */
+.hero-notice { margin: 22px 0 16px; padding: 12px 15px; border-left: 3px solid #2a7c13; background: rgba(255,255,255,.82); color: #263b24; border-radius: 0 8px 8px 0; }
+.hero-actions { flex-wrap: wrap; gap: 12px; }
+.auth-body {
+  background: linear-gradient(135deg, rgba(18,38,20,.62), rgba(20,38,22,.38)),
+    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+}
+.auth-brand { color: #fff; text-shadow: 0 2px 12px #10201080; }
+.auth-card { background: rgba(255,255,250,.96); backdrop-filter: blur(8px); }
+body:has(.manager-page), body.customer-body {
+  background: linear-gradient(135deg, rgba(18,38,20,.55), rgba(20,38,22,.32)),
+    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+}
+.manager-page .manager-section, .manager-page .stat-card, .manager-page .table-wrap,
+.manager-page .manager-side-panel, .manager-page .empty-state, .customer-body .stat-card,
+.customer-body .table-wrap, .customer-body .manager-section {
+  background: rgba(255,255,250,.96);
+  backdrop-filter: blur(7px);
+}
+.manager-layout { grid-template-columns: minmax(245px, 285px) minmax(0, 1fr); align-items: start; gap: 28px; }
+.manager-side-panel { position: sticky; top: 18px; align-self: start; min-height: calc(100vh - 36px); padding: 24px 18px; border: 1px solid rgba(255,255,255,.6); border-radius: 14px; box-shadow: 0 14px 38px rgba(15,35,15,.15); }
+.manager-side-nav { display: flex; flex-direction: column; gap: 8px; }
+.manager-side-link { min-height: 46px; padding: 12px 13px; border-radius: 8px; }
+.manager-side-link:hover, .manager-side-link:focus-visible { background: #edf3e8; }
+.manager-content { min-width: 0; }
+.history-search-form { display: grid; grid-template-columns: minmax(220px, 2fr) minmax(140px, .8fr) minmax(160px, 1fr) auto auto; align-items: end; gap: 12px; margin: 22px 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,250,.96); }
+.history-search-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 650; }
+.customer-browse-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 20px 0; padding: 16px; border: 1px solid rgba(255,255,255,.6); border-radius: 12px; background: rgba(255,255,250,.94); }
+.customer-browse-actions p { margin: 0; }
+input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
+@media (max-width: 1000px) {
+  .manager-layout { grid-template-columns: minmax(210px, 245px) minmax(0, 1fr); }
+  .history-search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .manager-layout { grid-template-columns: minmax(0, 1fr); }
+  .manager-side-panel { position: static; min-height: auto; }
+  .manager-side-nav { flex-direction: column; }
+  .history-search-form { grid-template-columns: minmax(0, 1fr); }
+}
+
+.stay-extension-options { margin-top: 16px; padding: 16px; border: 1px solid #dfe5dc; border-radius: 10px; background: #f7faf3; }
+.extension-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 12px; }
+.extension-form button { grid-column: 1 / -1; justify-self: start; }
+@media (max-width: 520px) {
+  .extension-form { grid-template-columns: minmax(0, 1fr); }
+  .extension-form button { grid-column: auto; width: 100%; }
+}

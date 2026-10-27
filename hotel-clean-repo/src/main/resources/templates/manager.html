@@ -31,7 +31,7 @@
 
                     <div class="stat-card">
                         <span>Pending review</span>
-                        <strong th:text="${#lists.size(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED'])}">0</strong>
+                        <strong th:text="${#lists.size(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED' or status == 'EARLY_CHECKOUT_REQUESTED'])}">0</strong>
                     </div>
                 </div>
 
@@ -51,7 +51,7 @@
                                 <td th:text="${r.checkOut}">2026-10-16</td>
                                 <td th:text="${r.nights}">2</td>
                                 <td th:text="|₱${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}|">₱3,600.00</td>
-                                <td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
+                                <td><span class="status" th:text="${r.status == 'COMPLETED' ? 'Checked Out' : r.status}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(occupancyReservations)}"><td colspan="7" class="muted">No active reservation dates to display.</td></tr>
                         </tbody>
