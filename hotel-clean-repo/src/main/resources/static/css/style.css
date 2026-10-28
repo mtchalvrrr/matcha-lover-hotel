@@ -515,3 +515,303 @@ input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
   .extension-form { grid-template-columns: minmax(0, 1fr); }
   .extension-form button { grid-column: auto; width: 100%; }
 }
+
+/* Calmer manager/customer surfaces and a responsive, collapsible manager menu. */
+body:has(.manager-page),
+body.customer-body {
+  background: #f4f7f3;
+}
+
+.manager-page .manager-section,
+.manager-page .stat-card,
+.manager-page .table-wrap,
+.manager-page .manager-side-panel,
+.manager-page .empty-state,
+.customer-body .stat-card,
+.customer-body .table-wrap,
+.customer-body .manager-section,
+.customer-browse-actions {
+  background: #fff;
+  border-color: #e2e9e1;
+  box-shadow: 0 6px 24px rgba(32, 53, 28, .045);
+  backdrop-filter: none;
+}
+
+.manager-layout {
+  grid-template-columns: minmax(245px, 275px) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.manager-layout.manager-layout--collapsed {
+  grid-template-columns: 82px minmax(0, 1fr);
+}
+
+.manager-side-panel {
+  position: sticky;
+  top: 18px;
+  display: flex;
+  min-height: auto;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 14px;
+  border: 1px solid #e2e9e1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(32, 53, 28, .07);
+}
+
+.manager-side-panel-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 14px;
+  border-bottom: 1px solid #edf1eb;
+}
+
+.manager-side-panel-copy {
+  min-width: 0;
+}
+
+.manager-side-panel-copy .eyebrow {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .16em;
+}
+
+.manager-side-panel-header h2 {
+  margin: 5px 0 0;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -.045em;
+}
+
+.manager-panel-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid #e2e9e1;
+  border-radius: 9px;
+  background: #f7f9f6;
+  color: #45644a;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.manager-panel-toggle:hover {
+  border-color: #c9d9c8;
+  background: #eef5ed;
+  color: var(--forest);
+}
+
+.manager-panel-toggle-icon {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .18s ease;
+}
+
+.manager-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.manager-side-link {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #435447;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.manager-side-link:hover,
+.manager-side-link:focus-visible {
+  transform: none;
+  background: #f3f7f1;
+  color: var(--forest);
+}
+
+.manager-side-link[aria-current="page"] {
+  border-color: #d9e8d6;
+  background: #edf5eb;
+  color: #245e32;
+}
+
+.manager-side-link-icon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  padding: 9px;
+  border-radius: 10px;
+  background: #f2f5f1;
+  color: #537657;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.manager-side-link[aria-current="page"] .manager-side-link-icon {
+  background: #dcebd9;
+  color: #286b3b;
+}
+
+.manager-side-link-arrow {
+  justify-self: end;
+  color: #839183;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.manager-side-note {
+  margin: 0;
+  padding: 11px 10px 0;
+  border-top: 1px solid #edf1eb;
+  color: #748174;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.manager-side-panel.is-collapsed {
+  width: 82px;
+  min-height: calc(100vh - 36px);
+  padding: 14px 9px;
+}
+
+.manager-side-panel.is-collapsed .manager-side-panel-header {
+  justify-content: center;
+  padding: 0 0 12px;
+}
+
+.manager-side-panel.is-collapsed .manager-side-panel-copy,
+.manager-side-panel.is-collapsed .manager-panel-toggle-label,
+.manager-side-panel.is-collapsed .manager-side-link-label,
+.manager-side-panel.is-collapsed .manager-side-link-arrow,
+.manager-side-panel.is-collapsed .manager-side-note {
+  display: none;
+}
+
+.manager-side-panel.is-collapsed .manager-panel-toggle {
+  width: 42px;
+  padding: 0;
+}
+
+.manager-side-panel.is-collapsed .manager-panel-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.manager-side-panel.is-collapsed .manager-side-nav {
+  align-items: center;
+}
+
+.manager-side-panel.is-collapsed .manager-side-link {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  width: 54px;
+  padding: 6px;
+}
+
+.manager-side-panel.is-collapsed .manager-side-link-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.manager-content {
+  min-width: 0;
+}
+
+.manager-content .page-title {
+  margin-top: 2px;
+}
+
+.manager-section {
+  border-radius: 14px;
+}
+
+.customer-browse-actions {
+  border-radius: 13px;
+}
+
+@media (max-width: 900px) and (min-width: 761px) {
+  .manager-layout {
+    grid-template-columns: minmax(210px, 245px) minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .manager-layout.manager-layout--collapsed {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .manager-layout,
+  .manager-layout.manager-layout--collapsed {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .manager-side-panel,
+  .manager-side-panel.is-collapsed {
+    position: static;
+    width: 100%;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .manager-side-panel.is-collapsed .manager-side-panel-header {
+    justify-content: space-between;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .manager-side-panel.is-collapsed .manager-side-panel-copy {
+    display: block;
+  }
+
+  .manager-side-panel.is-collapsed .manager-panel-toggle {
+    width: auto;
+    padding: 0 10px;
+  }
+
+  .manager-side-panel.is-collapsed .manager-panel-toggle-label {
+    display: inline;
+  }
+
+  .manager-side-panel.is-collapsed .manager-side-nav,
+  .manager-side-panel.is-collapsed .manager-side-note {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manager-panel-toggle-icon,
+  .manager-panel-toggle,
+  .manager-side-link {
+    transition: none;
+  }
+}

@@ -10,20 +10,67 @@
   <p class="alert success" th:if="${success}" th:text="${success}"></p>
   <p class="alert error" th:if="${error}" th:text="${error}"></p>
 </div>
-<div th:fragment="managerSideNav" class="manager-side-panel" aria-label="Manager workspace">
+<aside th:fragment="managerSideNav" class="manager-side-panel" aria-label="Manager workspace">
   <div class="manager-side-panel-header">
-    <span class="eyebrow">WORKSPACE</span>
-    <h2>Manage</h2>
+    <div class="manager-side-panel-copy">
+      <span class="eyebrow">MANAGER WORKSPACE</span>
+      <h2>Manage</h2>
+    </div>
+    <button class="manager-panel-toggle" type="button" aria-expanded="true"
+            aria-controls="manager-side-nav" aria-label="Collapse management menu"
+            title="Collapse management menu">
+      <svg class="manager-panel-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      <span class="manager-panel-toggle-label">Collapse</span>
+    </button>
   </div>
-  <nav class="manager-side-nav" aria-label="Management tools">
-    <a class="manager-side-link" href="/manager"><span>Dashboard</span><b aria-hidden="true">↗</b></a>
-    <a class="manager-side-link" href="/manager/reservation-requests"><span>Reservation requests</span><b aria-hidden="true">↗</b></a>
-    <a class="manager-side-link" href="/manager/room-management"><span>Room management</span><b aria-hidden="true">↗</b></a>
-    <a class="manager-side-link" href="/manager/history"><span>Reservation history</span><b aria-hidden="true">↗</b></a>
-    <a class="manager-side-link" href="/manager/reports"><span>Guest reports</span><b aria-hidden="true">↗</b></a>
+  <nav id="manager-side-nav" class="manager-side-nav" aria-label="Management tools">
+    <a class="manager-side-link" href="/manager" aria-label="Dashboard" title="Dashboard">
+      <svg class="manager-side-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+      </svg>
+      <span class="manager-side-link-label">Dashboard</span>
+      <b class="manager-side-link-arrow" aria-hidden="true">↗</b>
+    </a>
+    <a class="manager-side-link" href="/manager/reservation-requests" aria-label="Reservation requests" title="Reservation requests">
+      <svg class="manager-side-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+        <path d="M16 3v4M8 3v4M3 10h18M8 14h3M8 17h7"></path>
+      </svg>
+      <span class="manager-side-link-label">Reservation requests</span>
+      <b class="manager-side-link-arrow" aria-hidden="true">↗</b>
+    </a>
+    <a class="manager-side-link" href="/manager/room-management" aria-label="Room management" title="Room management">
+      <svg class="manager-side-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 20v-9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9M3 16h18M6 9V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3"></path>
+        <path d="M5 20v-4M19 20v-4"></path>
+      </svg>
+      <span class="manager-side-link-label">Room management</span>
+      <b class="manager-side-link-arrow" aria-hidden="true">↗</b>
+    </a>
+    <a class="manager-side-link" href="/manager/history" aria-label="Reservation history" title="Reservation history">
+      <svg class="manager-side-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 7v5l3 2M3 4v5h5"></path>
+      </svg>
+      <span class="manager-side-link-label">Reservation history</span>
+      <b class="manager-side-link-arrow" aria-hidden="true">↗</b>
+    </a>
+    <a class="manager-side-link" href="/manager/reports" aria-label="Guest reports" title="Guest reports">
+      <svg class="manager-side-link-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path>
+        <path d="M14 3v5h5M8 13h8M8 17h6"></path>
+      </svg>
+      <span class="manager-side-link-label">Guest reports</span>
+      <b class="manager-side-link-arrow" aria-hidden="true">↗</b>
+    </a>
   </nav>
-  <p class="manager-side-note">All management tools live here, in one place. Use the links above to jump between tasks.</p>
-</div>
+  <p class="manager-side-note">Your management tools, together in one workspace.</p>
+</aside>
 <div th:fragment="managerConfirm" id="confirm-modal" class="confirm-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title"><section class="confirm-card"><span class="eyebrow">PLEASE CONFIRM</span><h2 id="confirm-title">Are you sure?</h2><p data-confirm-message>Are you sure you want to continue?</p><div class="confirm-actions"><button type="button" class="button secondary" data-confirm-cancel>Go back</button><button type="button" class="button" data-confirm-proceed>Yes, continue</button></div></section></div>
 <div th:fragment="chatbot">
   <meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">

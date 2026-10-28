@@ -9,6 +9,52 @@ if (sensitiveHistoryPath) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const managerPanel = document.querySelector(".manager-side-panel");
+  if (managerPanel) {
+    const managerToggle = managerPanel.querySelector(".manager-panel-toggle");
+    const managerLayout = managerPanel.closest(".manager-layout");
+    const storageKey = "mtchlvr-manager-menu-collapsed";
+    const normalizePath = (path) => path.replace(/\/+$/, "") || "/";
+
+    managerPanel.querySelectorAll(".manager-side-link").forEach((link) => {
+      if (normalizePath(new URL(link.href, window.location.origin).pathname) ===
+          normalizePath(window.location.pathname)) {
+        link.setAttribute("aria-current", "page");
+      }
+    });
+
+    const setManagerPanelCollapsed = (collapsed) => {
+      managerPanel.classList.toggle("is-collapsed", collapsed);
+      managerLayout?.classList.toggle("manager-layout--collapsed", collapsed);
+      managerToggle?.setAttribute("aria-expanded", String(!collapsed));
+
+      const label = collapsed ? "Expand management menu" : "Collapse management menu";
+      managerToggle?.setAttribute("aria-label", label);
+      managerToggle?.setAttribute("title", label);
+
+      const visibleLabel = managerToggle?.querySelector(".manager-panel-toggle-label");
+      if (visibleLabel) visibleLabel.textContent = collapsed ? "Expand" : "Collapse";
+    };
+
+    let startsCollapsed = false;
+    try {
+      startsCollapsed = window.localStorage.getItem(storageKey) === "true";
+    } catch (_) {
+      // The menu remains usable when browser storage is unavailable.
+    }
+    setManagerPanelCollapsed(startsCollapsed);
+
+    managerToggle?.addEventListener("click", () => {
+      const collapsed = !managerPanel.classList.contains("is-collapsed");
+      setManagerPanelCollapsed(collapsed);
+      try {
+        window.localStorage.setItem(storageKey, String(collapsed));
+      } catch (_) {
+        // Keep the current-page toggle working when storage is unavailable.
+      }
+    });
+  }
+
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   document.querySelectorAll('input[name="checkIn"]').forEach((input) => {
