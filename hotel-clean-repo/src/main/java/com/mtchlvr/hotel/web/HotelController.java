@@ -72,7 +72,7 @@ public class HotelController {
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
         AppUser customer = users.findByEmailIgnoreCase(auth.getName()).orElseThrow();
-        if (customer.getCustomerCode() == null || customer.getCustomerCode().isBlank()) {
+        if (!hasValidCustomerCode(customer)) {
             customer.setCustomerCode(generateCustomerCode());
             users.save(customer);
         }
@@ -238,24 +238,19 @@ public class HotelController {
     }
 
     @GetMapping("/manager") public String manager(Model model) {
+        ensureCustomerCodes();
         model.addAttribute("rooms", rooms.findAll());
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
         java.util.List<Reservation> occupancyReservations = reservations.findAllByOrderByCreatedAtDesc().stream()
                 .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
                 .toList();
-        for (Reservation reservation : occupancyReservations) {
-            AppUser customer = reservation.getCustomer();
-            if (customer.getCustomerCode() == null || customer.getCustomerCode().isBlank()) {
-                customer.setCustomerCode(generateCustomerCode());
-                users.save(customer);
-            }
-        }
         model.addAttribute("occupancyReservations", occupancyReservations);
         model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
         return "manager";
     }
 
     @GetMapping("/manager/reservation-requests") public String managerReservationRequests(Model model) {
+        ensureCustomerCodes();
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
         return "reservation-requests";
     }
@@ -266,6 +261,7 @@ public class HotelController {
             @RequestParam(defaultValue = "all") String period,
             @RequestParam(required = false) LocalDate date,
             Model model) {
+        ensureCustomerCodes();
         java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
         LocalDate referenceDate = date == null ? LocalDate.now(hotelZone) : date;
         LocalDate rangeStart = null;
@@ -296,6 +292,7 @@ public class HotelController {
                         String.valueOf(r.getId()).contains(term) ||
                         r.getCustomer().getFullName().toLowerCase(java.util.Locale.ROOT).contains(term) ||
                         r.getCustomer().getEmail().toLowerCase(java.util.Locale.ROOT).contains(term) ||
+                        (r.getCustomer().getCustomerCode() != null && r.getCustomer().getCustomerCode().toLowerCase(java.util.Locale.ROOT).contains(term)) ||
                         r.getRoom().getType().toLowerCase(java.util.Locale.ROOT).contains(term) ||
                         r.getRoom().getRoomNumber().toLowerCase(java.util.Locale.ROOT).contains(term) ||
                         r.getStatus().toLowerCase(java.util.Locale.ROOT).contains(term))
@@ -327,6 +324,7 @@ public class HotelController {
     }
 
     @GetMapping("/manager/reports") public String managerReports(Model model) {
+        ensureCustomerCodes();
         model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
         return "reports";
     }
@@ -472,6 +470,21 @@ public static class RegisterForm {
     }
 }
 
+
+    private boolean hasValidCustomerCode(AppUser customer) {
+        return customer != null && customer.getCustomerCode() != null &&
+                customer.getCustomerCode().matches("mtchlvr-\\d{4}-5201314");
+    }
+
+    /** Assign a readable, unique customer code to existing customer accounts too. */
+    private void ensureCustomerCodes() {
+        for (AppUser customer : users.findAll()) {
+            if ("CUSTOMER".equalsIgnoreCase(customer.getRole()) && !hasValidCustomerCode(customer)) {
+                customer.setCustomerCode(generateCustomerCode());
+                users.save(customer);
+            }
+        }
+    }
 
     private String generateCustomerCode() {
         String code;
