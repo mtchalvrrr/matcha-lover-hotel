@@ -534,3 +534,58 @@ input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
   .manager-functions .manager-links { grid-template-columns: minmax(0, 1fr); }
   .manager-functions .manager-link:last-child { grid-column: auto; }
 }
+
+
+/* Manager readability: use a calm light background with high-contrast content surfaces. */
+body:has(.manager-page) {
+  background: linear-gradient(135deg, #edf3ec 0%, #f8f7f0 52%, #e6eee4 100%);
+  background-attachment: fixed;
+  color: #202820;
+}
+.manager-page .page-title,
+.manager-page h2,
+.manager-page h3 {
+  color: #202820;
+}
+.manager-page .manager-functions,
+.manager-page .manager-section,
+.manager-page .stat-card,
+.manager-page .table-wrap,
+.manager-page .history-search-form,
+.manager-page .empty-state {
+  background: #fff;
+  border-color: #d7e2d5;
+  box-shadow: 0 8px 24px rgba(35, 65, 38, .07);
+}
+.manager-page .manager-functions .manager-link {
+  background: #f8faf7;
+  border-color: #d7e2d5;
+}
+.manager-page .manager-functions .manager-link:hover {
+  background: #edf5eb;
+  border-color: #286b3b;
+}
+.manager-page .muted,
+.manager-page .lead {
+  color: #586658;
+}
+.manager-page th {
+  background: #eaf1e8;
+  color: #354b36;
+}
+.manager-page td {
+  color: #263328;
+}
+.customer-code {
+  display: inline-block;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #d5e5d1;
+  border-radius: 6px;
+  background: #edf6e9;
+  color: #245b2d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
