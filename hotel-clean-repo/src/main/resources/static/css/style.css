@@ -516,6 +516,450 @@ input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
   .extension-form button { grid-column: auto; width: 100%; }
 }
 
+
+/* Manager layout cleanup: no sidebar; the five manager workspaces appear only on the dashboard. */
+.manager-layout { display: block; width: 100%; margin-top: 0; }
+.manager-content { width: 100%; min-width: 0; }
+.manager-side-panel { display: none !important; }
+.manager-functions { margin: 22px 0 30px; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,250,.97); }
+.manager-functions-heading { margin-bottom: 18px; }
+.manager-functions-heading h2 { margin: 6px 0; font-size: clamp(22px, 3vw, 30px); color: var(--ink); }
+.manager-functions-heading p { margin: 0; color: var(--muted); font-size: 13px; }
+.manager-functions .manager-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.manager-functions .manager-link { min-height: 76px; padding: 18px 20px; border: 1px solid var(--line); background: #fff; }
+.manager-functions .manager-link:last-child { grid-column: 1 / -1; }
+.manager-functions .manager-link:hover { border-color: var(--forest); background: #f7faf5; }
+@media (max-width: 600px) {
+  .manager-functions { padding: 16px; }
+  .manager-functions .manager-links { grid-template-columns: minmax(0, 1fr); }
+  .manager-functions .manager-link:last-child { grid-column: auto; }
+}
+
+
+/* Manager readability: use a calm light background with high-contrast content surfaces. */
+body:has(.manager-page) {
+  background: linear-gradient(135deg, #edf3ec 0%, #f8f7f0 52%, #e6eee4 100%);
+  background-attachment: fixed;
+  color: #202820;
+}
+.manager-page .page-title,
+.manager-page h2,
+.manager-page h3 {
+  color: #202820;
+}
+.manager-page .manager-functions,
+.manager-page .manager-section,
+.manager-page .stat-card,
+.manager-page .table-wrap,
+.manager-page .history-search-form,
+.manager-page .empty-state {
+  background: #fff;
+  border-color: #d7e2d5;
+  box-shadow: 0 8px 24px rgba(35, 65, 38, .07);
+}
+.manager-page .manager-functions .manager-link {
+  background: #f8faf7;
+  border-color: #d7e2d5;
+}
+.manager-page .manager-functions .manager-link:hover {
+  background: #edf5eb;
+  border-color: #286b3b;
+}
+.manager-page .muted,
+.manager-page .lead {
+  color: #586658;
+}
+.manager-page th {
+  background: #eaf1e8;
+  color: #354b36;
+}
+.manager-page td {
+  color: #263328;
+}
+.customer-code {
+  display: inline-block;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #d5e5d1;
+  border-radius: 6px;
+  background: #edf6e9;
+  color: #245b2d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+
+/* Customer experience refresh: warm color, clearer sections, and less visual clutter. */
+body.customer-body,
+body:has(.room-card) {
+  background:
+    radial-gradient(ellipse at 8% 8%, rgba(214, 235, 197, .72), transparent 34%),
+    radial-gradient(ellipse at 95% 28%, rgba(255, 231, 184, .58), transparent 30%),
+    linear-gradient(180deg, #f5f8ef 0%, #fffaf0 48%, #f3f6ed 100%);
+  background-attachment: fixed;
+}
+body.customer-body .page-wrap,
+body:has(.room-card) .page-wrap {
+  max-width: 1320px;
+}
+body.customer-body .page-title,
+body:has(.room-card) .page-title {
+  color: #203c28;
+}
+body.customer-body .page-title em,
+body:has(.room-card) .page-title em {
+  color: #397c38;
+}
+body.customer-body .lead,
+body:has(.room-card) .lead {
+  color: #66735e;
+}
+body:has(.room-card) .room-card {
+  background: rgba(255, 255, 252, .96);
+  border: 1px solid #dce7d5;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(40, 74, 36, .08);
+}
+body:has(.room-card) .room-card:hover {
+  border-color: #b8d3aa;
+  box-shadow: 0 18px 42px rgba(40, 74, 36, .14);
+}
+body:has(.room-card) .room-illustration {
+  border-bottom: 1px solid rgba(61, 99, 51, .12);
+}
+body:has(.room-card) .room-tag {
+  background: #fff9df;
+  color: #4b612f;
+  border: 1px solid #eadca8;
+  box-shadow: 0 3px 10px rgba(41, 57, 27, .06);
+}
+body:has(.room-card) .room-number {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 245, .78);
+}
+body:has(.room-card) .room-info {
+  align-items: flex-start;
+  padding: 20px 18px 16px;
+}
+body:has(.room-card) .room-info h3 {
+  color: #263e28;
+  font-size: 18px;
+}
+body:has(.room-card) .price strong {
+  color: #2c7835;
+  font-size: 18px;
+}
+body:has(.room-card) .booking-form {
+  padding: 16px;
+  margin: 0 12px 12px;
+  border: 1px solid #e0e9d9;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #f5f9f0, #fff9e9);
+}
+body:has(.room-card) .booking-form label {
+  color: #425b3c;
+  font-size: 11px;
+}
+body:has(.room-card) .booking-form input,
+body.customer-body input,
+body.customer-body select,
+body.customer-body textarea {
+  border-color: #d6e2d0;
+  background: #fffefa;
+}
+body:has(.room-card) .room-availability-toggle {
+  width: calc(100% - 32px);
+  margin: 0 16px 16px;
+  background: #fff4d7;
+  color: #5d642f;
+  border-color: #eadba9;
+}
+body:has(.room-card) .room-availability-toggle:hover {
+  background: #f9e8b7;
+}
+body:has(.room-card) .room-availability {
+  margin: 0 16px 18px;
+  padding: 16px;
+  border: 1px solid #d8e6cf;
+  border-radius: 12px;
+  background: #f4f8ef;
+}
+body:has(.room-card) .availability-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+body.customer-body .stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 28px 0 30px;
+}
+body.customer-body .stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid #dce7d4;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffef9 0%, #f0f7e9 100%);
+  box-shadow: 0 10px 28px rgba(39, 75, 35, .07);
+}
+body.customer-body .stat-card:nth-child(2) {
+  background: linear-gradient(135deg, #fffdf6 0%, #fff0d5 100%);
+  border-color: #eee0bf;
+}
+body.customer-body .stat-card strong {
+  color: #2f7838;
+  overflow-wrap: anywhere;
+}
+body.customer-body .stat-card:nth-child(2) strong {
+  color: #765d25;
+}
+body.customer-body .customer-browse-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 20px 0 30px;
+  padding: 18px 20px;
+  border: 1px solid #e9dfbd;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #fff8e5, #f4f8ed);
+}
+body.customer-body .customer-browse-actions p {
+  margin: 0;
+  max-width: 700px;
+  font-size: 13px;
+}
+body.customer-body .table-wrap {
+  border: 1px solid #dce6d6;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(40, 74, 36, .07);
+  background: rgba(255, 255, 252, .97);
+}
+body.customer-body table {
+  font-size: 12px;
+}
+body.customer-body th {
+  padding-top: 17px;
+  padding-bottom: 17px;
+  background: #eaf3e4;
+  color: #3d5b3b;
+}
+body.customer-body td {
+  padding-top: 17px;
+  padding-bottom: 17px;
+  color: #3c4b3a;
+}
+body.customer-body tbody tr:nth-child(even) {
+  background: #fbfcf7;
+}
+body.customer-body tbody tr:hover {
+  background: #f0f7e9;
+}
+body.customer-body .empty-state {
+  border: 1px dashed #bfd3b3;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f3f8ed, #fff8e8);
+}
+body.customer-body .status {
+  padding: 6px 10px;
+  font-size: 10px;
+}
+body.customer-body .status.completed,
+body.customer-body .status.resolved {
+  background: #e3f2e3;
+  color: #276b36;
+}
+body.customer-body .status.approved {
+  background: #e1f4d8;
+  color: #286c25;
+}
+body.customer-body .status.pending,
+body.customer-body .status.cancellation_requested {
+  background: #fff0c9;
+  color: #855b0d;
+}
+body.customer-body .status.rejected,
+body.customer-body .status.cancelled {
+  background: #ffe8e1;
+  color: #a43f2b;
+}
+body.customer-body .button.secondary {
+  background: #fff5dc;
+  color: #5b642e;
+  border-color: #e6d8a8;
+}
+body.customer-body .button.secondary:hover {
+  background: #f7e8bd;
+}
+body.customer-body .alert.success {
+  border: 1px solid #cbe4bd;
+  background: #eaf6e3;
+  color: #245d16;
+}
+body.customer-body .alert.error {
+  border: 1px solid #f0c8b9;
+  background: #fff0e8;
+  color: #9a3e25;
+}
+body.customer-body .manager-section,
+body.customer-body .section {
+  border-radius: 16px;
+}
+body.customer-body .confirm-card {
+  border-color: #dbe7d2;
+  background: linear-gradient(145deg, #fffef9, #f3f8ed);
+}
+@media (max-width: 700px) {
+  body.customer-body .stats-grid {
+    grid-template-columns: 1fr;
+    margin: 22px 0;
+  }
+  body.customer-body .customer-browse-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  body.customer-body .customer-browse-actions .button {
+    width: 100%;
+  }
+  body:has(.room-card) .booking-form {
+    grid-template-columns: 1fr;
+  }
+  body:has(.room-card) .booking-form button {
+    grid-column: auto;
+  }
+}
+
+
+/* Keep the hotel photo colorful and visible; blur the image itself instead of washing it out with a white overlay. */
+body:has(.manager-page),
+body.customer-body,
+body:has(.room-card) {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+body:has(.manager-page)::before,
+body.customer-body::before,
+body:has(.room-card)::before {
+  content: "";
+  position: fixed;
+  inset: -12px;
+  z-index: -1;
+  pointer-events: none;
+  background: url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center / cover no-repeat;
+  filter: blur(9px);
+  transform: scale(1.03);
+}
+.manager-page .manager-functions,
+.manager-page .manager-section,
+.manager-page .stat-card,
+.manager-page .table-wrap,
+.manager-page .history-search-form,
+.manager-page .empty-state,
+body.customer-body .stat-card,
+body.customer-body .table-wrap,
+body.customer-body .manager-section,
+body.customer-body .section,
+body:has(.room-card) .room-card {
+  background-color: rgba(255, 255, 250, .94);
+  backdrop-filter: blur(3px);
+}
+
+/* Collapsible manager navigation styles from PR #2; preserve main's blurred photo background. */
+.manager-layout { grid-template-columns: minmax(190px, .8fr) minmax(0, 2fr); gap: 22px; }
+  .manager-side-panel { position: static; top: auto; }
+  .manager-content { min-width: 0; }
+}
+@media (max-width: 760px) {
+  .nav { align-items: flex-start; }
+  .nav nav, .nav-actions { width: 100%; gap: 10px 14px; }
+  .hero { grid-template-columns: minmax(0, 1fr); padding-top: 36px; padding-bottom: 42px; }
+  .hero-art { width: 100%; max-width: 100%; }
+  .room-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .section-heading { align-items: flex-start; flex-direction: column; }
+  .page-wrap { width: calc(100% - 28px); margin-top: 24px; }
+  .manager-layout { grid-template-columns: minmax(170px, .8fr) minmax(0, 2fr); }
+  .manager-side-panel { flex-direction: column; flex-wrap: nowrap; }
+  .manager-side-nav { flex-direction: column; flex-wrap: nowrap; }
+}
+@media (max-width: 520px) {
+  .room-grid, .stats-grid, .manager-links { grid-template-columns: minmax(0, 1fr); }
+  .nav { padding: 12px 14px; }
+  .hero { padding-left: 18px; padding-right: 18px; }
+  .hero-actions { align-items: stretch; gap: 12px; }
+  .hero-actions .button { width: 100%; }
+  .section { padding: 34px 18px; }
+  .manager-section { padding: 16px; }
+  .manager-side-panel { padding: 14px; }
+  .table-wrap { border-radius: 8px; }
+  .button { max-width: 100%; }
+  .booking-form { grid-template-columns: minmax(0, 1fr); }
+  .booking-form button { grid-column: auto; }
+  .room-info { align-items: flex-start; flex-wrap: wrap; }
+  .price { text-align: left; }
+  .confirm-actions { flex-direction: column-reverse; }
+  .confirm-actions .button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
+
+
+/* UX refinements: persistent manager navigation and photo-led customer/auth pages. */
+.hero-notice { margin: 22px 0 16px; padding: 12px 15px; border-left: 3px solid #2a7c13; background: rgba(255,255,255,.82); color: #263b24; border-radius: 0 8px 8px 0; }
+.hero-actions { flex-wrap: wrap; gap: 12px; }
+.auth-body {
+  background: linear-gradient(135deg, rgba(18,38,20,.62), rgba(20,38,22,.38)),
+    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+}
+.auth-brand { color: #fff; text-shadow: 0 2px 12px #10201080; }
+.auth-card { background: rgba(255,255,250,.96); backdrop-filter: blur(8px); }
+body:has(.manager-page), body.customer-body {
+  background: linear-gradient(135deg, rgba(18,38,20,.55), rgba(20,38,22,.32)),
+    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+}
+.manager-page .manager-section, .manager-page .stat-card, .manager-page .table-wrap,
+.manager-page .manager-side-panel, .manager-page .empty-state, .customer-body .stat-card,
+.customer-body .table-wrap, .customer-body .manager-section {
+  background: rgba(255,255,250,.96);
+  backdrop-filter: blur(7px);
+}
+.manager-layout { grid-template-columns: minmax(245px, 285px) minmax(0, 1fr); align-items: start; gap: 28px; }
+.manager-side-panel { position: sticky; top: 18px; align-self: start; min-height: calc(100vh - 36px); padding: 24px 18px; border: 1px solid rgba(255,255,255,.6); border-radius: 14px; box-shadow: 0 14px 38px rgba(15,35,15,.15); }
+.manager-side-nav { display: flex; flex-direction: column; gap: 8px; }
+.manager-side-link { min-height: 46px; padding: 12px 13px; border-radius: 8px; }
+.manager-side-link:hover, .manager-side-link:focus-visible { background: #edf3e8; }
+.manager-content { min-width: 0; }
+.history-search-form { display: grid; grid-template-columns: minmax(220px, 2fr) minmax(140px, .8fr) minmax(160px, 1fr) auto auto; align-items: end; gap: 12px; margin: 22px 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,250,.96); }
+.history-search-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 650; }
+.customer-browse-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 20px 0; padding: 16px; border: 1px solid rgba(255,255,255,.6); border-radius: 12px; background: rgba(255,255,250,.94); }
+.customer-browse-actions p { margin: 0; }
+input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
+@media (max-width: 1000px) {
+  .manager-layout { grid-template-columns: minmax(210px, 245px) minmax(0, 1fr); }
+  .history-search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .manager-layout { grid-template-columns: minmax(0, 1fr); }
+  .manager-side-panel { position: static; min-height: auto; }
+  .manager-side-nav { flex-direction: column; }
+  .history-search-form { grid-template-columns: minmax(0, 1fr); }
+}
+
+.stay-extension-options { margin-top: 16px; padding: 16px; border: 1px solid #dfe5dc; border-radius: 10px; background: #f7faf3; }
+.extension-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 12px; }
+.extension-form button { grid-column: 1 / -1; justify-self: start; }
+@media (max-width: 520px) {
+  .extension-form { grid-template-columns: minmax(0, 1fr); }
+  .extension-form button { grid-column: auto; width: 100%; }
+}
+
 /* Calmer manager/customer surfaces and a responsive, collapsible manager menu. */
 body:has(.manager-page),
 body.customer-body {
