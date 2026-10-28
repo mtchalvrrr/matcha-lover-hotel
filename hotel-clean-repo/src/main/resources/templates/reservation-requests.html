@@ -11,9 +11,10 @@
 <p class="muted">Review booking decisions and approve or decline early checkout requests.</p>
 <div th:if="${#lists.isEmpty(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED' or status == 'EARLY_CHECKOUT_REQUESTED'])}" class="empty-state"><h2>No requests to review.</h2></div>
 <div class="table-wrap" th:unless="${#lists.isEmpty(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED' or status == 'EARLY_CHECKOUT_REQUESTED'])}">
-<table><thead><tr><th>Guest</th><th>Room</th><th>Dates / request</th><th>Status</th><th>Decision</th></tr></thead><tbody>
+<table><thead><tr><th>Guest</th><th>Customer ID</th><th>Room</th><th>Dates / request</th><th>Status</th><th>Decision</th></tr></thead><tbody>
 <tr th:each="r : ${reservations}" th:if="${r.status == 'PENDING' or r.status == 'CANCELLATION_REQUESTED' or r.status == 'EARLY_CHECKOUT_REQUESTED'}">
 <td><strong th:text="${r.customer.fullName}">Guest</strong><small class="cell-sub" th:text="${r.customer.email}">Email</small></td>
+<td><span class="customer-code" th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</span></td>
 <td th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Room</td>
 <td><span th:text="${r.checkIn} + ' → ' + ${r.checkOut}">Dates</span><small class="cell-sub" th:if="${r.status == 'EARLY_CHECKOUT_REQUESTED' and r.requestedCheckOut != null}" th:text="'Requested checkout: ' + ${r.requestedCheckOut} + ' ' + ${r.requestedCheckOutTime}">Requested checkout</small></td>
 <td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
