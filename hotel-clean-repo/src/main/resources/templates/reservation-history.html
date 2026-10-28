@@ -34,11 +34,12 @@
 <div th:if="${#lists.isEmpty(reservations)}" class="empty-state"><h2>No matching history.</h2><p>Try a different search term or date range.</p></div>
 <div class="table-wrap" th:unless="${#lists.isEmpty(reservations)}">
 <table>
-<thead><tr><th>Reservation ID</th><th>Guest</th><th>Room</th><th>Stay dates</th><th>Status</th><th>Action</th></tr></thead>
+<thead><tr><th>Reservation ID</th><th>Guest</th><th>Customer ID</th><th>Room</th><th>Stay dates</th><th>Status</th><th>Action</th></tr></thead>
 <tbody>
 <tr th:each="r : ${reservations}">
 <td th:text="${r.id}">1</td>
 <td><strong th:text="${r.customer.fullName}">Guest</strong><small class="cell-sub" th:text="${r.customer.email}">Email</small></td>
+<td><span class="customer-code" th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</span></td>
 <td th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Room</td>
 <td th:text="${r.checkIn} + ' → ' + ${r.checkOut}">Dates</td>
 <td><span class="status" th:text="${r.status == 'COMPLETED' ? 'Checked Out' : r.status}" th:classappend="${r.status.toLowerCase()}">APPROVED</span></td>
