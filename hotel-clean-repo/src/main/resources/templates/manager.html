@@ -13,10 +13,19 @@
         <div th:replace="~{fragments :: alerts}"></div>
 
         <div class="manager-layout">
-            <div th:replace="~{fragments :: managerSideNav}"></div>
-
             <section class="manager-content">
                 <h1 class="page-title">Manager dashboard</h1>
+                <section class="manager-functions" aria-label="Manager functions">
+                    <div class="manager-functions-heading"><span class="eyebrow">MANAGEMENT</span><h2>Manager functions</h2><p>Choose a workspace to manage hotel operations.</p></div>
+                    <div class="manager-links">
+                        <a class="manager-link" href="/manager"><span>Dashboard</span><b aria-hidden="true">↗</b></a>
+                        <a class="manager-link" href="/manager/reservation-requests"><span>Reservation requests</span><b aria-hidden="true">↗</b></a>
+                        <a class="manager-link" href="/manager/room-management"><span>Room management</span><b aria-hidden="true">↗</b></a>
+                        <a class="manager-link" href="/manager/history"><span>Reservation history</span><b aria-hidden="true">↗</b></a>
+                        <a class="manager-link" href="/manager/reports"><span>Guest reports</span><b aria-hidden="true">↗</b></a>
+                    </div>
+                </section>
+
 
                 <div id="overview" class="stats-grid">
                     <div class="stat-card">
