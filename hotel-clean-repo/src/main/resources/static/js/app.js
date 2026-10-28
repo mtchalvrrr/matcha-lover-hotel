@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (managerPanel) {
     const managerToggle = managerPanel.querySelector(".manager-panel-toggle");
     const managerLayout = managerPanel.closest(".manager-layout");
-    const storageKey = "mtchlvr-manager-menu-collapsed";
+    const storageKey = "mtchlvr-manager-menu-collapsed-v2";
     const normalizePath = (path) => path.replace(/\/+$/, "") || "/";
 
     managerPanel.querySelectorAll(".manager-side-link").forEach((link) => {
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (visibleLabel) visibleLabel.textContent = collapsed ? "Expand" : "Collapse";
     };
 
-    let startsCollapsed = false;
+    let startsCollapsed = true;
     try {
       startsCollapsed = window.localStorage.getItem(storageKey) === "true";
     } catch (_) {
