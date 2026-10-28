@@ -836,14 +836,25 @@ body.customer-body .confirm-card {
 }
 
 
-/* Keep the existing hotel photo visible, but soften it so manager/customer panels stay readable. */
+/* Keep the hotel photo colorful and visible; blur the image itself instead of washing it out with a white overlay. */
 body:has(.manager-page),
 body.customer-body,
 body:has(.room-card) {
-  background:
-    linear-gradient(135deg, rgba(247, 250, 242, .76), rgba(255, 250, 237, .72)),
-    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center / cover fixed;
-  background-color: #f5f7ef;
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+body:has(.manager-page)::before,
+body.customer-body::before,
+body:has(.room-card)::before {
+  content: "";
+  position: fixed;
+  inset: -12px;
+  z-index: -1;
+  pointer-events: none;
+  background: url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center / cover no-repeat;
+  filter: blur(9px);
+  transform: scale(1.03);
 }
 .manager-page .manager-functions,
 .manager-page .manager-section,
@@ -856,6 +867,6 @@ body.customer-body .table-wrap,
 body.customer-body .manager-section,
 body.customer-body .section,
 body:has(.room-card) .room-card {
-  background-color: rgba(255, 255, 250, .97);
-  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 250, .94);
+  backdrop-filter: blur(3px);
 }
