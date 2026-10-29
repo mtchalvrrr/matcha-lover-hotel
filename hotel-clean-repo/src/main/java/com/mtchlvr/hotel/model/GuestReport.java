@@ -20,6 +20,8 @@ public class GuestReport {
     private Instant createdAt = Instant.now();
     @Column(length = 10000)
     private String conversation = "";
+    @Column
+    private Boolean visible = true;
 
     protected GuestReport() {}
     public GuestReport(AppUser customer, String category, String message) {
@@ -35,6 +37,8 @@ public class GuestReport {
     public String getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public String getConversation() { return conversation == null ? "" : conversation; }
+    public boolean isVisible() { return visible == null || visible; }
+    public void setVisible(boolean value) { visible = value; }
     public void appendConversationMessage(String speaker, String message) {
         String entry = speaker + ": " + message;
         this.conversation = getConversation().isBlank() ? entry : getConversation() + "\n\n" + entry;
