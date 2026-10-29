@@ -1259,3 +1259,12 @@ body.customer-body {
     transition: none;
   }
 }
+
+/* Keep dashboard/report content in one continuous workspace instead of a spare grid column. */
+.manager-page .manager-layout:has(> .manager-content:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.manager-page .manager-content:only-child > .manager-section,
+.manager-page .manager-content:only-child > .table-wrap {
+  width: 100%;
+}
