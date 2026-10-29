@@ -1475,3 +1475,59 @@ dialog,
     flex: 1 1 auto;
   }
 }
+
+
+/* Keep metric summaries aligned as one strip instead of separate floating tiles. */
+.manager-page .stats-grid,
+body.customer-body .stats-grid {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #d9e2d5;
+  border-radius: 8px;
+  background: #fff;
+}
+.manager-page .stats-grid .stat-card,
+body.customer-body .stats-grid .stat-card {
+  min-width: 0;
+  border: 0;
+  border-right: 1px solid #dfe6db;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.manager-page .stats-grid .stat-card:last-child,
+body.customer-body .stats-grid .stat-card:last-child {
+  border-right: 0;
+}
+body:has(.room-card) .room-availability {
+  border: 1px solid #d4dfd0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+body:has(.room-card) .availability-popup-close {
+  border-radius: 6px;
+  background: #f3f7f0;
+  color: #1d5d2c;
+}
+body:has(.room-card) .availability-popup-close:hover,
+body:has(.room-card) .availability-popup-close:focus-visible {
+  background: #1d5d2c;
+  color: #fff;
+}
+@media (max-width: 580px) {
+  .manager-page .stats-grid,
+  body.customer-body .stats-grid {
+    display: block;
+  }
+  .manager-page .stats-grid .stat-card,
+  body.customer-body .stats-grid .stat-card {
+    border-right: 0;
+    border-bottom: 1px solid #dfe6db;
+  }
+  .manager-page .stats-grid .stat-card:last-child,
+  body.customer-body .stats-grid .stat-card:last-child {
+    border-bottom: 0;
+  }
+}
