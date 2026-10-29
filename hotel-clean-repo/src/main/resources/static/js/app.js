@@ -73,23 +73,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const reminderText = checkoutReminder.textContent.replace(/\s+/g, " ").trim();
     const message = checkoutModal.querySelector("[data-checkout-message]");
     const dismissButtons = checkoutModal.querySelectorAll("[data-checkout-dismiss]");
-    const closeCheckoutReminder = () => { checkoutModal.hidden = true; };
+    // Remember a dismissal for this checkout day so customers are not trapped
+    // in a reminder/extension prompt every time they revisit the reservations page.
+    const dismissalKey = `mtchlvr-checkout-reminder-dismissed-${localDate}`;
+    const closeCheckoutReminder = (rememberChoice = true) => {
+      checkoutModal.hidden = true;
+      if (rememberChoice) {
+        try {
+          window.sessionStorage.setItem(dismissalKey, "true");
+        } catch (_) {
+          // The reminder still closes if browser storage is unavailable.
+        }
+      }
+    };
 
-    dismissButtons.forEach((button) => button.addEventListener("click", closeCheckoutReminder));
+    dismissButtons.forEach((button) => button.addEventListener("click", () => closeCheckoutReminder(true)));
     checkoutModal.addEventListener("click", (event) => {
-      if (event.target === checkoutModal) closeCheckoutReminder();
+      if (event.target === checkoutModal) closeCheckoutReminder(true);
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !checkoutModal.hidden) closeCheckoutReminder();
+      if (event.key === "Escape" && !checkoutModal.hidden) closeCheckoutReminder(true);
     });
     document.querySelectorAll("form[data-checkout-early-form]").forEach((form) => {
       form.addEventListener("submit", closeCheckoutReminder);
     });
 
-    // Show the reminder whenever the customer opens their reservations on checkout day.
+    // Show once per browser session/day. Choosing not to extend must be a valid
+    // path; extension date/time fields are only required if the customer submits
+    // the extension form, never to dismiss this reminder.
     if (message) message.textContent = reminderText;
-    checkoutModal.hidden = false;
-    dismissButtons[0]?.focus();
+    let reminderDismissed = false;
+    try {
+      reminderDismissed = window.sessionStorage.getItem(dismissalKey) === "true";
+    } catch (_) {
+      // If storage is blocked, show the reminder normally and keep dismissal usable.
+    }
+    checkoutModal.hidden = reminderDismissed;
+    if (!reminderDismissed) dismissButtons[0]?.focus();
   }
 
   document.querySelectorAll("[data-password-toggle]").forEach((button) => {
