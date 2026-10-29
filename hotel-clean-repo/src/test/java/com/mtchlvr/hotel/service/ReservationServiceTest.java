@@ -42,6 +42,60 @@ class ReservationServiceTest {
     }
 
     @Test
+    void rejectsSameDayCheckoutEarlierThanCheckinTime() {
+        LocalDate date = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(1);
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.reserve("guest@example.com", 1L, date, LocalTime.of(14, 0),
+                date, LocalTime.NOON));
+
+        assertTrue(error.getMessage().contains("later than check-in"));
+        verifyNoInteractions(users, rooms, reservations);
+    }
+
+    @Test
+    void rejectsReservationWhenRequestedIntervalOverlapsAnotherActiveBooking() {
+        LocalDate date = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(2);
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(7L);
+        when(room.isAvailable()).thenReturn(true);
+        when(room.isActive()).thenReturn(true);
+
+        Reservation existing = mock(Reservation.class);
+        when(existing.getRoom()).thenReturn(room);
+        when(existing.getStatus()).thenReturn("APPROVED");
+        when(existing.getCheckIn()).thenReturn(date);
+        when(existing.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(existing.getCheckOut()).thenReturn(date);
+        when(existing.getCheckOutTime()).thenReturn(LocalTime.of(18, 0));
+        when(reservations.findAll()).thenReturn(List.of(existing));
+
+        assertFalse(service.isAvailable(room, date, LocalTime.of(16, 0),
+            date, LocalTime.of(20, 0)));
+    }
+
+    @Test
+    void allowsBackToBackReservationsWhenIntervalsTouchButDoNotOverlap() {
+        LocalDate date = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(2);
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(7L);
+        when(room.isAvailable()).thenReturn(true);
+        when(room.isActive()).thenReturn(true);
+
+        Reservation existing = mock(Reservation.class);
+        when(existing.getRoom()).thenReturn(room);
+        when(existing.getStatus()).thenReturn("APPROVED");
+        when(existing.getCheckIn()).thenReturn(date);
+        when(existing.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(existing.getCheckOut()).thenReturn(date);
+        when(existing.getCheckOutTime()).thenReturn(LocalTime.of(18, 0));
+        when(reservations.findAll()).thenReturn(List.of(existing));
+
+        assertTrue(service.isAvailable(room, date, LocalTime.of(18, 0),
+            date.plusDays(1), LocalTime.NOON));
+    }
+
+    @Test
     void rejectsCheckInTimeInThePast() {
         LocalDate yesterday = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).minusDays(1);
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
