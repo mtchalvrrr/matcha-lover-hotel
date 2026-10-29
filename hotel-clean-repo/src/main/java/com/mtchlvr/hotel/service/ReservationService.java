@@ -57,6 +57,7 @@ public class ReservationService {
         if (!requestedEnd.isAfter(requestedStart)) return false;
 
         return reservations.findAll().stream().noneMatch(r ->
+            r.getRoom() != null && r.getRoom().getId() != null &&
             r.getRoom().getId().equals(room.getId()) &&
             !NON_OCCUPYING.contains(r.getStatus()) &&
             overlaps(requestedStart, requestedEnd, r)
@@ -99,7 +100,8 @@ public class ReservationService {
             LocalDateTime requestedEnd = end(reservation);
 
             boolean conflict = reservations.findAll().stream().anyMatch(other ->
-                !other.getId().equals(reservation.getId()) &&
+                other.getId() != null && !other.getId().equals(reservation.getId()) &&
+                other.getRoom() != null && other.getRoom().getId() != null &&
                 other.getRoom().getId().equals(room.getId()) &&
                 !NON_OCCUPYING.contains(other.getStatus()) &&
                 overlaps(requestedStart, requestedEnd, other)
