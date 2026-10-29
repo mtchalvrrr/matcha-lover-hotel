@@ -853,8 +853,8 @@ body:has(.room-card)::before {
   z-index: -1;
   pointer-events: none;
   background: url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center / cover no-repeat;
-  filter: blur(9px);
-  transform: scale(1.03);
+  filter: none;
+  transform: none;
 }
 .manager-page .manager-functions,
 .manager-page .manager-section,
@@ -963,7 +963,7 @@ input::placeholder, textarea::placeholder { color: #879184; opacity: 1; }
 /* Calmer manager/customer surfaces and a responsive, collapsible manager menu. */
 body:has(.manager-page),
 body.customer-body {
-  background: #f4f7f3;
+  background: transparent;
 }
 
 .manager-page .manager-section,
