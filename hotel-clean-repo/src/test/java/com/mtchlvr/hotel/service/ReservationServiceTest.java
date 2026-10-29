@@ -37,7 +37,7 @@ class ReservationServiceTest {
     void rejectsCheckoutOnOrBeforeCheckin() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
             () -> service.reserve("guest@example.com", 1L, LocalDate.now().plusDays(1), LocalDate.now().plusDays(1)));
-        assertTrue(error.getMessage().contains("valid check-in"));
+        assertTrue(error.getMessage().contains("later than check-in"));
         verifyNoInteractions(users, rooms, reservations);
     }
 
