@@ -170,4 +170,43 @@ class ReservationServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.updateStatus(9L, "PENDING"));
         verifyNoInteractions(reservations);
     }
+
+    @Test
+    void rejectsApprovalWhenReservationHasNoAssignedRoom() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getId()).thenReturn(21L);
+        when(reservation.getStatus()).thenReturn("PENDING");
+        when(reservation.getRoom()).thenReturn(null);
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now().plusDays(2));
+        when(reservation.getCheckOut()).thenReturn(LocalDate.now().plusDays(3));
+        when(reservations.findById(21L)).thenReturn(Optional.of(reservation));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(21L, "APPROVED"));
+
+        assertTrue(error.getMessage().contains("missing its room or stay dates"));
+        verify(reservations, never()).save(any());
+    }
+
+    @Test
+    void rejectsApprovalWhenCheckoutDoesNotFollowCheckin() {
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(8L);
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getId()).thenReturn(22L);
+        when(reservation.getStatus()).thenReturn("PENDING");
+        when(reservation.getRoom()).thenReturn(room);
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now().plusDays(2));
+        when(reservation.getCheckOut()).thenReturn(LocalDate.now().plusDays(2));
+        when(reservation.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservation.getCheckOutTime()).thenReturn(LocalTime.of(12, 0));
+        when(reservations.findById(22L)).thenReturn(Optional.of(reservation));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(22L, "APPROVED"));
+
+        assertTrue(error.getMessage().contains("check-out must be after check-in"));
+        verify(reservations, never()).save(any());
+    }
+
 }
