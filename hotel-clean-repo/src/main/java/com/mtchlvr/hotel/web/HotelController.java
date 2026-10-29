@@ -97,6 +97,16 @@ public class HotelController {
                 .filter(r -> r.getCheckOut().equals(today))
                 .toList());
 
+        model.addAttribute("currentlyCheckedInReservationIds", customerReservations.stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    return !now.isBefore(r.getCheckIn().atTime(inTime)) && now.isBefore(r.getCheckOut().atTime(outTime));
+                })
+                .map(Reservation::getId)
+                .toList());
+
         model.addAttribute("checkoutEligibleReservationIds", customerReservations.stream()
                 .filter(r -> "APPROVED".equals(r.getStatus()))
                 .filter(r -> {
