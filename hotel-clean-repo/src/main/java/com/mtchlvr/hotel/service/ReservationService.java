@@ -98,8 +98,20 @@ public class ReservationService {
 
         if ("APPROVED".equals(nextStatus)) {
             Room room = reservation.getRoom();
+            if (room == null || room.getId() == null ||
+                    reservation.getCheckIn() == null || reservation.getCheckOut() == null) {
+                throw new IllegalArgumentException(
+                    "Cannot approve: reservation is missing its room or stay dates."
+                );
+            }
+
             LocalDateTime requestedStart = start(reservation);
             LocalDateTime requestedEnd = end(reservation);
+            if (!requestedEnd.isAfter(requestedStart)) {
+                throw new IllegalArgumentException(
+                    "Cannot approve: check-out must be after check-in."
+                );
+            }
 
             boolean conflict = reservations.findAll().stream().anyMatch(other ->
                 other.getId() != null && !other.getId().equals(reservation.getId()) &&
