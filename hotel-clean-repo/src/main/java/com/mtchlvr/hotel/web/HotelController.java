@@ -361,7 +361,25 @@ public class HotelController {
     }
 
     @GetMapping("/manager/room-management") public String roomManagement(Model model) {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(zone);
+        java.util.Map<Long, String> roomReservationWarnings = new java.util.HashMap<>();
+        for (Room room : rooms.findAll()) {
+            java.util.List<Reservation> activeBookings = reservations.findAllByOrderByCreatedAtDesc().stream()
+                    .filter(r -> r.getRoom() != null && room.getId().equals(r.getRoom().getId()))
+                    .filter(r -> !java.util.List.of("REJECTED", "CANCELLED", "COMPLETED").contains(r.getStatus()))
+                    .filter(r -> {
+                        java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                        return r.getCheckOut().atTime(outTime).isAfter(now);
+                    })
+                    .toList();
+            String warning = activeBookings.isEmpty()
+                    ? "Deactivate this room? It will be hidden from new bookings, but its reservation history will be kept."
+                    : "This room has " + activeBookings.size() + " pending or upcoming/current reservation(s). Deactivating it will not cancel those bookings. Continue anyway?";
+            roomReservationWarnings.put(room.getId(), warning);
+        }
         model.addAttribute("rooms", rooms.findAll());
+        model.addAttribute("roomReservationWarnings", roomReservationWarnings);
         return "room-management";
     }
 
