@@ -5,6 +5,10 @@
     <h2 id="checkout-reminder-title">Time to check out.</h2>
     <p data-checkout-message>Today is your checkout day. Please settle your bill at reception.</p>
     <div class="stay-extension-options" th:each="r : ${checkoutTodayReservations}">
+      <form th:if="${checkoutEligibleReservationIds.contains(r.id)}" th:action="@{'/customer/reservations/' + ${r.id} + '/checkout'}" method="post" data-confirm="Confirm checkout now? This will move your reservation to history and release the room.">
+        <button class="button" type="submit">Check out now · Room <span th:text="${r.room.roomNumber}">101</span></button>
+      </form>
+      <p class="muted" th:unless="${checkoutEligibleReservationIds.contains(r.id)}">Checkout becomes available at <strong th:text="${r.checkOutTime == null ? '12:00' : r.checkOutTime}">12:00</strong>.</p>
       <p><strong>Would you like to extend your stay in Room <span th:text="${r.room.roomNumber}">101</span>?</strong> Choose a new checkout date and time. We'll check availability before changing your reservation.</p>
       <form th:action="@{'/customer/reservations/' + ${r.id} + '/extend'}" method="post" class="stack-form extension-form" data-confirm="Check availability and extend your stay if this room is available?">
         <label>New checkout date<input type="date" name="newCheckOut" th:attr="min=${r.checkOut.plusDays(1)}" required></label>
