@@ -93,6 +93,15 @@ public class HotelController {
                 .filter(r -> r.getCheckOut().equals(today))
                 .toList());
 
+        model.addAttribute("checkoutEligibleReservationIds", customerReservations.stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    return !now.isBefore(r.getCheckOut().atTime(outTime));
+                })
+                .map(Reservation::getId)
+                .toList());
+
         model.addAttribute("earlyCheckoutReservationIds", customerReservations.stream()
                 .filter(r -> "APPROVED".equals(r.getStatus()))
                 .filter(r -> {
@@ -172,6 +181,34 @@ public class HotelController {
         r.setStatus("EARLY_CHECKOUT_REQUESTED");
         reservations.save(r);
         flash.addFlashAttribute("success", "Your early checkout request was sent to the manager. Your reservation will update after approval.");
+        return "redirect:/customer/reservations";
+    }
+
+    @PostMapping("/customer/reservations/{id}/checkout")
+    public String checkout(@PathVariable Long id, Authentication auth, RedirectAttributes flash) {
+        Reservation r = reservations.findById(id).orElse(null);
+        if (r == null || r.getCustomer() == null ||
+                !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+            flash.addFlashAttribute("error", "Reservation not found.");
+            return "redirect:/customer/reservations";
+        }
+        if (!"APPROVED".equals(r.getStatus())) {
+            flash.addFlashAttribute("error", "Only an active approved reservation can be checked out.");
+            return "redirect:/customer/reservations";
+        }
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(zone).withNano(0);
+        java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+        java.time.LocalDateTime scheduledEnd = r.getCheckOut().atTime(outTime);
+        if (now.isBefore(scheduledEnd)) {
+            flash.addFlashAttribute("error", "Checkout is available from your scheduled checkout time: " + scheduledEnd.toLocalTime() + ".");
+            return "redirect:/customer/reservations";
+        }
+        r.setStatus("COMPLETED");
+        r.setRequestedCheckOut(null);
+        r.setRequestedCheckOutTime(null);
+        reservations.save(r);
+        flash.addFlashAttribute("success", "Checkout completed. Your reservation is now in history.");
         return "redirect:/customer/reservations";
     }
 
