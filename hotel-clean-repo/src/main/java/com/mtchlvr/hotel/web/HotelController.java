@@ -220,7 +220,14 @@ public class HotelController {
     public java.util.List<java.util.Map<String, String>> roomAvailability(@PathVariable Long roomId) {
         return reservations.findAll().stream()
             .filter(r -> r.getRoom().getId().equals(roomId))
-            .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+            .filter(r -> !java.util.List.of("REJECTED", "CANCELLED", "COMPLETED").contains(r.getStatus()))
+            .filter(r -> {
+                java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+                java.time.LocalDateTime now = java.time.LocalDateTime.now(zone);
+                java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                return r.getCheckOut().atTime(outTime).isAfter(now);
+            })
             .map(r -> {
                 java.time.LocalTime inTime = r.getCheckInTime() == null
                         ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
@@ -241,8 +248,17 @@ public class HotelController {
         ensureCustomerCodes();
         model.addAttribute("rooms", rooms.findAll());
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(hotelZone);
         java.util.List<Reservation> occupancyReservations = reservations.findAllByOrderByCreatedAtDesc().stream()
-                .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
+                    java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
+                    return !now.isBefore(start) && now.isBefore(end);
+                })
                 .toList();
         model.addAttribute("occupancyReservations", occupancyReservations);
         model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
@@ -334,6 +350,18 @@ public class HotelController {
         GuestReport report = reports.findById(id).orElse(null);
         if (report == null) flash.addFlashAttribute("error", "Report not found.");
         else { report.setStatus(status); reports.save(report); flash.addFlashAttribute("success", "Report status updated."); }
+        return "redirect:/manager/reports";
+    }
+
+    @PostMapping("/manager/reports/{id}/delete")
+    public String deleteGuestReport(@PathVariable Long id, RedirectAttributes flash) {
+        GuestReport report = reports.findById(id).orElse(null);
+        if (report == null) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else {
+            reports.delete(report);
+            flash.addFlashAttribute("success", "Guest report deleted.");
+        }
         return "redirect:/manager/reports";
     }
 
