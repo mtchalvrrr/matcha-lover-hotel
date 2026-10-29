@@ -37,8 +37,62 @@ class ReservationServiceTest {
     void rejectsCheckoutOnOrBeforeCheckin() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
             () -> service.reserve("guest@example.com", 1L, LocalDate.now().plusDays(1), LocalDate.now().plusDays(1)));
-        assertTrue(error.getMessage().contains("valid check-in"));
+        assertTrue(error.getMessage().contains("later than check-in"));
         verifyNoInteractions(users, rooms, reservations);
+    }
+
+    @Test
+    void rejectsSameDayCheckoutEarlierThanCheckinTime() {
+        LocalDate date = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(1);
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.reserve("guest@example.com", 1L, date, LocalTime.of(14, 0),
+                date, LocalTime.NOON));
+
+        assertTrue(error.getMessage().contains("later than check-in"));
+        verifyNoInteractions(users, rooms, reservations);
+    }
+
+    @Test
+    void rejectsReservationWhenRequestedIntervalOverlapsAnotherActiveBooking() {
+        LocalDate date = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(2);
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(7L);
+        when(room.isAvailable()).thenReturn(true);
+        when(room.isActive()).thenReturn(true);
+
+        Reservation existing = mock(Reservation.class);
+        when(existing.getRoom()).thenReturn(room);
+        when(existing.getStatus()).thenReturn("APPROVED");
+        when(existing.getCheckIn()).thenReturn(date);
+        when(existing.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(existing.getCheckOut()).thenReturn(date);
+        when(existing.getCheckOutTime()).thenReturn(LocalTime.of(18, 0));
+        when(reservations.findAll()).thenReturn(List.of(existing));
+
+        assertFalse(service.isAvailable(room, date, LocalTime.of(16, 0),
+            date, LocalTime.of(20, 0)));
+    }
+
+    @Test
+    void allowsBackToBackReservationsWhenIntervalsTouchButDoNotOverlap() {
+        LocalDate date = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(2);
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(7L);
+        when(room.isAvailable()).thenReturn(true);
+        when(room.isActive()).thenReturn(true);
+
+        Reservation existing = mock(Reservation.class);
+        when(existing.getRoom()).thenReturn(room);
+        when(existing.getStatus()).thenReturn("APPROVED");
+        when(existing.getCheckIn()).thenReturn(date);
+        when(existing.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(existing.getCheckOut()).thenReturn(date);
+        when(existing.getCheckOutTime()).thenReturn(LocalTime.of(18, 0));
+        when(reservations.findAll()).thenReturn(List.of(existing));
+
+        assertTrue(service.isAvailable(room, date, LocalTime.of(18, 0),
+            date.plusDays(1), LocalTime.NOON));
     }
 
     @Test
@@ -170,4 +224,43 @@ class ReservationServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.updateStatus(9L, "PENDING"));
         verifyNoInteractions(reservations);
     }
+
+    @Test
+    void rejectsApprovalWhenReservationHasNoAssignedRoom() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getId()).thenReturn(21L);
+        when(reservation.getStatus()).thenReturn("PENDING");
+        when(reservation.getRoom()).thenReturn(null);
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now().plusDays(2));
+        when(reservation.getCheckOut()).thenReturn(LocalDate.now().plusDays(3));
+        when(reservations.findById(21L)).thenReturn(Optional.of(reservation));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(21L, "APPROVED"));
+
+        assertTrue(error.getMessage().contains("missing its room or stay dates"));
+        verify(reservations, never()).save(any());
+    }
+
+    @Test
+    void rejectsApprovalWhenCheckoutDoesNotFollowCheckin() {
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(8L);
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getId()).thenReturn(22L);
+        when(reservation.getStatus()).thenReturn("PENDING");
+        when(reservation.getRoom()).thenReturn(room);
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now().plusDays(2));
+        when(reservation.getCheckOut()).thenReturn(LocalDate.now().plusDays(2));
+        when(reservation.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservation.getCheckOutTime()).thenReturn(LocalTime.of(12, 0));
+        when(reservations.findById(22L)).thenReturn(Optional.of(reservation));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(22L, "APPROVED"));
+
+        assertTrue(error.getMessage().contains("check-out must be after check-in"));
+        verify(reservations, never()).save(any());
+    }
+
 }

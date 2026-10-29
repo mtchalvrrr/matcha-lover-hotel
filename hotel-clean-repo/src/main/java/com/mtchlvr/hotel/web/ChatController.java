@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -28,11 +30,25 @@ public class ChatController {
             throw new AccessDeniedException("Manager chat is disabled");
         }
 
-        return new ChatResponse(chatService.reply(request.message().trim()));
+        List<Map<String, String>> history = request.history() == null ? List.of()
+                : request.history().stream()
+                    .filter(turn -> turn != null
+                            && ("user".equals(turn.role()) || "assistant".equals(turn.role()))
+                            && turn.content() != null && !turn.content().isBlank())
+                    .skip(Math.max(0, request.history().size() - 10))
+                    .map(turn -> Map.of("role", turn.role(), "content", turn.content().trim()))
+                    .toList();
+
+        return new ChatResponse(chatService.reply(request.message().trim(), history));
     }
 
     public record ChatRequest(
-            @NotBlank @Size(max = 1000) String message) {}
+            @NotBlank @Size(max = 1000) String message,
+            @Size(max = 10) List<@jakarta.validation.Valid ChatTurn> history) {}
+
+    public record ChatTurn(
+            @jakarta.validation.constraints.Pattern(regexp = "user|assistant") String role,
+            @NotBlank @Size(max = 1000) String content) {}
 
     public record ChatResponse(String reply) {}
 }

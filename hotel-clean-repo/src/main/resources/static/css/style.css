@@ -1268,3 +1268,266 @@ body.customer-body {
 .manager-page .manager-content:only-child > .table-wrap {
   width: 100%;
 }
+
+
+/* Dashboard refresh: one readable workspace, not a stack of floating islands. */
+body:has(.manager-page)::before,
+body.customer-body::before {
+  opacity: .16;
+  filter: blur(2px) saturate(.72);
+}
+body:has(.manager-page),
+body.customer-body {
+  color: #1d2d1d;
+  background-color: #f4f6f1;
+}
+.manager-page .page-wrap,
+body.customer-body .page-wrap {
+  width: min(100% - 40px, 1360px);
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 32px 0 64px;
+}
+.manager-page .manager-layout {
+  display: block;
+  margin-top: 18px;
+}
+.manager-page .manager-side-panel {
+  position: static;
+  width: 100%;
+  min-height: 0;
+  margin: 0 0 22px;
+  padding: 14px 18px;
+  border: 1px solid #d5dfd2;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: none;
+}
+.manager-page .manager-side-panel-header {
+  padding-bottom: 10px;
+}
+.manager-page .manager-side-nav {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 8px;
+}
+.manager-page .manager-side-link,
+.manager-page .manager-side-panel.is-collapsed .manager-side-link {
+  display: flex;
+  width: auto;
+  min-height: 40px;
+  grid-template-columns: none;
+  justify-items: initial;
+  padding: 8px 12px;
+  border: 1px solid #e0e7dc;
+  border-radius: 6px;
+  background: #f5f8f2;
+  color: #263c28;
+}
+.manager-page .manager-side-link[aria-current="page"] {
+  border-color: #9fbd98;
+  background: #e5f0e0;
+  color: #194f26;
+}
+.manager-page .manager-side-link-icon,
+.manager-page .manager-side-link-arrow,
+.manager-page .manager-side-note,
+.manager-page .manager-side-panel.is-collapsed .manager-side-link-label {
+  display: none;
+}
+.manager-page .manager-side-panel.is-collapsed {
+  width: 100%;
+  min-height: 0;
+}
+.manager-page .manager-side-panel.is-collapsed .manager-side-panel-copy,
+.manager-page .manager-side-panel.is-collapsed .manager-side-link-label {
+  display: block;
+}
+.manager-page .manager-content {
+  width: 100%;
+  padding: 26px;
+  border: 1px solid #d5dfd2;
+  border-radius: 8px;
+  background: rgba(255,255,255,.98);
+  box-shadow: none;
+}
+.manager-page .manager-functions,
+.manager-page .manager-section,
+.manager-page .stat-card,
+.manager-page .table-wrap,
+.manager-page .history-search-form,
+.manager-page .empty-state,
+body.customer-body .section,
+body.customer-body .stat-card,
+body.customer-body .table-wrap,
+body.customer-body .manager-section,
+body.customer-body .history-search-form,
+body.customer-body .customer-browse-actions,
+body.customer-body .history-disclosure {
+  color: #1d2d1d;
+  background: #fff;
+  border-color: #d9e2d5;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.manager-page .manager-section,
+body.customer-body .manager-section {
+  margin-top: 26px;
+  padding: 22px 0 0;
+  border: 0;
+  border-top: 1px solid #dfe6db;
+  border-radius: 0;
+}
+.manager-page .stat-card,
+body.customer-body .stat-card {
+  border-radius: 6px;
+}
+.manager-page .table-wrap,
+body.customer-body .table-wrap {
+  border-radius: 6px;
+}
+.manager-page .manager-functions {
+  padding: 0 0 22px;
+  border: 0;
+  border-bottom: 1px solid #dfe6db;
+  border-radius: 0;
+}
+.manager-page .manager-functions .manager-link {
+  border-radius: 6px;
+  box-shadow: none;
+}
+.manager-page .manager-content h1,
+.manager-page .manager-content h2,
+.manager-page .manager-content h3,
+.manager-page .manager-content p,
+.manager-page .manager-content label,
+.manager-page .manager-content td,
+body.customer-body .page-wrap h1,
+body.customer-body .page-wrap h2,
+body.customer-body .page-wrap h3,
+body.customer-body .page-wrap p,
+body.customer-body .page-wrap label,
+body.customer-body .page-wrap td {
+  text-shadow: none;
+}
+.manager-page .muted,
+.manager-page .lead,
+.manager-page .cell-sub,
+body.customer-body .muted,
+body.customer-body .lead,
+body.customer-body .cell-sub {
+  color: #52624f;
+}
+.manager-page th,
+body.customer-body th {
+  background: #edf3e9;
+  color: #344a32;
+}
+.manager-page td,
+body.customer-body td {
+  color: #273b28;
+}
+.manager-page input,
+.manager-page select,
+.manager-page textarea,
+body.customer-body input,
+body.customer-body select,
+body.customer-body textarea {
+  color: #1d2d1d;
+  background: #fff;
+  border-color: #bdcdb8;
+}
+.confirm-card,
+dialog,
+[role="dialog"]:not(#hotel-chat) {
+  color: #1d2d1d;
+  background: #fff;
+  border: 1px solid #d4dfd0;
+  border-radius: 10px;
+  box-shadow: 0 18px 55px rgba(22, 39, 20, .22);
+  backdrop-filter: none;
+}
+.confirm-card p,
+[role="dialog"]:not(#hotel-chat) p {
+  color: #4d5e49;
+}
+.confirm-backdrop {
+  background: rgba(16, 29, 16, .62);
+  backdrop-filter: blur(2px);
+}
+.confirm-actions .button,
+[role="dialog"]:not(#hotel-chat) button {
+  border-radius: 6px;
+}
+@media (max-width: 760px) {
+  .manager-page .page-wrap,
+  body.customer-body .page-wrap {
+    width: calc(100% - 28px);
+    padding-top: 22px;
+  }
+  .manager-page .manager-content {
+    padding: 18px 14px;
+  }
+  .manager-page .manager-side-nav {
+    flex-direction: row;
+  }
+  .manager-page .manager-side-link {
+    flex: 1 1 auto;
+  }
+}
+
+
+/* Keep metric summaries aligned as one strip instead of separate floating tiles. */
+.manager-page .stats-grid,
+body.customer-body .stats-grid {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #d9e2d5;
+  border-radius: 8px;
+  background: #fff;
+}
+.manager-page .stats-grid .stat-card,
+body.customer-body .stats-grid .stat-card {
+  min-width: 0;
+  border: 0;
+  border-right: 1px solid #dfe6db;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.manager-page .stats-grid .stat-card:last-child,
+body.customer-body .stats-grid .stat-card:last-child {
+  border-right: 0;
+}
+body:has(.room-card) .room-availability {
+  border: 1px solid #d4dfd0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+body:has(.room-card) .availability-popup-close {
+  border-radius: 6px;
+  background: #f3f7f0;
+  color: #1d5d2c;
+}
+body:has(.room-card) .availability-popup-close:hover,
+body:has(.room-card) .availability-popup-close:focus-visible {
+  background: #1d5d2c;
+  color: #fff;
+}
+@media (max-width: 580px) {
+  .manager-page .stats-grid,
+  body.customer-body .stats-grid {
+    display: block;
+  }
+  .manager-page .stats-grid .stat-card,
+  body.customer-body .stats-grid .stat-card {
+    border-right: 0;
+    border-bottom: 1px solid #dfe6db;
+  }
+  .manager-page .stats-grid .stat-card:last-child,
+  body.customer-body .stats-grid .stat-card:last-child {
+    border-bottom: 0;
+  }
+}

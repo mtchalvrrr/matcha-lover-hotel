@@ -1,10 +1,40 @@
-// Revalidate protected pages restored through browser Back/Forward.
+// Revalidate protected pages restored through browser Back/Forward without
+// unexpectedly jumping the user to the top after the safety reload.
 const sensitiveHistoryPath =
   /^\/(?:customer(?:\/|$)|manager(?:\/|$))/.test(window.location.pathname);
+const historyRestoreKey = "mtchlvr-protected-history-scroll-v1";
 
 if (sensitiveHistoryPath) {
   window.addEventListener("pageshow", (event) => {
-    if (event.persisted) window.location.reload();
+    if (!event.persisted) return;
+
+    try {
+      window.sessionStorage.setItem(historyRestoreKey, JSON.stringify({
+        href: window.location.href,
+        x: window.scrollX,
+        y: window.scrollY
+      }));
+    } catch (_) {
+      // Security refresh still works when session storage is unavailable.
+    }
+
+    window.location.reload();
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    try {
+      const saved = window.sessionStorage.getItem(historyRestoreKey);
+      if (!saved) return;
+      window.sessionStorage.removeItem(historyRestoreKey);
+
+      const position = JSON.parse(saved);
+      if (position.href !== window.location.href ||
+          !Number.isFinite(position.x) || !Number.isFinite(position.y)) return;
+
+      window.requestAnimationFrame(() => window.scrollTo(position.x, position.y));
+    } catch (_) {
+      try { window.sessionStorage.removeItem(historyRestoreKey); } catch (_) {}
+    }
   });
 }
 
@@ -57,14 +87,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  document.querySelectorAll('input[name="checkIn"]').forEach((input) => {
-    input.min = localDate;
-    input.addEventListener("change", () => {
-      const out = input.closest("form")?.querySelector('input[name="checkOut"]');
-      if (out) { out.min = input.value || localDate; if (out.value && out.value < input.value) out.value = ""; }
-    });
+
+  // Date inputs only prevent past dates. Stay validity is checked using the
+  // complete check-in/check-out date-time interval below, not a one-night date rule.
+  document.querySelectorAll('form.booking-form').forEach((form) => {
+    const checkIn = form.querySelector('input[name="checkIn"]');
+    const checkOut = form.querySelector('input[name="checkOut"]');
+    if (!checkIn || !checkOut) return;
+
+    checkIn.min = localDate;
+    checkOut.min = checkIn.value || localDate;
+
+    const updateCheckoutMinimum = () => {
+      checkOut.min = checkIn.value || localDate;
+      if (checkIn.value && checkOut.value && checkOut.value < checkIn.value) {
+        checkOut.value = checkIn.value;
+      }
+    };
+
+    checkIn.addEventListener("change", updateCheckoutMinimum);
+    checkOut.addEventListener("change", updateCheckoutMinimum);
   });
-  document.querySelectorAll('input[name="checkOut"]').forEach((input) => input.min = localDate);
 
   const checkoutReminder = document.getElementById("checkout-day-reminder");
   const checkoutModal = document.getElementById("checkout-reminder-modal");
@@ -73,23 +116,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const reminderText = checkoutReminder.textContent.replace(/\s+/g, " ").trim();
     const message = checkoutModal.querySelector("[data-checkout-message]");
     const dismissButtons = checkoutModal.querySelectorAll("[data-checkout-dismiss]");
-    const closeCheckoutReminder = () => { checkoutModal.hidden = true; };
+    // Remember a dismissal for this checkout day so customers are not trapped
+    // in a reminder/extension prompt every time they revisit the reservations page.
+    const dismissalKey = `mtchlvr-checkout-reminder-dismissed-${localDate}`;
+    const closeCheckoutReminder = (rememberChoice = true) => {
+      checkoutModal.hidden = true;
+      if (rememberChoice) {
+        try {
+          window.sessionStorage.setItem(dismissalKey, "true");
+        } catch (_) {
+          // The reminder still closes if browser storage is unavailable.
+        }
+      }
+    };
 
-    dismissButtons.forEach((button) => button.addEventListener("click", closeCheckoutReminder));
+    dismissButtons.forEach((button) => button.addEventListener("click", () => closeCheckoutReminder(true)));
     checkoutModal.addEventListener("click", (event) => {
-      if (event.target === checkoutModal) closeCheckoutReminder();
+      if (event.target === checkoutModal) closeCheckoutReminder(true);
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !checkoutModal.hidden) closeCheckoutReminder();
+      if (event.key === "Escape" && !checkoutModal.hidden) closeCheckoutReminder(true);
     });
     document.querySelectorAll("form[data-checkout-early-form]").forEach((form) => {
       form.addEventListener("submit", closeCheckoutReminder);
     });
 
-    // Show the reminder whenever the customer opens their reservations on checkout day.
+    // Show once per browser session/day. Choosing not to extend must be a valid
+    // path; extension date/time fields are only required if the customer submits
+    // the extension form, never to dismiss this reminder.
     if (message) message.textContent = reminderText;
-    checkoutModal.hidden = false;
-    dismissButtons[0]?.focus();
+    let reminderDismissed = false;
+    try {
+      reminderDismissed = window.sessionStorage.getItem(dismissalKey) === "true";
+    } catch (_) {
+      // If storage is blocked, show the reminder normally and keep dismissal usable.
+    }
+    checkoutModal.hidden = reminderDismissed;
+    if (!reminderDismissed) dismissButtons[0]?.focus();
   }
 
   document.querySelectorAll("[data-password-toggle]").forEach((button) => {

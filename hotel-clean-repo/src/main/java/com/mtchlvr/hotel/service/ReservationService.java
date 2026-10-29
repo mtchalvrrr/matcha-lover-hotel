@@ -98,8 +98,20 @@ public class ReservationService {
 
         if ("APPROVED".equals(nextStatus)) {
             Room room = reservation.getRoom();
+            if (room == null || room.getId() == null ||
+                    reservation.getCheckIn() == null || reservation.getCheckOut() == null) {
+                throw new IllegalArgumentException(
+                    "Cannot approve: reservation is missing its room or stay dates."
+                );
+            }
+
             LocalDateTime requestedStart = start(reservation);
             LocalDateTime requestedEnd = end(reservation);
+            if (!requestedEnd.isAfter(requestedStart)) {
+                throw new IllegalArgumentException(
+                    "Cannot approve: check-out must be after check-in."
+                );
+            }
 
             boolean conflict = reservations.findAll().stream().anyMatch(other ->
                 other.getId() != null && !other.getId().equals(reservation.getId()) &&
@@ -126,9 +138,9 @@ public class ReservationService {
     // Compatibility overload for existing callers and tests.
     @Transactional
     public Reservation reserve(String email, Long roomId, LocalDate in, LocalDate out) {
-        if (in == null || out == null || !out.isAfter(in) || in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila")))) {
+        if (in == null || out == null || in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila")))) {
             throw new IllegalArgumentException(
-                "Choose a valid check-in date and a check-out date after it."
+                "Choose a valid future check-in date."
             );
         }
         return reserve(email, roomId, in, DEFAULT_CHECK_IN, out, DEFAULT_CHECK_OUT);
@@ -143,7 +155,7 @@ public class ReservationService {
                 in.atTime(inTime).isBefore(now) ||
                 !out.atTime(outTime).isAfter(in.atTime(inTime))) {
             throw new IllegalArgumentException(
-                "Choose a future check-in date/time and a checkout after check-in."
+                "Choose a future check-in date/time and a check-out date/time later than check-in."
             );
         }
 
