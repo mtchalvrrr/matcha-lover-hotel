@@ -47,7 +47,7 @@ public class ReservationService {
     public boolean isAvailable(Room room, LocalDate in, LocalTime inTime,
                                LocalDate out, LocalTime outTime) {
         if (room == null || room.getId() == null || in == null || out == null ||
-                inTime == null || outTime == null ||
+                inTime == null || outTime == null || !out.isAfter(in) ||
                 !room.isAvailable() || !room.isActive()) {
             return false;
         }
@@ -152,10 +152,10 @@ public class ReservationService {
         java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
         LocalDateTime now = LocalDateTime.now(hotelZone).withNano(0);
         if (in == null || out == null || inTime == null || outTime == null ||
-                in.atTime(inTime).isBefore(now) ||
+                !out.isAfter(in) || in.atTime(inTime).isBefore(now) ||
                 !out.atTime(outTime).isAfter(in.atTime(inTime))) {
             throw new IllegalArgumentException(
-                "Choose a future check-in date/time and a checkout after check-in."
+                "Choose a future check-in date/time and a checkout date at least one day after check-in."
             );
         }
 
