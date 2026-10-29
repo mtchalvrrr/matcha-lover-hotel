@@ -57,40 +57,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  // A standard hotel reservation is at least one night: 2:00 PM check-in
-  // followed by 12:00 PM checkout on a later date. Same-day checkout would
-  // make the default 12:00 PM checkout occur before the 2:00 PM check-in.
-  const nextDate = (dateValue) => {
-    if (!dateValue) return localDate;
-    const date = new Date(`${dateValue}T12:00:00`);
-    date.setDate(date.getDate() + 1);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  };
 
+  // Date inputs only prevent past dates. Stay validity is checked using the
+  // complete check-in/check-out date-time interval below, not a one-night date rule.
   document.querySelectorAll('form.booking-form').forEach((form) => {
     const checkIn = form.querySelector('input[name="checkIn"]');
     const checkOut = form.querySelector('input[name="checkOut"]');
     if (!checkIn || !checkOut) return;
 
     checkIn.min = localDate;
-    checkOut.min = checkIn.value ? nextDate(checkIn.value) : nextDate(localDate);
+    checkOut.min = checkIn.value || localDate;
 
-    const updateCheckoutDate = () => {
-      const minimumCheckout = nextDate(checkIn.value);
-      checkOut.min = minimumCheckout;
-      if (checkOut.value && checkOut.value < minimumCheckout) {
-        checkOut.value = minimumCheckout;
+    const updateCheckoutMinimum = () => {
+      checkOut.min = checkIn.value || localDate;
+      if (checkIn.value && checkOut.value && checkOut.value < checkIn.value) {
+        checkOut.value = checkIn.value;
       }
     };
 
-    checkIn.addEventListener("change", updateCheckoutDate);
-    // Keep the checkout date at least one night after check-in even if a date
-    // is restored from browser autofill or edited with keyboard controls.
-    checkOut.addEventListener("change", () => {
-      if (checkIn.value && checkOut.value < nextDate(checkIn.value)) {
-        checkOut.value = nextDate(checkIn.value);
-      }
-    });
+    checkIn.addEventListener("change", updateCheckoutMinimum);
+    checkOut.addEventListener("change", updateCheckoutMinimum);
   });
 
   const checkoutReminder = document.getElementById("checkout-day-reminder");
