@@ -61,7 +61,7 @@ public class HotelController {
         }
         if (errors.hasErrors()) return "register";
         AppUser newCustomer = new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT),
-                encoder.encode(form.password), form.fullName.trim(), "CUSTOMER", true);
+                encoder.encode(form.password), form.getFullName().trim(), "CUSTOMER", true);
         newCustomer.setCustomerCode(generateCustomerCode());
         users.save(newCustomer);
         flash.addFlashAttribute("success", "Account created successfully!");
@@ -77,6 +77,10 @@ public class HotelController {
             users.save(customer);
         }
         model.addAttribute("customer", customer);
+        model.addAttribute("customerReports", reports.findAllByOrderByCreatedAtDesc().stream()
+                .filter(GuestReport::isVisible)
+                .filter(report -> report.getCustomer() != null && report.getCustomer().getId().equals(customer.getId()))
+                .toList());
         java.util.List<Reservation> customerReservations =
                 reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName())
                         .stream()
@@ -91,6 +95,25 @@ public class HotelController {
         model.addAttribute("checkoutTodayReservations", customerReservations.stream()
                 .filter(r -> "APPROVED".equals(r.getStatus()))
                 .filter(r -> r.getCheckOut().equals(today))
+                .toList());
+
+        model.addAttribute("currentlyCheckedInReservationIds", customerReservations.stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    return !now.isBefore(r.getCheckIn().atTime(inTime)) && now.isBefore(r.getCheckOut().atTime(outTime));
+                })
+                .map(Reservation::getId)
+                .toList());
+
+        model.addAttribute("checkoutEligibleReservationIds", customerReservations.stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    return !now.isBefore(r.getCheckOut().atTime(outTime));
+                })
+                .map(Reservation::getId)
                 .toList());
 
         model.addAttribute("earlyCheckoutReservationIds", customerReservations.stream()
@@ -175,6 +198,34 @@ public class HotelController {
         return "redirect:/customer/reservations";
     }
 
+    @PostMapping("/customer/reservations/{id}/checkout")
+    public String checkout(@PathVariable Long id, Authentication auth, RedirectAttributes flash) {
+        Reservation r = reservations.findById(id).orElse(null);
+        if (r == null || r.getCustomer() == null ||
+                !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+            flash.addFlashAttribute("error", "Reservation not found.");
+            return "redirect:/customer/reservations";
+        }
+        if (!"APPROVED".equals(r.getStatus())) {
+            flash.addFlashAttribute("error", "Only an active approved reservation can be checked out.");
+            return "redirect:/customer/reservations";
+        }
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(zone).withNano(0);
+        java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+        java.time.LocalDateTime scheduledEnd = r.getCheckOut().atTime(outTime);
+        if (now.isBefore(scheduledEnd)) {
+            flash.addFlashAttribute("error", "Checkout is available from your scheduled checkout time: " + scheduledEnd.toLocalTime() + ".");
+            return "redirect:/customer/reservations";
+        }
+        r.setStatus("COMPLETED");
+        r.setRequestedCheckOut(null);
+        r.setRequestedCheckOutTime(null);
+        reservations.save(r);
+        flash.addFlashAttribute("success", "Checkout completed. Your reservation is now in history.");
+        return "redirect:/customer/reservations";
+    }
+
     @PostMapping("/customer/reservations/{id}/extend")
     public String extendStay(@PathVariable Long id, Authentication auth,
             @RequestParam LocalDate newCheckOut,
@@ -220,7 +271,17 @@ public class HotelController {
     public java.util.List<java.util.Map<String, String>> roomAvailability(@PathVariable Long roomId) {
         return reservations.findAll().stream()
             .filter(r -> r.getRoom().getId().equals(roomId))
-            .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+            .filter(r -> {
+                java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+                java.time.LocalDateTime now = java.time.LocalDateTime.now(zone);
+                java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
+                java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
+                if (!end.isAfter(now)) return false;
+                if ("PENDING".equals(r.getStatus())) return true;
+                return "APPROVED".equals(r.getStatus()) && !now.isBefore(start);
+            })
             .map(r -> {
                 java.time.LocalTime inTime = r.getCheckInTime() == null
                         ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
@@ -241,11 +302,20 @@ public class HotelController {
         ensureCustomerCodes();
         model.addAttribute("rooms", rooms.findAll());
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(hotelZone);
         java.util.List<Reservation> occupancyReservations = reservations.findAllByOrderByCreatedAtDesc().stream()
-                .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
+                    java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
+                    return !now.isBefore(start) && now.isBefore(end);
+                })
                 .toList();
         model.addAttribute("occupancyReservations", occupancyReservations);
-        model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
+        model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc().stream().filter(GuestReport::isVisible).toList());
         return "manager";
     }
 
@@ -305,7 +375,33 @@ public class HotelController {
     }
 
     @GetMapping("/manager/room-management") public String roomManagement(Model model) {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(zone);
+        java.util.Map<Long, String> roomReservationWarnings = new java.util.HashMap<>();
+        for (Room room : rooms.findAll()) {
+            java.util.List<Reservation> activeBookings = reservations.findAllByOrderByCreatedAtDesc().stream()
+                    .filter(r -> r.getRoom() != null && room.getId().equals(r.getRoom().getId()))
+                    .filter(r -> !java.util.List.of("REJECTED", "CANCELLED", "COMPLETED").contains(r.getStatus()))
+                    .filter(r -> {
+                        java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                        return r.getCheckOut().atTime(outTime).isAfter(now);
+                    })
+                    .toList();
+            String details = activeBookings.stream().limit(3)
+                    .map(r -> r.getStatus() + " · " + r.getCheckIn() + " " +
+                            (r.getCheckInTime() == null ? "14:00" : r.getCheckInTime()) + " to " +
+                            r.getCheckOut() + " " +
+                            (r.getCheckOutTime() == null ? "12:00" : r.getCheckOutTime()))
+                    .collect(java.util.stream.Collectors.joining("; "));
+            String warning = activeBookings.isEmpty()
+                    ? "Deactivate this room? It will be hidden from new bookings, but its reservation history will be kept."
+                    : "This room has " + activeBookings.size() + " pending or current/upcoming reservation(s): " +
+                      details + (activeBookings.size() > 3 ? "; and " + (activeBookings.size() - 3) + " more" : "") +
+                      ". Deactivating it will not cancel those bookings. Continue anyway?";
+            roomReservationWarnings.put(room.getId(), warning);
+        }
         model.addAttribute("rooms", rooms.findAll());
+        model.addAttribute("roomReservationWarnings", roomReservationWarnings);
         return "room-management";
     }
 
@@ -334,6 +430,53 @@ public class HotelController {
         GuestReport report = reports.findById(id).orElse(null);
         if (report == null) flash.addFlashAttribute("error", "Report not found.");
         else { report.setStatus(status); reports.save(report); flash.addFlashAttribute("success", "Report status updated."); }
+        return "redirect:/manager/reports";
+    }
+
+    @PostMapping("/manager/reports/{id}/reply")
+    public String managerReplyToReport(@PathVariable Long id, @RequestParam String message, RedirectAttributes flash) {
+        GuestReport report = reports.findById(id).orElse(null);
+        String clean = message == null ? "" : message.trim();
+        if (report == null) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else if (clean.isBlank() || clean.length() > 2000) {
+            flash.addFlashAttribute("error", "Enter a reply of up to 2,000 characters.");
+        } else {
+            report.appendConversationMessage("MANAGER", clean);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Reply sent to the guest.");
+        }
+        return "redirect:/manager/reports";
+    }
+
+    @PostMapping("/customer/reports/{id}/reply")
+    public String customerReplyToReport(@PathVariable Long id, Authentication auth,
+            @RequestParam String message, RedirectAttributes flash) {
+        GuestReport report = reports.findById(id).orElse(null);
+        String clean = message == null ? "" : message.trim();
+        if (report == null || report.getCustomer() == null ||
+                !report.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else if (clean.isBlank() || clean.length() > 2000) {
+            flash.addFlashAttribute("error", "Enter a reply of up to 2,000 characters.");
+        } else {
+            report.appendConversationMessage("GUEST", clean);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Message sent to the manager.");
+        }
+        return "redirect:/customer/reservations#report";
+    }
+
+    @PostMapping("/manager/reports/{id}/delete")
+    public String deleteGuestReport(@PathVariable Long id, RedirectAttributes flash) {
+        GuestReport report = reports.findById(id).orElse(null);
+        if (report == null) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else {
+            report.setVisible(false);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Guest report removed from the manager report list.");
+        }
         return "redirect:/manager/reports";
     }
 
@@ -438,8 +581,11 @@ public class HotelController {
 
 
 public static class RegisterForm {
-    @NotBlank @Size(min=8, max=80)
-    private String fullName = "";
+    @NotBlank @Size(min=1, max=60)
+    private String firstName = "";
+
+    @NotBlank @Size(min=1, max=60)
+    private String lastName = "";
 
     @NotBlank @Email @Size(max=160)
     private String email = "";
@@ -455,8 +601,11 @@ public static class RegisterForm {
     @NotBlank
     private String confirmPassword = "";
 
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getFullName() { return (firstName == null ? "" : firstName.trim()) + " " + (lastName == null ? "" : lastName.trim()); }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -465,9 +614,7 @@ public static class RegisterForm {
     public void setPassword(String password) { this.password = password; }
 
     public String getConfirmPassword() { return confirmPassword; }
-    public void setConfirmPassword(String confirmPassword) {
-        this.confirmPassword = confirmPassword;
-    }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
 }
 
 

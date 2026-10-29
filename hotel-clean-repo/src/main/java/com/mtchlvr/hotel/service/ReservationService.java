@@ -47,16 +47,19 @@ public class ReservationService {
     public boolean isAvailable(Room room, LocalDate in, LocalTime inTime,
                                LocalDate out, LocalTime outTime) {
         if (room == null || room.getId() == null || in == null || out == null ||
-                inTime == null || outTime == null || in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila"))) ||
+                inTime == null || outTime == null ||
                 !room.isAvailable() || !room.isActive()) {
             return false;
         }
 
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        LocalDateTime now = LocalDateTime.now(hotelZone).withNano(0);
         LocalDateTime requestedStart = in.atTime(inTime);
         LocalDateTime requestedEnd = out.atTime(outTime);
-        if (!requestedEnd.isAfter(requestedStart)) return false;
+        if (requestedStart.isBefore(now) || !requestedEnd.isAfter(requestedStart)) return false;
 
         return reservations.findAll().stream().noneMatch(r ->
+            r.getRoom() != null && r.getRoom().getId() != null &&
             r.getRoom().getId().equals(room.getId()) &&
             !NON_OCCUPYING.contains(r.getStatus()) &&
             overlaps(requestedStart, requestedEnd, r)
@@ -99,7 +102,8 @@ public class ReservationService {
             LocalDateTime requestedEnd = end(reservation);
 
             boolean conflict = reservations.findAll().stream().anyMatch(other ->
-                !other.getId().equals(reservation.getId()) &&
+                other.getId() != null && !other.getId().equals(reservation.getId()) &&
+                other.getRoom() != null && other.getRoom().getId() != null &&
                 other.getRoom().getId().equals(room.getId()) &&
                 !NON_OCCUPYING.contains(other.getStatus()) &&
                 overlaps(requestedStart, requestedEnd, other)
@@ -133,11 +137,13 @@ public class ReservationService {
     @Transactional
     public Reservation reserve(String email, Long roomId, LocalDate in, LocalTime inTime,
                                LocalDate out, LocalTime outTime) {
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        LocalDateTime now = LocalDateTime.now(hotelZone).withNano(0);
         if (in == null || out == null || inTime == null || outTime == null ||
-                in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila"))) ||
+                in.atTime(inTime).isBefore(now) ||
                 !out.atTime(outTime).isAfter(in.atTime(inTime))) {
             throw new IllegalArgumentException(
-                "Choose a valid check-in date/time and a checkout after check-in."
+                "Choose a future check-in date/time and a checkout after check-in."
             );
         }
 

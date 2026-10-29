@@ -18,7 +18,6 @@
                 <section class="manager-functions" aria-label="Manager functions">
                     <div class="manager-functions-heading"><span class="eyebrow">MANAGEMENT</span><h2>Manager functions</h2><p>Choose a workspace to manage hotel operations.</p></div>
                     <div class="manager-links">
-                        <a class="manager-link" href="/manager"><span>Dashboard</span><b aria-hidden="true">↗</b></a>
                         <a class="manager-link" href="/manager/reservation-requests"><span>Reservation requests</span><b aria-hidden="true">↗</b></a>
                         <a class="manager-link" href="/manager/room-management"><span>Room management</span><b aria-hidden="true">↗</b></a>
                         <a class="manager-link" href="/manager/history"><span>Reservation history</span><b aria-hidden="true">↗</b></a>
@@ -48,7 +47,7 @@
                     <div class="section-heading">
                         <div><span class="eyebrow">ROOM SCHEDULE</span><h2>Occupancy &amp; reservation details</h2></div>
                     </div>
-                    <p class="muted">Pending and approved reservations block these dates. Rejected and cancelled reservations are excluded.</p>
+                    <p class="muted">Only guests whose approved stays are currently in progress appear here.</p>
                     <div class="table-wrap"><table>
                         <thead><tr><th>Room details</th><th>Occupant customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th></tr></thead>
                         <tbody>
@@ -60,7 +59,7 @@
                                 <td th:text="${r.checkOut}">2026-10-16</td>
                                 <td th:text="${r.nights}">2</td>
                                 <td th:text="|₱${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}|">₱3,600.00</td>
-                                <td><span class="status" th:text="${r.status == 'COMPLETED' ? 'Checked Out' : r.status}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
+                                <td><span class="status" th:text="'CHECKED IN'" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(occupancyReservations)}"><td colspan="7" class="muted">No active reservation dates to display.</td></tr>
                         </tbody>
