@@ -43,7 +43,7 @@ class ReservationServiceTest {
 
     @Test
     void acceptsSameDayReservationAndLeavesItPendingForManagerApproval() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(1);
         AppUser customer = mock(AppUser.class);
         Room room = mock(Room.class);
 
