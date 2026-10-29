@@ -1,7 +1,7 @@
 // Revalidate protected pages restored through browser Back/Forward without
 // unexpectedly jumping the user to the top after the safety reload.
 const sensitiveHistoryPath =
-  /^\\/(?:customer(?:\\/|$)|manager(?:\\/|$))/.test(window.location.pathname);
+  /^\/(?:customer(?:\/|$)|manager(?:\/|$))/.test(window.location.pathname);
 const historyRestoreKey = "mtchlvr-protected-history-scroll-v1";
 
 if (sensitiveHistoryPath) {
