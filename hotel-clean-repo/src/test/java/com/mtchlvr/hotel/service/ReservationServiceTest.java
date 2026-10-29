@@ -42,6 +42,16 @@ class ReservationServiceTest {
     }
 
     @Test
+    void rejectsCheckInTimeInThePast() {
+        LocalDate yesterday = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).minusDays(1);
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.reserve("guest@example.com", 1L, yesterday, LocalTime.of(10, 0),
+                yesterday, LocalTime.of(12, 0)));
+        assertTrue(error.getMessage().contains("future check-in"));
+        verifyNoInteractions(users, rooms, reservations);
+    }
+
+    @Test
     void acceptsSameDayReservationAndLeavesItPendingForManagerApproval() {
         LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(1);
         AppUser customer = mock(AppUser.class);
