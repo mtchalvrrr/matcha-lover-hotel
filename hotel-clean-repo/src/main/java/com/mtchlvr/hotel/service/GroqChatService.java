@@ -41,6 +41,10 @@ public class GroqChatService {
     }
 
     public String reply(String message) {
+        return reply(message, List.of());
+    }
+
+    public String reply(String message, List<Map<String, String>> history) {
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("Groq chatbot request skipped: GROQ_API_KEY is not configured.");
             return "The chat assistant is not configured yet. Please set GROQ_API_KEY in the Codespaces environment and restart the app.";
@@ -121,10 +125,7 @@ public class GroqChatService {
 
             String requestBody = mapper.writeValueAsString(Map.of(
                     "model", model,
-                    "messages", List.of(
-                            Map.of("role", "system", "content", systemPrompt),
-                            Map.of("role", "user", "content", message)
-                    ),
+                    "messages", buildMessages(systemPrompt, history, message),
                     "temperature", 0.3,
                     "max_tokens", 600
             ));
@@ -192,6 +193,27 @@ public class GroqChatService {
             log.error("Groq chatbot request failed.", ex);
             return "Sorry, the assistant is temporarily unavailable. Please try again.";
         }
+    }
+
+    private List<Map<String, String>> buildMessages(
+            String systemPrompt, List<Map<String, String>> history, String currentMessage) {
+        java.util.ArrayList<Map<String, String>> messages = new java.util.ArrayList<>();
+        messages.add(Map.of("role", "system", "content", systemPrompt));
+
+        if (history != null) {
+            history.stream()
+                    .filter(turn -> turn != null
+                            && ("user".equals(turn.get("role")) || "assistant".equals(turn.get("role")))
+                            && turn.get("content") != null
+                            && !turn.get("content").isBlank())
+                    .skip(Math.max(0, history.size() - 10))
+                    .forEach(turn -> messages.add(Map.of(
+                            "role", turn.get("role"),
+                            "content", turn.get("content").trim())));
+        }
+
+        messages.add(Map.of("role", "user", "content", currentMessage));
+        return messages;
     }
 
     private void pauseBeforeRetry(int attempt) throws InterruptedException {
