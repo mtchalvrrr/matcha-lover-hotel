@@ -78,6 +78,7 @@ public class HotelController {
         }
         model.addAttribute("customer", customer);
         model.addAttribute("customerReports", reports.findAllByOrderByCreatedAtDesc().stream()
+                .filter(GuestReport::isVisible)
                 .filter(report -> report.getCustomer() != null && report.getCustomer().getId().equals(customer.getId()))
                 .toList());
         java.util.List<Reservation> customerReservations =
@@ -301,7 +302,7 @@ public class HotelController {
                 })
                 .toList();
         model.addAttribute("occupancyReservations", occupancyReservations);
-        model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
+        model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc().stream().filter(GuestReport::isVisible).toList());
         return "manager";
     }
 
@@ -451,8 +452,9 @@ public class HotelController {
         if (report == null) {
             flash.addFlashAttribute("error", "Report not found.");
         } else {
-            reports.delete(report);
-            flash.addFlashAttribute("success", "Guest report deleted.");
+            report.setVisible(false);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Guest report removed from the manager report list.");
         }
         return "redirect:/manager/reports";
     }
