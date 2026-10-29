@@ -1,10 +1,40 @@
-// Revalidate protected pages restored through browser Back/Forward.
+// Revalidate protected pages restored through browser Back/Forward without
+// unexpectedly jumping the user to the top after the safety reload.
 const sensitiveHistoryPath =
-  /^\/(?:customer(?:\/|$)|manager(?:\/|$))/.test(window.location.pathname);
+  /^\\/(?:customer(?:\\/|$)|manager(?:\\/|$))/.test(window.location.pathname);
+const historyRestoreKey = "mtchlvr-protected-history-scroll-v1";
 
 if (sensitiveHistoryPath) {
   window.addEventListener("pageshow", (event) => {
-    if (event.persisted) window.location.reload();
+    if (!event.persisted) return;
+
+    try {
+      window.sessionStorage.setItem(historyRestoreKey, JSON.stringify({
+        href: window.location.href,
+        x: window.scrollX,
+        y: window.scrollY
+      }));
+    } catch (_) {
+      // Security refresh still works when session storage is unavailable.
+    }
+
+    window.location.reload();
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    try {
+      const saved = window.sessionStorage.getItem(historyRestoreKey);
+      if (!saved) return;
+      window.sessionStorage.removeItem(historyRestoreKey);
+
+      const position = JSON.parse(saved);
+      if (position.href !== window.location.href ||
+          !Number.isFinite(position.x) || !Number.isFinite(position.y)) return;
+
+      window.requestAnimationFrame(() => window.scrollTo(position.x, position.y));
+    } catch (_) {
+      try { window.sessionStorage.removeItem(historyRestoreKey); } catch (_) {}
+    }
   });
 }
 
