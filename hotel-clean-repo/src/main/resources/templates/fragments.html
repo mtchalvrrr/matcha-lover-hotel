@@ -60,6 +60,52 @@
         messages.scrollTop = messages.scrollHeight;
       }
 
+      const historyKey = 'mtchlvr-hotel-chat-history-v1';
+      let conversationHistory = [];
+      try {
+        const saved = JSON.parse(window.sessionStorage.getItem(historyKey) || '[]');
+        if (Array.isArray(saved)) {
+          conversationHistory = saved
+            .filter(turn => turn && ['user', 'assistant'].includes(turn.role)
+              && typeof turn.content === 'string' && turn.content.trim())
+            .slice(-10);
+        }
+      } catch (_) {
+        conversationHistory = [];
+      }
+
+      if (conversationHistory.length) {
+        messages.replaceChildren();
+        conversationHistory.forEach(turn =>
+          addMessage(turn.content, turn.role === 'user' ? 'user-message' : 'bot-message'));
+      }
+
+      function rememberTurn(role, content) {
+        conversationHistory.push({ role, content });
+        conversationHistory = conversationHistory.slice(-10);
+        try {
+          window.sessionStorage.setItem(historyKey, JSON.stringify(conversationHistory));
+        } catch (_) {
+          // The current chat still works if browser storage is disabled.
+        }
+      }
+
+      function navigateForRequest(message) {
+        const text = message.toLowerCase();
+        const roomIntent = /\\b(show|see|view|browse|explore|find|list)\\b.{0,45}\\b(room|rooms|room types|options)\\b|\\b(room|rooms)\\b.{0,30}\\b(show|see|view|browse|explore|options)\\b|\\b(available rooms|room options)\\b|\\b(ipakita|tingnan|maghanap)\\b.{0,30}\\b(kwarto|kuwarto|rooms?)\\b/i;
+        if (roomIntent.test(text)) return { path: '/rooms', reply: 'Of course! I’ll take you to our room listings so you can compare the options.' };
+        if (/\\b(sign in|log in|login)\\b/i.test(text)) {
+          return { path: '/login', reply: 'I’ll take you to the sign-in page.' };
+        }
+        if (/\\b(register|sign up|create (an )?account)\\b/i.test(text)) {
+          return { path: '/register', reply: 'I’ll take you to account registration.' };
+        }
+        if (/\\b(my reservations|my bookings|view reservations|cancel (my )?(booking|reservation))\\b/i.test(text)) {
+          return { path: '/customer/reservations', reply: 'I’ll open your reservations page, where you can review eligible bookings and submit a cancellation request.' };
+        }
+        return null;
+      }
+
       form.addEventListener('submit', async event => {
         event.preventDefault();
         const message = input.value.trim();
@@ -68,14 +114,14 @@
         addMessage(message, 'user-message');
         input.value = '';
 
-        // Room navigation is handled locally so it works even if the AI API is
-        // temporarily unavailable. The server renders the correct view for the
-        // current visitor: guests see sign-in prompts; customers see booking forms.
-        const roomIntent = /\b(show|see|view|browse|explore|find)\b.{0,35}\b(room|rooms)\b|\b(room|rooms)\b.{0,25}\b(show|see|view|browse|explore)\b|\b(ipakita|tingnan|maghanap)\b.{0,30}\b(kwarto|kuwarto|rooms?)\b/i;
-        if (roomIntent.test(message)) {
-          addMessage('Taking you to our rooms now…', 'bot-message');
+        // Handle clear navigation requests deterministically; the AI is for conversation and advice.
+        const navigation = navigateForRequest(message);
+        if (navigation) {
+          addMessage(navigation.reply, 'bot-message');
+          rememberTurn('user', message);
+          rememberTurn('assistant', navigation.reply);
           send.disabled = true;
-          window.setTimeout(() => window.location.assign('/rooms'), 450);
+          window.setTimeout(() => window.location.assign(navigation.path), 450);
           return;
         }
 
@@ -90,12 +136,15 @@
               'Content-Type': 'application/json',
               [document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN']: document.querySelector('meta[name="_csrf"]')?.content || ''
             },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ message, history: conversationHistory.slice(-10) })
           });
           const data = await response.json();
           thinking.remove();
           if (!response.ok) throw new Error('Request failed');
-          addMessage(data.reply || 'Sorry, I could not answer that.', 'bot-message');
+          const reply = data.reply || 'Sorry, I could not answer that.';
+          addMessage(reply, 'bot-message');
+          rememberTurn('user', message);
+          rememberTurn('assistant', reply);
         } catch (error) {
           thinking.remove();
           addMessage(error.message === "Request failed" ? "The chat service could not answer. Check that GROQ_API_KEY is set in your Codespace and restart the app." : "Sorry, chat is temporarily unavailable. Please try again.", 'bot-message');
