@@ -140,7 +140,7 @@ public class ReservationService {
     public Reservation reserve(String email, Long roomId, LocalDate in, LocalDate out) {
         if (in == null || out == null || in.isBefore(LocalDate.now(java.time.ZoneId.of("Asia/Manila")))) {
             throw new IllegalArgumentException(
-                "Choose a valid check-in date and a check-out date after it."
+                "Choose a valid future check-in date."
             );
         }
         return reserve(email, roomId, in, DEFAULT_CHECK_IN, out, DEFAULT_CHECK_OUT);
