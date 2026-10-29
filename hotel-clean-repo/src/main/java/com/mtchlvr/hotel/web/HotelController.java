@@ -77,6 +77,9 @@ public class HotelController {
             users.save(customer);
         }
         model.addAttribute("customer", customer);
+        model.addAttribute("customerReports", reports.findAllByOrderByCreatedAtDesc().stream()
+                .filter(report -> report.getCustomer() != null && report.getCustomer().getId().equals(customer.getId()))
+                .toList());
         java.util.List<Reservation> customerReservations =
                 reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName())
                         .stream()
@@ -388,6 +391,40 @@ public class HotelController {
         if (report == null) flash.addFlashAttribute("error", "Report not found.");
         else { report.setStatus(status); reports.save(report); flash.addFlashAttribute("success", "Report status updated."); }
         return "redirect:/manager/reports";
+    }
+
+    @PostMapping("/manager/reports/{id}/reply")
+    public String managerReplyToReport(@PathVariable Long id, @RequestParam String message, RedirectAttributes flash) {
+        GuestReport report = reports.findById(id).orElse(null);
+        String clean = message == null ? "" : message.trim();
+        if (report == null) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else if (clean.isBlank() || clean.length() > 2000) {
+            flash.addFlashAttribute("error", "Enter a reply of up to 2,000 characters.");
+        } else {
+            report.appendConversationMessage("MANAGER", clean);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Reply sent to the guest.");
+        }
+        return "redirect:/manager/reports";
+    }
+
+    @PostMapping("/customer/reports/{id}/reply")
+    public String customerReplyToReport(@PathVariable Long id, Authentication auth,
+            @RequestParam String message, RedirectAttributes flash) {
+        GuestReport report = reports.findById(id).orElse(null);
+        String clean = message == null ? "" : message.trim();
+        if (report == null || report.getCustomer() == null ||
+                !report.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else if (clean.isBlank() || clean.length() > 2000) {
+            flash.addFlashAttribute("error", "Enter a reply of up to 2,000 characters.");
+        } else {
+            report.appendConversationMessage("GUEST", clean);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Message sent to the manager.");
+        }
+        return "redirect:/customer/reservations#report";
     }
 
     @PostMapping("/manager/reports/{id}/delete")
