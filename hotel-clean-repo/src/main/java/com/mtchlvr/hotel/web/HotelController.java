@@ -272,15 +272,15 @@ public class HotelController {
         return reservations.findAll().stream()
             .filter(r -> r.getRoom().getId().equals(roomId))
             .filter(r -> {
-                if ("PENDING".equals(r.getStatus())) return true;
-                if (!"APPROVED".equals(r.getStatus())) return false;
                 java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
                 java.time.LocalDateTime now = java.time.LocalDateTime.now(zone);
                 java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
                 java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
                 java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
                 java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
-                return !now.isBefore(start) && now.isBefore(end);
+                if (!end.isAfter(now)) return false;
+                if ("PENDING".equals(r.getStatus())) return true;
+                return "APPROVED".equals(r.getStatus()) && !now.isBefore(start);
             })
             .map(r -> {
                 java.time.LocalTime inTime = r.getCheckInTime() == null
