@@ -387,9 +387,17 @@ public class HotelController {
                         return r.getCheckOut().atTime(outTime).isAfter(now);
                     })
                     .toList();
+            String details = activeBookings.stream().limit(3)
+                    .map(r -> r.getStatus() + " · " + r.getCheckIn() + " " +
+                            (r.getCheckInTime() == null ? "14:00" : r.getCheckInTime()) + " to " +
+                            r.getCheckOut() + " " +
+                            (r.getCheckOutTime() == null ? "12:00" : r.getCheckOutTime()))
+                    .collect(java.util.stream.Collectors.joining("; "));
             String warning = activeBookings.isEmpty()
                     ? "Deactivate this room? It will be hidden from new bookings, but its reservation history will be kept."
-                    : "This room has " + activeBookings.size() + " pending or upcoming/current reservation(s). Deactivating it will not cancel those bookings. Continue anyway?";
+                    : "This room has " + activeBookings.size() + " pending or current/upcoming reservation(s): " +
+                      details + (activeBookings.size() > 3 ? "; and " + (activeBookings.size() - 3) + " more" : "") +
+                      ". Deactivating it will not cancel those bookings. Continue anyway?";
             roomReservationWarnings.put(room.getId(), warning);
         }
         model.addAttribute("rooms", rooms.findAll());
