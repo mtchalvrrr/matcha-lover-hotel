@@ -18,12 +18,15 @@ public class GuestReport {
     private String status = "OPEN";
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+    @Column(length = 10000)
+    private String conversation = "";
 
     protected GuestReport() {}
     public GuestReport(AppUser customer, String category, String message) {
         this.customer = customer;
         this.category = category;
         this.message = message;
+        this.conversation = "GUEST: " + message;
     }
     public Long getId() { return id; }
     public AppUser getCustomer() { return customer; }
@@ -31,5 +34,10 @@ public class GuestReport {
     public String getMessage() { return message; }
     public String getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
+    public String getConversation() { return conversation == null ? "" : conversation; }
+    public void appendConversationMessage(String speaker, String message) {
+        String entry = speaker + ": " + message;
+        this.conversation = getConversation().isBlank() ? entry : getConversation() + "\n\n" + entry;
+    }
     public void setStatus(String status) { this.status = status; }
 }
