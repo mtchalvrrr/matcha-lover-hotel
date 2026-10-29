@@ -71,7 +71,7 @@
         // Room navigation is handled locally so it works even if the AI API is
         // temporarily unavailable. The server renders the correct view for the
         // current visitor: guests see sign-in prompts; customers see booking forms.
-        const roomIntent = /\\b(show|see|view|browse|explore|find)\\b.{0,35}\\b(room|rooms)\\b|\\b(room|rooms)\\b.{0,25}\\b(show|see|view|browse|explore)\\b|\\b(ipakita|tingnan|maghanap)\\b.{0,30}\\b(kwarto|kuwarto|rooms?)\\b/i;
+        const roomIntent = /\b(show|see|view|browse|explore|find)\b.{0,35}\b(room|rooms)\b|\b(room|rooms)\b.{0,25}\b(show|see|view|browse|explore)\b|\b(ipakita|tingnan|maghanap)\b.{0,30}\b(kwarto|kuwarto|rooms?)\b/i;
         if (roomIntent.test(message)) {
           addMessage('Taking you to our rooms now…', 'bot-message');
           send.disabled = true;
