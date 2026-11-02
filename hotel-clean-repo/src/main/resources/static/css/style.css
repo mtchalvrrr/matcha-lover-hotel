@@ -1372,3 +1372,19 @@ footer{background:#f3efe5;color:#687568;border-color:#e5dfd3}
 @media(max-width:1050px){.manager-links{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.hero-city{min-height:560px;padding:0 24px}.hero-city .hero-copy{padding:64px 0}.hero-city .photo-overlay{background:linear-gradient(90deg,rgba(18,34,22,.78),rgba(18,34,22,.34)),linear-gradient(0deg,rgba(18,34,22,.30),transparent)}.manager-links{grid-template-columns:repeat(2,minmax(0,1fr))}.manager-section{padding:17px}}
 @media(max-width:580px){.nav{height:auto;min-height:70px;padding:14px 18px}.hero-city{min-height:520px}.hero-city .hero-copy h1{font-size:48px}.page-wrap{padding:38px 16px 60px}.room-illustration{height:220px}.manager-links{grid-template-columns:1fr}.manager-link{min-height:68px}.manager-functions{padding:18px}.stats-grid{grid-template-columns:1fr}.manager-section{padding:15px}.closing{margin:0 16px 42px;padding:42px 18px}}
+
+
+/* Booking, availability and multi-reservation dialog refinements */
+.room-availability{position:relative;z-index:4;box-shadow:0 12px 28px rgba(34,54,38,.08)}
+.availability-popup-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.availability-popup-header strong{font-family:Georgia,serif;font-size:18px;color:var(--forest)}
+.availability-popup-header p{margin:4px 0 0}
+.availability-popup-close{width:34px;height:34px;border:1px solid #dce2d7;border-radius:50%;background:#fffdf8;color:var(--forest);font-size:22px;cursor:pointer}
+.room-availability ul{padding-left:20px;margin:10px 0 0}
+.room-availability li{padding:8px 0;border-bottom:1px solid #e1e6dc;font-size:13px}
+.stay-extension-options{padding:18px;margin:16px 0;border:1px solid #e2e7dc;border-radius:16px;background:#f7f8f2}
+.stay-extension-options>p{font-size:13px;line-height:1.65}
+.extension-form{display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:12px}
+.extension-form button{grid-column:1/-1}
+.confirm-actions{gap:10px}
+@media(max-width:580px){.extension-form{grid-template-columns:1fr}.extension-form button{grid-column:auto}.stay-extension-options{padding:14px}}
