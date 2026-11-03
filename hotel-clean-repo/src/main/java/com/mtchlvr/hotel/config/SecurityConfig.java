@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability").permitAll()
                 .requestMatchers(
                     "/", "/rooms", "/register", "/login",
-                    "/css/**", "/js/**", "/error", "/favicon.ico", "/api/chat"
+                    "/css/**", "/js/**", "/images/**", "/error", "/favicon.ico"
                 ).permitAll()
                 .requestMatchers("/manager/**").hasRole("MANAGER")
                 .requestMatchers(
