@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 class ReservationServiceTest {
@@ -169,5 +170,53 @@ class ReservationServiceTest {
     void rejectsUnknownStatus() {
         assertThrows(IllegalArgumentException.class, () -> service.updateStatus(9L, "PENDING"));
         verifyNoInteractions(reservations);
+    }
+
+    @Test
+    void automaticallyVoidsExpiredPendingReservations() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation expired = mock(Reservation.class);
+
+        when(expired.getStatus()).thenReturn("PENDING");
+        when(expired.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(expired.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findAll()).thenReturn(List.of(expired));
+
+        service.voidExpiredPendingReservations();
+
+        verify(expired).setStatus("VOID");
+        verify(reservations).saveAll(anyList());
+    }
+
+    @Test
+    void doesNotVoidApprovedReservations() {
+        Reservation approved = mock(Reservation.class);
+
+        when(approved.getStatus()).thenReturn("APPROVED");
+        when(reservations.findAll()).thenReturn(List.of(approved));
+
+        service.voidExpiredPendingReservations();
+
+        verify(approved, never()).setStatus("VOID");
+        verify(reservations, never()).saveAll(anyList());
+    }
+
+    @Test
+    void rejectsApprovalWhenPendingReservationCheckInTimeHasArrived() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation expired = mock(Reservation.class);
+
+        when(expired.getStatus()).thenReturn("PENDING");
+        when(expired.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(expired.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findById(20L)).thenReturn(Optional.of(expired));
+
+        IllegalArgumentException error = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.updateStatus(20L, "APPROVED")
+        );
+
+        assertTrue(error.getMessage().contains("expired"));
+        verify(reservations, never()).save(any(Reservation.class));
     }
 }

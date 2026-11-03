@@ -2,8 +2,10 @@ package com.mtchlvr.hotel;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class MtchlvrHotelApplication {
     public static void main(String[] args) {
         java.nio.file.Path dbDir = java.nio.file.Path.of("data");

@@ -3,6 +3,7 @@ package com.mtchlvr.hotel.service;
 import com.mtchlvr.hotel.model.*;
 import com.mtchlvr.hotel.repo.*;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ import java.util.List;
 public class ReservationService {
     private static final LocalTime DEFAULT_CHECK_IN = LocalTime.of(14, 0);
     private static final LocalTime DEFAULT_CHECK_OUT = LocalTime.NOON;
-    private static final List<String> NON_OCCUPYING = List.of("CANCELLED", "REJECTED");
+    private static final List<String> NON_OCCUPYING = List.of("CANCELLED", "REJECTED", "VOID");
 
     private final ReservationRepository reservations;
     private final RoomRepository rooms;
@@ -38,6 +39,27 @@ public class ReservationService {
 
     private boolean overlaps(LocalDateTime start, LocalDateTime end, Reservation existing) {
         return start.isBefore(this.end(existing)) && end.isAfter(this.start(existing));
+    }
+
+    /**
+     * Void pending reservations when their check-in time arrives.
+     * Runs at startup and every 60 seconds using Manila time.
+     */
+    @Scheduled(fixedDelay = 60_000, initialDelay = 0)
+    @Transactional
+    public void voidExpiredPendingReservations() {
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        LocalDateTime now = LocalDateTime.now(hotelZone).withNano(0);
+
+        List<Reservation> expired = reservations.findAll().stream()
+            .filter(r -> "PENDING".equals(r.getStatus()))
+            .filter(r -> !now.isBefore(start(r)))
+            .toList();
+
+        if (!expired.isEmpty()) {
+            expired.forEach(r -> r.setStatus("VOID"));
+            reservations.saveAll(expired);
+        }
     }
 
     public boolean isAvailable(Room room, LocalDate in, LocalDate out) {
@@ -78,6 +100,12 @@ public class ReservationService {
         String currentStatus = reservation.getStatus();
         String nextStatus = status;
 
+        if ("VOID".equals(currentStatus)) {
+            throw new IllegalArgumentException(
+                "This reservation has expired. The customer must submit a new reservation request."
+            );
+        }
+
         if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
             if ("CANCELLED".equals(status)) {
                 nextStatus = "CANCELLED";
@@ -97,6 +125,18 @@ public class ReservationService {
         }
 
         if ("APPROVED".equals(nextStatus)) {
+            if ("PENDING".equals(currentStatus)) {
+                LocalDateTime now = LocalDateTime.now(
+                    java.time.ZoneId.of("Asia/Manila")
+                ).withNano(0);
+
+                if (!now.isBefore(start(reservation))) {
+                    throw new IllegalArgumentException(
+                        "This reservation has expired because its check-in time has arrived."
+                    );
+                }
+            }
+
             Room room = reservation.getRoom();
             LocalDateTime requestedStart = start(reservation);
             LocalDateTime requestedEnd = end(reservation);
