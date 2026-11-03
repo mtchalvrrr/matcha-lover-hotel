@@ -8,8 +8,8 @@
 </head>
 <body>
 <header class="nav">
-  <a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a>
-  <nav><a href="/rooms">Explore rooms</a><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My bookings</a></nav>
+  <a class="brand" href="/"><img class="brand-logo" src="/images/mtchlvr-leaf.svg" alt=""><span>mtchlvr <small>HOTEL</small></span></a>
+  <nav><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My bookings</a></nav>
   <div class="nav-actions">
     <span sec:authorize="isAnonymous()"><a class="text-button" href="/login">Sign in</a> <a class="button small" href="/register">Create account</a></span>
     <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" data-confirm="Are you sure you want to log out?" style="display:inline"><button class="text-button" type="submit">Log out</button></form>
@@ -31,6 +31,6 @@
     </div>
   </section>
 </main>
-<footer><a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><span>Made for the moments in between.</span><span>© 2026 mtchlvr hotel</span></footer>
+<footer><a class="brand" href="/"><img class="brand-logo" src="/images/mtchlvr-leaf.svg" alt=""><span>mtchlvr <small>HOTEL</small></span></a><span>Made for the moments in between.</span><span>© 2026 mtchlvr hotel</span></footer>
 <div th:replace="~{fragments :: managerConfirm}"></div><script src="/js/app.js"></script><div th:replace="~{fragments :: chatbot}"></div>
 </body></html>

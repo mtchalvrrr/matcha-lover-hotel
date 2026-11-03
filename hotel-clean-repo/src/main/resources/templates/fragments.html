@@ -2,8 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <div th:fragment="nav"><header class="nav">
-  <a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a>
-  <nav><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My reservations</a></nav>
+  <a class="brand" href="/"><img class="brand-logo" src="/images/mtchlvr-leaf.svg" alt=""><span>mtchlvr <small>HOTEL</small></span></a>
+  <nav class="main-nav-links">
+    <th:block sec:authorize="hasRole('CUSTOMER')">
+      <a class="customer-nav-action" href="/rooms">Browse rooms</a>
+      <a class="customer-nav-action" href="/customer/reservations#report" data-open-report>Send a report</a>
+    </th:block>
+
+    <th:block sec:authorize="hasRole('MANAGER')">
+      <a href="/manager">Dashboard</a>
+      <a href="/manager/reservation-requests">Reservation requests</a>
+      <a href="/manager/room-management">Room management</a>
+      <a href="/manager/history">Reservation history</a>
+      <a href="/manager/reports">Guest reports</a>
+    </th:block>
+  </nav>
   <div class="nav-actions"><a class="text-button" href="/login" sec:authorize="isAnonymous()">Sign in</a><form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" data-confirm="Are you sure you want to log out?"><button class="text-button" type="submit">Log out ↗</button></form></div>
 </header><div th:replace="~{fragments :: managerConfirm}"></div></div>
 <div th:fragment="alerts" class="alerts">
@@ -49,6 +62,10 @@
 #chat-send{background:#243b2b;color:white;border:0;border-radius:999px;padding:0 17px;cursor:pointer;font-weight:700}
 #chat-send:disabled{opacity:.6;cursor:wait}
 @media(max-width:580px){#chat-toggle{right:16px;bottom:16px}#hotel-chat{right:16px;bottom:86px}}
+.chat-action-wrap{display:flex;justify-content:flex-start;margin:-3px 0 12px}
+.chat-action-button{border:1px solid #cbd9c4;border-radius:999px;background:#243b2b;color:#fffdf8;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s ease,transform .2s ease}
+.chat-action-button:hover{background:#365b3e;transform:translateY(-1px)}
+.chat-action-button:focus-visible{outline:3px solid #9ab98e;outline-offset:3px}
 </style>
 
   <script>
@@ -72,6 +89,67 @@
         p.className = className;
         p.textContent = text;
         messages.appendChild(p);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function renderChatAction(action) {
+        if (!action || typeof action.label !== 'string') return;
+
+        const allowedPaths = [
+          '/rooms',
+          '/customer/reservations',
+          '/manager',
+          '/manager/reservation-requests',
+          '/manager/room-management',
+          '/manager/history',
+          '/manager/reports'
+        ];
+
+        if (action.id === 'navigate' && !allowedPaths.includes(action.url)) return;
+        if (action.id !== 'navigate' && action.id !== 'logout') return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'chat-action-wrap';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chat-action-button';
+        button.textContent = action.label;
+
+        button.addEventListener('click', () => {
+          if (action.id === 'logout') {
+            if (!window.confirm('Are you sure you want to log out?')) return;
+
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const parameterName = document.querySelector('meta[name="_csrf_parameter"]')?.content || '_csrf';
+
+            if (!token) {
+              addMessage('I could not verify the logout request. Please use the Log out button in the navigation.', 'bot-message');
+              return;
+            }
+
+            const logoutForm = document.createElement('form');
+            logoutForm.method = 'POST';
+            logoutForm.action = '/logout';
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = parameterName;
+            csrf.value = token;
+
+            logoutForm.appendChild(csrf);
+            document.body.appendChild(logoutForm);
+            logoutForm.submit();
+            return;
+          }
+
+          if (action.id === 'navigate') {
+            window.location.assign(action.url);
+          }
+        });
+
+        wrapper.appendChild(button);
+        messages.appendChild(wrapper);
         messages.scrollTop = messages.scrollHeight;
       }
 
@@ -99,6 +177,9 @@
           thinking.remove();
           if (!response.ok) throw new Error('Request failed');
           addMessage(data.reply || 'Sorry, I could not answer that.', 'bot-message');
+          if (Array.isArray(data.actions)) {
+            data.actions.forEach(renderChatAction);
+          }
         } catch (error) {
           thinking.remove();
           addMessage(error.message === "Request failed" ? "The chat service could not answer. Check that GROQ_API_KEY is set in your Codespace and restart the app." : "Sorry, chat is temporarily unavailable. Please try again.", 'bot-message');

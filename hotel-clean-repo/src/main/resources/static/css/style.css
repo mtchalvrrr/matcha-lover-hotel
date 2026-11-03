@@ -1420,3 +1420,709 @@ body {
     background-attachment: scroll !important;
   }
 }
+
+
+/* Manager dashboard: aligned top navigation and a unified overview panel. */
+.manager-page .manager-functions {
+    display: grid;
+    grid-template-columns: minmax(175px, .75fr) minmax(0, 2.25fr);
+    align-items: center;
+    gap: 24px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+    background: rgba(239, 242, 232, .96);
+    border: 1px solid #d9e1d2;
+    border-radius: 16px;
+}
+
+.manager-page .manager-functions-heading h2 {
+    margin: 5px 0 0;
+    font-size: 23px;
+}
+
+.manager-page .manager-links {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.manager-page .manager-link {
+    min-width: 0;
+    min-height: 58px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 13px;
+    border: 1px solid #dfe5d8;
+    border-radius: 10px;
+    background: #fffdf8;
+    font-size: 12px;
+    box-shadow: none;
+}
+
+.manager-page .manager-overview-panel {
+    overflow: hidden;
+    border: 1px solid #e3e5d9;
+    border-radius: 16px;
+    background: rgba(255, 253, 248, .97);
+}
+
+.manager-page .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 8px 22px;
+    border-bottom: 1px solid #e5e5dc;
+    background: #f4f5ed;
+}
+
+.manager-page .stat-card {
+    padding: 15px 20px;
+    border: 0;
+    border-right: 1px solid #e0e4d9;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.manager-page .stat-card:last-child {
+    border-right: 0;
+}
+
+.manager-page .stat-card span {
+    display: block;
+    color: #697568;
+    font-size: 12px;
+}
+
+.manager-page .stat-card strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 30px;
+}
+
+.manager-page .manager-overview-panel .manager-section {
+    margin: 0;
+    padding: 24px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.manager-page .manager-section > .muted {
+    margin: 0 0 18px;
+}
+
+.manager-page .manager-section .table-wrap {
+    overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+    .manager-page .manager-functions {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .manager-page .manager-links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 580px) {
+    .manager-page .manager-functions {
+        padding: 17px;
+    }
+
+    .manager-page .manager-link {
+        min-height: 54px;
+        padding: 10px;
+    }
+
+    .manager-page .stats-grid {
+        padding: 4px 10px;
+    }
+
+    .manager-page .stat-card {
+        padding: 12px 9px;
+    }
+
+    .manager-page .stat-card strong {
+        font-size: 24px;
+    }
+
+    .manager-page .manager-overview-panel .manager-section {
+        padding: 17px 13px;
+    }
+}
+
+
+/* Manager links live in the existing shared top navigation. */
+.nav {
+    gap: 20px;
+}
+
+.nav .main-nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 26px);
+    flex: 1;
+    min-width: 0;
+}
+
+.nav .main-nav-links a {
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 750;
+    color: #53634b;
+    transition: color .18s ease;
+}
+
+.nav .main-nav-links a:hover {
+    color: var(--forest);
+}
+
+.nav .nav-actions {
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .nav .main-nav-links {
+        gap: 12px;
+    }
+
+    .nav .main-nav-links a {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 700px) {
+    .nav {
+        height: auto;
+        min-height: 72px;
+        flex-wrap: wrap;
+        padding: 14px 20px;
+        gap: 12px;
+    }
+
+    .nav .main-nav-links {
+        order: 3;
+        width: 100%;
+        flex: 0 0 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+    }
+
+    .nav .main-nav-links a {
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #f4f6ed;
+        white-space: normal;
+        font-size: 11px;
+    }
+
+    .nav .nav-actions {
+        margin-left: auto;
+    }
+}
+
+/* The manager dashboard uses the full available content width. */
+.manager-page .manager-layout {
+    display: block;
+}
+
+.manager-page .manager-content {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* CUSTOMER UNIFIED WORKSPACE REDESIGN */
+
+/* Customer navigation: actions beside the brand, logout at the right. */
+.nav .main-nav-links .customer-nav-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 9px 15px;
+    border-radius: 999px;
+    background: #e8eee2;
+    color: #294431;
+    font-size: 12px;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.nav .main-nav-links .customer-nav-action:hover {
+    background: #dce7d5;
+    transform: translateY(-1px);
+}
+
+.nav .main-nav-links {
+    justify-content: flex-start;
+}
+
+/* One continuous customer workspace instead of disconnected cards. */
+body.customer-body .customer-workspace {
+    width: 100%;
+    margin: 26px 0 44px;
+    padding: clamp(20px, 3vw, 38px);
+    overflow: hidden;
+    border: 1px solid rgba(54, 77, 54, .13);
+    border-radius: 22px;
+    background: rgba(255, 253, 247, .94);
+    box-shadow: 0 16px 45px rgba(35, 53, 36, .07);
+}
+
+body.customer-body .customer-workspace > .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 0 0 24px;
+    border-bottom: 1px solid #e5e8dd;
+}
+
+body.customer-body .customer-workspace > .stats-grid .stat-card {
+    min-width: 0;
+    padding: 8px 24px 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.customer-body .customer-workspace > .stats-grid .stat-card + .stat-card {
+    padding-left: 24px;
+    border-left: 1px solid #e5e8dd;
+}
+
+body.customer-body .customer-workspace > .lead {
+    margin: 22px 0;
+}
+
+body.customer-body .customer-browse-notice {
+    margin: 18px 0;
+    padding: 13px 16px;
+    border-left: 3px solid #8a9d75;
+    border-radius: 0 9px 9px 0;
+    background: #f1f3e9;
+    color: #52614c;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+body.customer-body .customer-browse-notice p {
+    margin: 0;
+}
+
+body.customer-body #checkout-day-reminder {
+    margin: 18px 0;
+    padding: 14px 16px;
+    border-left: 3px solid #b28b45;
+    background: #faf4e6;
+    color: #65512f;
+    line-height: 1.6;
+}
+
+body.customer-body .customer-workspace .table-wrap {
+    width: 100%;
+    margin: 24px 0 0;
+    overflow-x: auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.customer-body .customer-workspace table {
+    min-width: 850px;
+    width: 100%;
+}
+
+body.customer-body .customer-workspace .report-form-section {
+    margin: 32px 0 0;
+    padding: 28px 0 0;
+    border: 0;
+    border-top: 1px solid #e5e8dd;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.customer-body .customer-workspace .report-form-section h2 {
+    margin-top: 8px;
+}
+
+body.customer-body .customer-workspace .report-form {
+    max-width: 720px;
+}
+
+body.customer-body .customer-report-conversations {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid #e5e8dd;
+}
+
+body.customer-body .customer-report-thread {
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+@media (max-width: 700px) {
+    body.customer-body .customer-workspace {
+        margin-top: 18px;
+        padding: 18px 14px;
+        border-radius: 15px;
+    }
+
+    body.customer-body .customer-workspace > .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.customer-body .customer-workspace > .stats-grid .stat-card {
+        padding: 12px 0;
+    }
+
+    body.customer-body .customer-workspace > .stats-grid .stat-card + .stat-card {
+        padding: 16px 0 8px;
+        border-top: 1px solid #e5e8dd;
+        border-left: 0;
+    }
+
+    .nav .main-nav-links .customer-nav-action {
+        justify-content: center;
+        padding: 9px 10px;
+        font-size: 11px;
+    }
+}
+
+
+/* Customer navigation: centered actions and report popup. */
+.nav .main-nav-links {
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+}
+
+.nav .main-nav-links .customer-nav-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 9px 18px;
+    border: 1px solid #dce5d6;
+    border-radius: 999px;
+    background: #e8eee2;
+    color: #294431;
+    font-size: 12px;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.nav .main-nav-links .customer-nav-action:hover {
+    background: #dce7d5;
+    transform: translateY(-1px);
+}
+
+.customer-report-dialog {
+    width: min(680px, calc(100% - 32px));
+    max-width: 680px;
+    max-height: min(85vh, 850px);
+    overflow-y: auto;
+    padding: clamp(20px, 4vw, 34px);
+    border: 1px solid #dce5d6;
+    border-radius: 20px;
+    background: #fffdf8;
+    color: #263328;
+    box-shadow: 0 24px 80px rgba(20, 40, 25, .24);
+}
+
+.customer-report-dialog::backdrop {
+    background: rgba(24, 39, 28, .52);
+    backdrop-filter: blur(4px);
+}
+
+.customer-report-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e5e8dd;
+}
+
+.customer-report-close {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: #edf1e8;
+    color: #294431;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.customer-report-dialog .report-form-section {
+    margin: 0;
+    padding: 22px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.customer-report-dialog .customer-report-conversations {
+    margin-top: 28px;
+}
+
+@media (max-width: 700px) {
+    .nav .main-nav-links {
+        order: 3;
+        flex: 0 0 100%;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+    }
+}
+
+/* =========================================================
+   MTCHLVR MATCHA HOTEL THEME
+   Botanical green • sage • warm cream
+   ========================================================= */
+:root {
+  --forest: #315b3b;
+  --leaf: #91b77d;
+  --cream: #f5f2df;
+  --sand: #e9e2c9;
+  --ink: #26392c;
+  --muted: #788575;
+  --line: #e1e7dc;
+  --white: #fbfcf7;
+  --shadow: 0 18px 48px rgba(37, 73, 46, .10);
+}
+
+body {
+  background: var(--white);
+  color: var(--ink);
+}
+
+.nav {
+  background: rgba(251, 252, 247, .96);
+  border-bottom-color: #e1e8dc;
+}
+
+.brand {
+  color: var(--forest);
+  gap: 11px;
+}
+
+.brand-logo {
+  display: block;
+  width: 39px;
+  height: 39px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.brand small {
+  color: #66865d;
+  letter-spacing: .25em;
+}
+
+.button {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+
+.button:hover {
+  background: #24472e;
+  border-color: #24472e;
+}
+
+.button.secondary {
+  background: #edf2e8;
+  border-color: #dce6d6;
+  color: var(--forest);
+}
+
+.button.secondary:hover {
+  background: #e1eadb;
+}
+
+.eyebrow,
+.auth-switch a,
+.table-action {
+  color: var(--forest);
+}
+
+.hero h1 em,
+.page-title em,
+.auth-card h1 em,
+.section-heading h2 em,
+.closing h2 em {
+  color: #527c51;
+}
+
+.hero-art {
+  background: #e4eadc;
+}
+
+.section {
+  background: #f6f8f1;
+}
+
+.room-card {
+  background: #fffefa;
+  border-color: #e1e7dc;
+}
+
+.room-card:hover {
+  box-shadow: 0 18px 38px rgba(37, 73, 46, .12);
+}
+
+.room-illustration {
+  height: 225px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #e4eadc;
+}
+
+.room-illustration::after {
+  content: "";
+  position: absolute;
+  inset: 35% 0 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(24, 43, 28, .34));
+}
+
+.room-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform .5s ease;
+}
+
+.room-card:hover .room-photo {
+  transform: scale(1.045);
+}
+
+.room-tag {
+  z-index: 2;
+  background: rgba(251, 252, 247, .93);
+  color: var(--forest);
+  backdrop-filter: blur(8px);
+}
+
+.room-number {
+  z-index: 2;
+  color: white;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, .4);
+}
+
+.room-info {
+  background: #fffefa;
+}
+
+.price strong {
+  color: var(--forest);
+}
+
+.closing {
+  background: var(--forest);
+  color: #f5f2df;
+}
+
+.closing .eyebrow {
+  color: #c7dfb8;
+}
+
+.closing h2 em {
+  color: #c7dfb8;
+}
+
+.cream-button {
+  background: #f5f2df;
+  border-color: #f5f2df;
+  color: var(--forest);
+}
+
+.auth-body {
+  background:
+    radial-gradient(ellipse at 15% 15%, #e8efdf 0, transparent 44%),
+    #f7f9f2;
+}
+
+.auth-card {
+  background: #fffefa;
+  border-color: #e1e7dc;
+}
+
+.booking-form label,
+.stack-form label {
+  color: #536b53;
+}
+
+.booking-form input,
+.stack-form input,
+.inline-form select {
+  border-color: #dce5d7;
+  background: #fffefa;
+}
+
+.booking-form input:focus,
+.stack-form input:focus {
+  border-color: #91b77d;
+  box-shadow: 0 0 0 3px rgba(145, 183, 125, .2);
+}
+
+th {
+  background: #eef3e9;
+  color: #5d735b;
+}
+
+.status.approved,
+.status.available {
+  background: #e6f1df;
+  color: #315b3b;
+}
+
+footer {
+  background: #f8f9f3;
+  border-top-color: #e1e7dc;
+}
+
+@media (max-width: 580px) {
+  .room-illustration {
+    height: 215px;
+  }
+
+  .brand-logo {
+    width: 35px;
+    height: 35px;
+  }
+}
