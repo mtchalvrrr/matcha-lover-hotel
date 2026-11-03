@@ -1388,3 +1388,20 @@ footer{background:#f3efe5;color:#687568;border-color:#e5dfd3}
 .extension-form button{grid-column:1/-1}
 .confirm-actions{gap:10px}
 @media(max-width:580px){.extension-form{grid-template-columns:1fr}.extension-form button{grid-column:auto}.stay-extension-options{padding:14px}}
+
+
+/* Simple visual finish: retain the botanical look without extra decoration. */
+.hero-city .art-caption{display:none!important}
+.room-card,.stat-card,.manager-section{box-shadow:none}
+.room-card:hover{box-shadow:0 8px 20px rgba(40,55,40,.08);transform:translateY(-2px)}
+.manager-functions{padding:22px;border-radius:16px}
+.manager-link{min-height:72px;padding:14px;border-radius:12px;box-shadow:none}
+.manager-link:hover{transform:none;box-shadow:none}
+.page-wrap{padding-top:46px}
+.room-grid{gap:18px}
+.room-availability{box-shadow:none}
+@media(max-width:580px){
+  .manager-functions{padding:16px}
+  .manager-link{min-height:60px}
+  .page-wrap{padding-top:34px}
+}
