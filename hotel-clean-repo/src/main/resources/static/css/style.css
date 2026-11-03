@@ -1405,3 +1405,18 @@ footer{background:#f3efe5;color:#687568;border-color:#e5dfd3}
   .manager-link{min-height:60px}
   .page-wrap{padding-top:34px}
 }
+
+/* Shared hotel-photo backdrop across every page, including sign-in and registration. */
+body {
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(20, 35, 24, .58), rgba(20, 35, 24, .64)),
+    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1400&h=1000&fit=crop")
+    center center / cover fixed !important;
+}
+
+@media (max-width: 760px) {
+  body {
+    background-attachment: scroll !important;
+  }
+}
