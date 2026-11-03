@@ -381,7 +381,7 @@ public class HotelController {
         for (Room room : rooms.findAll()) {
             java.util.List<Reservation> activeBookings = reservations.findAllByOrderByCreatedAtDesc().stream()
                     .filter(r -> r.getRoom() != null && room.getId().equals(r.getRoom().getId()))
-                    .filter(r -> !java.util.List.of("REJECTED", "CANCELLED", "COMPLETED").contains(r.getStatus()))
+                    .filter(r -> !java.util.List.of("REJECTED", "CANCELLED", "COMPLETED", "VOID").contains(r.getStatus()))
                     .filter(r -> {
                         java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
                         return r.getCheckOut().atTime(outTime).isAfter(now);
