@@ -2126,3 +2126,192 @@ footer {
     height: 35px;
   }
 }
+
+
+/* Matcha-green reservation confirmations and request controls */
+.extension-confirmation {
+  grid-column: 1 / -1;
+  padding: 15px;
+  border: 1px solid #cbdcc1;
+  border-radius: 12px;
+  background: #edf4e8;
+}
+.extension-confirmation[hidden] {
+  display: none;
+}
+.extension-confirmation p {
+  margin: 0 0 12px;
+  color: #30482b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.extension-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.button,
+.inline-form .button,
+.extension-confirmation .button {
+  background: #477b3b;
+  border-color: #477b3b;
+  color: #fffdf5;
+}
+.button:hover,
+.inline-form .button:hover,
+.extension-confirmation .button:hover {
+  background: #35652c;
+  border-color: #35652c;
+}
+.button.secondary {
+  background: #f5f7ef;
+  border-color: #cbd8c2;
+  color: #3d6c33;
+}
+.button.secondary:hover {
+  background: #e8f0e1;
+}
+.confirm-card {
+  border-color: #d4e1ca;
+  background: #fffef8;
+}
+.confirm-card .eyebrow {
+  color: #477b3b;
+}
+.confirm-actions .button {
+  min-height: 40px;
+}
+.inline-form select,
+.stack-form input {
+  border-color: #d5dfce;
+}
+.inline-form select:focus,
+.stack-form input:focus {
+  border-color: #6c9b5b;
+  box-shadow: 0 0 0 3px rgba(108,155,91,.16);
+}
+@media (max-width: 520px) {
+  .extension-confirmation-actions {
+    flex-direction: column;
+  }
+  .extension-confirmation-actions .button {
+    width: 100%;
+  }
+}
+
+/* Match the room card action buttons exactly */
+body:has(.room-card) .room-availability-toggle,
+body:has(.room-card) .room-signin-action > .button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  min-height: 48px;
+  margin: 0 16px 16px;
+  padding: 12px 22px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+body:has(.room-card) .room-signin-action {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+
+/* Matcha password requirements checklist redesign */
+.password-rules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin: 14px 0 0;
+    padding: 14px;
+    list-style: none;
+    background: #f8f8f1;
+    border: 1px solid #e4e9dc;
+    border-radius: 15px;
+}
+
+.password-rules::before {
+    content: "PASSWORD REQUIREMENTS";
+    grid-column: 1 / -1;
+    color: #65745e;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .13em;
+    margin-bottom: 2px;
+}
+
+.password-rules li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 39px;
+    padding: 8px 10px;
+    border: 1px solid #e5e8dd;
+    border-radius: 10px;
+    background: #fffef9;
+    color: #778071;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.35;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.password-rules li::before {
+    content: "·";
+    flex: 0 0 19px;
+    width: 19px;
+    height: 19px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #edf0e7;
+    color: #78836f;
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.password-rules li.rule-ok {
+    color: #315d38;
+    background: #f0f6ec;
+    border-color: #c9dfc5;
+}
+
+.password-rules li.rule-ok::before {
+    content: "✓";
+    background: #dcebd7;
+    color: #286b3b;
+    font-size: 11px;
+}
+
+.password-rules li.rule-bad {
+    color: #98634f;
+    background: #fbf5f0;
+    border-color: #eadbd1;
+}
+
+.password-rules li.rule-bad::before {
+    content: "×";
+    background: #f3e5dc;
+    color: #a35e43;
+    font-size: 13px;
+}
+
+@media (max-width: 420px) {
+    .password-rules {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding: 11px;
+    }
+
+    .password-rules li {
+        min-height: 36px;
+    }
+}

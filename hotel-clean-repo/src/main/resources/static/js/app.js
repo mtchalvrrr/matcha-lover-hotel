@@ -92,6 +92,41 @@ document.addEventListener("DOMContentLoaded", () => {
     dismissButtons[0]?.focus();
   }
 
+  document.querySelectorAll("form[data-extension-form]").forEach((form) => {
+    const trigger = form.querySelector("[data-extension-trigger]");
+    const confirmation = form.querySelector("[data-extension-confirmation]");
+    const confirmButton = form.querySelector("[data-extension-confirm]");
+    const cancelButton = form.querySelector("[data-extension-cancel]");
+
+    if (!trigger || !confirmation || !confirmButton || !cancelButton) return;
+
+    form.addEventListener("submit", (event) => {
+      if (form.dataset.extensionConfirmed === "true") {
+        form.dataset.extensionConfirmed = "false";
+        return;
+      }
+
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+
+      confirmation.hidden = false;
+      trigger.hidden = true;
+      confirmButton.focus();
+    });
+
+    cancelButton.addEventListener("click", () => {
+      confirmation.hidden = true;
+      trigger.hidden = false;
+      trigger.focus();
+    });
+
+    confirmButton.addEventListener("click", () => {
+      if (!form.reportValidity()) return;
+      form.dataset.extensionConfirmed = "true";
+      form.requestSubmit();
+    });
+  });
+
   document.querySelectorAll("[data-password-toggle]").forEach((button) => {
     button.addEventListener("click", () => {
       const input = document.getElementById(button.dataset.passwordToggle);
