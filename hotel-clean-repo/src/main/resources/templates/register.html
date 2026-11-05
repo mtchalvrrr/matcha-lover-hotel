@@ -168,7 +168,7 @@
   );
   const duplicateEmail = form.dataset.emailTaken === "true";
   const initialStep = hasSecurityError && !duplicateEmail ? 2 : 1;
-  window.history.replaceState({ registrationStep: initialStep }, "", window.location.href);
+  window.history.replaceState({ registrationStep: 1 }, "", window.location.href);
   showStep(initialStep, initialStep === 2);
 
   window.addEventListener("pageshow", (event) => {
