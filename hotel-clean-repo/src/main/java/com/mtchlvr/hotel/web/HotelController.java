@@ -45,8 +45,21 @@ public class HotelController {
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
-        model.addAttribute("form", new RegisterForm()); return "register";
+        model.addAttribute("form", new RegisterForm());
+        model.addAttribute("duplicateEmail", false);
+        return "register";
     }
+
+    // Check email availability before allowing the registration form to advance.
+    @GetMapping("/api/register/email-available")
+    @ResponseBody
+    public java.util.Map<String, Boolean> checkRegistrationEmail(@RequestParam String email) {
+        String normalizedEmail = email == null ? "" : email.trim();
+        boolean available = !normalizedEmail.isBlank() &&
+                !users.existsByEmailIgnoreCase(normalizedEmail);
+        return java.util.Map.of("available", available);
+    }
+
     @PostMapping("/register") public String registerPost(@Valid @ModelAttribute("form") RegisterForm form,
             BindingResult errors, HttpSession session, Model model, RedirectAttributes flash,
             @RequestParam(name = "g-recaptcha-response", required = false) String captchaToken,
@@ -56,10 +69,13 @@ public class HotelController {
             errors.rejectValue("confirmPassword", "mismatch", "Passwords do not match.");
         }
         String normalizedEmail = form.email == null ? "" : form.email.trim();
-        if (!normalizedEmail.isBlank() && users.existsByEmailIgnoreCase(normalizedEmail)) {
-            errors.rejectValue("email", "duplicate", "An account with this email already exists.");
+        boolean duplicateEmail = !normalizedEmail.isBlank() &&
+                users.existsByEmailIgnoreCase(normalizedEmail);
+        if (duplicateEmail) {
+            // Keep the customer on step one without displaying an "email already in use" message.
+            model.addAttribute("duplicateEmail", true);
         }
-        if (errors.hasErrors()) return "register";
+        if (errors.hasErrors() || duplicateEmail) return "register";
         AppUser newCustomer = new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT),
                 encoder.encode(form.password), form.getFullName().trim(), "CUSTOMER", true);
         newCustomer.setCustomerCode(generateCustomerCode());
