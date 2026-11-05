@@ -26,50 +26,42 @@
   const pwd = document.getElementById("registerPassword");
   const confirm = document.getElementById("confirmPassword");
   const rulesList = document.getElementById("passwordRules");
-  const strengthBar = document.getElementById("passwordStrengthBar");
-  const strengthLabel = document.getElementById("passwordStrengthLabel");
   const confirmHint = document.getElementById("confirmMatchHint");
 
+  // These are the six requirements shown below the password field.
   const ruleChecks = {
     length: (v) => v.length >= 10,
     upper: (v) => /[A-Z]/.test(v),
     lower: (v) => /[a-z]/.test(v),
-    number: (v) => /\d/.test(v),
-    symbol: (v) => /[^A-Za-z0-9]/.test(v),
-    nospace: (v) => v.length === 0 || !/\s/.test(v),
+    number: (v) => /[0-9]/.test(v),
+    symbol: (v) => /[^A-Za-z0-9\\s]/.test(v),
+    nospace: (v) => !/\\s/.test(v),
   };
 
-  function scorePassword(v) {
-    let score = 0;
-    if (v.length >= 10) score++;
-    if (v.length >= 14) score++;
-    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
-    if (/\d/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-    if (v.length >= 18) score++;
-    return Math.min(score, 4);
-  }
-
-  const strengthLabels = ["Too weak", "Weak", "Fair", "Strong", "Excellent"];
-  const strengthClasses = ["strength-0", "strength-1", "strength-2", "strength-3", "strength-4"];
-
   function updateRules() {
-    if (!pwd || !rulesList) return;
-    const v = pwd.value;
+    if (!pwd || !rulesList) return false;
+
+    const value = pwd.value;
     let allPass = true;
-    rulesList.querySelectorAll("[data-rule]").forEach((li) => {
-      const key = li.dataset.rule;
-      const ok = ruleChecks[key] ? ruleChecks[key](v) : false;
-      li.classList.toggle("rule-ok", ok);
-      li.classList.toggle("rule-pending", !ok && v.length === 0);
-      li.classList.toggle("rule-bad", !ok && v.length > 0);
-      if (!ok) allPass = false;
+
+    rulesList.querySelectorAll("[data-rule]").forEach((item) => {
+      const rule = item.dataset.rule;
+      const passed = ruleChecks[rule] ? ruleChecks[rule](value) : false;
+
+      item.classList.toggle("rule-ok", passed);
+      item.classList.toggle("rule-bad", !passed);
+      item.classList.remove("rule-pending");
+
+      if (!passed) allPass = false;
     });
-    if (strengthBar && strengthLabel) {
-      const s = v.length === 0 ? 0 : scorePassword(v);
-      strengthBar.className = "password-strength-bar " + strengthClasses[s];
-      strengthLabel.textContent = v.length === 0 ? "Enter a password" : strengthLabels[s];
-    }
+
+    // Do not allow submission until every displayed requirement is satisfied.
+    pwd.setCustomValidity(
+      value.length > 0 && !allPass
+        ? "Please meet all six password requirements."
+        : ""
+    );
+
     return allPass;
   }
 
