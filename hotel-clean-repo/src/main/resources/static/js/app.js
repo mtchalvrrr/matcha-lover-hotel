@@ -82,9 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !checkoutModal.hidden) closeCheckoutReminder();
     });
-    document.querySelectorAll("form[data-checkout-early-form]").forEach((form) => {
-      form.addEventListener("submit", closeCheckoutReminder);
-    });
 
     // Show the reminder whenever the customer opens their reservations on checkout day.
     if (message) message.textContent = reminderText;
