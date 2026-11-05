@@ -116,19 +116,6 @@ public class HotelController {
                 .map(Reservation::getId)
                 .toList());
 
-        model.addAttribute("earlyCheckoutReservationIds", customerReservations.stream()
-                .filter(r -> "APPROVED".equals(r.getStatus()))
-                .filter(r -> {
-                    java.time.LocalTime inTime = r.getCheckInTime() == null
-                            ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
-                    java.time.LocalTime outTime = r.getCheckOutTime() == null
-                            ? java.time.LocalTime.NOON : r.getCheckOutTime();
-                    java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
-                    java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
-                    return !now.isBefore(start) && now.isBefore(end);
-                })
-                .map(Reservation::getId)
-                .toList());
         return "my-reservations";
     }
     @PostMapping("/customer/reservations") public String makeReservation(Authentication auth,
@@ -161,40 +148,6 @@ public class HotelController {
             reservations.save(r);
             flash.addFlashAttribute("success", "Cancellation request sent to the manager.");
         }
-        return "redirect:/customer/reservations";
-    }
-
-    @PostMapping("/customer/reservations/{id}/early-checkout")
-    public String earlyCheckout(@PathVariable Long id, Authentication auth, RedirectAttributes flash) {
-        Reservation r = reservations.findById(id).orElse(null);
-        if (r == null || r.getCustomer() == null ||
-                !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
-            flash.addFlashAttribute("error", "Reservation not found.");
-            return "redirect:/customer/reservations";
-        }
-        if (!"APPROVED".equals(r.getStatus())) {
-            flash.addFlashAttribute("error", "Only approved reservations can request early checkout.");
-            return "redirect:/customer/reservations";
-        }
-        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
-        java.time.LocalDateTime now = java.time.LocalDateTime.now(hotelZone).withNano(0);
-        java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
-        java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
-        java.time.LocalDateTime scheduledStart = r.getCheckIn().atTime(inTime);
-        java.time.LocalDateTime scheduledEnd = r.getCheckOut().atTime(outTime);
-        if (now.isBefore(scheduledStart)) {
-            flash.addFlashAttribute("error", "Early checkout is available only after your scheduled check-in.");
-            return "redirect:/customer/reservations";
-        }
-        if (!now.isBefore(scheduledEnd)) {
-            flash.addFlashAttribute("error", "Your scheduled checkout time has arrived. Please settle your bill at reception.");
-            return "redirect:/customer/reservations";
-        }
-        r.setRequestedCheckOut(now.toLocalDate());
-        r.setRequestedCheckOutTime(now.toLocalTime());
-        r.setStatus("EARLY_CHECKOUT_REQUESTED");
-        reservations.save(r);
-        flash.addFlashAttribute("success", "Your early checkout request was sent to the manager. Your reservation will update after approval.");
         return "redirect:/customer/reservations";
     }
 
@@ -480,41 +433,8 @@ public class HotelController {
     }
 
 
-    @PostMapping("/manager/reservations/{id}/special-request")
-    public String decideSpecialRequest(@PathVariable Long id,
-            @RequestParam @Pattern(regexp = "APPROVE|REJECT") String decision,
-            RedirectAttributes flash) {
-        Reservation r = reservations.findById(id).orElse(null);
-        if (r == null || !"EARLY_CHECKOUT_REQUESTED".equals(r.getStatus())) {
-            flash.addFlashAttribute("error", "Pending early checkout request not found.");
-            return "redirect:/manager/reservation-requests";
-        }
-
-        if (r.getRequestedCheckOut() == null || r.getRequestedCheckOutTime() == null) {
-            flash.addFlashAttribute("error", "The request has no valid checkout date or time.");
-            return "redirect:/manager/reservation-requests";
-        }
-
-        if ("APPROVE".equals(decision)) {
-            r.setCheckOut(r.getRequestedCheckOut());
-            r.setCheckOutTime(r.getRequestedCheckOutTime());
-            r.setStatus("COMPLETED");
-            flash.addFlashAttribute("success",
-                    "Early checkout approved. The stay dates and room charge are updated.");
-        } else {
-            r.setStatus("APPROVED");
-            flash.addFlashAttribute("success",
-                    "Early checkout declined. The original reservation remains active.");
-        }
-
-        r.setRequestedCheckOut(null);
-        r.setRequestedCheckOutTime(null);
-        reservations.save(r);
-        return "redirect:/manager/reservation-requests";
-    }
-
     private boolean isProcessedHistory(Reservation r) {
-        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED", "EARLY_CHECKOUT_REQUESTED").contains(r.getStatus());
+        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED").contains(r.getStatus());
     }
 
     @PostMapping("/manager/history/{id}/delete")
