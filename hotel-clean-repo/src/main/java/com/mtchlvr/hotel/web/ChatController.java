@@ -25,16 +25,31 @@ public class ChatController {
             @Valid @RequestBody ChatRequest request,
             Authentication authentication) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException(
-                    "Please sign in to use the hotel assistant.");
-        }
+        String message = request.message().trim();
+        String normalized = message.toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N}]+", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
 
-        boolean manager = authentication.getAuthorities().stream()
+        boolean authenticated = authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName());
+        boolean manager = authenticated && authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
 
-        String message = request.message().trim();
-        String normalized = message.toLowerCase(Locale.ROOT);
+        // Room browsing is public, just like the /rooms page. Keep the chatbot
+        // useful to signed-out visitors without exposing account or manager data.
+        if (isRoomBrowseIntent(normalized)) {
+            return new ChatResponse(
+                    "You can browse the hotel's public room listings here. Sign in when you are ready to make a reservation.",
+                    List.of(new ChatAction("navigate", "Browse rooms", "/rooms", false)));
+        }
+
+        if (!authenticated) {
+            return new ChatResponse(
+                    "I can help signed-out visitors browse the hotel's public rooms. Please sign in to use account and reservation assistance.",
+                    List.of(new ChatAction("navigate", "Browse rooms", "/rooms", false)));
+        }
 
         // Logout is available to both authenticated roles.
         if (containsAny(normalized, "logout", "log out", "sign out", "signout")) {
@@ -79,14 +94,6 @@ public class ChatController {
         }
 
         if (!manager) {
-            if (containsAny(normalized, "browse rooms", "available rooms",
-                    "show rooms", "view rooms", "room list", "book a room",
-                    "reserve a room", "make a reservation")) {
-                return new ChatResponse(
-                        "You can browse the hotel's rooms here. Actual date availability is checked when you submit a reservation.",
-                        List.of(new ChatAction("navigate", "Browse rooms", "/rooms", false)));
-            }
-
             if (containsAny(normalized, "my reservation", "my booking",
                     "my bookings", "reservation list", "booking status",
                     "view reservation", "view booking")) {
@@ -127,6 +134,17 @@ public class ChatController {
 
         // Ordinary hotel questions continue through the existing Groq integration.
         return new ChatResponse(chatService.reply(message), List.of());
+    }
+
+    private static boolean isRoomBrowseIntent(String message) {
+        return containsAny(message,
+                "browse rooms", "browse the rooms", "available rooms",
+                "show rooms", "show me rooms", "show me the rooms",
+                "view rooms", "view the rooms", "see rooms", "see the rooms",
+                "let me see the rooms", "can i see the rooms",
+                "room list", "list rooms", "take me to rooms",
+                "take me to the rooms", "go to rooms", "go to the rooms",
+                "book a room", "reserve a room", "make a reservation");
     }
 
     private static String managerFunction(String message) {
