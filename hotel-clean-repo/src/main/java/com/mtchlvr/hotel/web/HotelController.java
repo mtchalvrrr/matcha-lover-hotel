@@ -172,8 +172,6 @@ public class HotelController {
             return "redirect:/customer/reservations";
         }
         r.setStatus("COMPLETED");
-        r.setRequestedCheckOut(null);
-        r.setRequestedCheckOutTime(null);
         reservations.save(r);
         flash.addFlashAttribute("success", "Checkout completed. Your reservation is now in history.");
         return "redirect:/customer/reservations";
