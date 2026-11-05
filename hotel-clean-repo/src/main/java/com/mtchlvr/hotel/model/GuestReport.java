@@ -39,7 +39,17 @@ public class GuestReport {
     public String getConversation() { return conversation == null ? "" : conversation; }
     public boolean isVisible() { return visible == null || visible; }
     public void setVisible(boolean value) { visible = value; }
+    // Check the database column limit before saving another conversation entry.
+    public boolean canAppendConversationMessage(String speaker, String message) {
+        String entry = speaker + ": " + message;
+        String updated = getConversation().isBlank() ? entry : getConversation() + "\n\n" + entry;
+        return updated.length() <= 10000;
+    }
+
     public void appendConversationMessage(String speaker, String message) {
+        if (!canAppendConversationMessage(speaker, message)) {
+            throw new IllegalArgumentException("This report conversation has reached its maximum length. Please submit a new report.");
+        }
         String entry = speaker + ": " + message;
         this.conversation = getConversation().isBlank() ? entry : getConversation() + "\n\n" + entry;
     }
