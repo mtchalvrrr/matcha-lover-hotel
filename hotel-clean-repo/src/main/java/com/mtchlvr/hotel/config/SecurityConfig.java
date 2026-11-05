@@ -37,6 +37,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/chat").permitAll()
                 .requestMatchers(
                     "/", "/rooms", "/register", "/login",
                     "/css/**", "/js/**", "/images/**", "/error", "/favicon.ico"
