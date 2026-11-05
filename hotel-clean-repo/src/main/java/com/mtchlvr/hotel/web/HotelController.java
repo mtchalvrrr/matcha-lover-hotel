@@ -36,7 +36,9 @@ public class HotelController {
         return "index";
     }
     @GetMapping("/rooms") public String browse(Model model) {
-        model.addAttribute("rooms", rooms.findByActiveTrueOrderByTypeAscRoomNumberAsc()); return "rooms";
+        // Customers should only see rooms that are both active and marked available.
+        model.addAttribute("rooms", rooms.findByActiveTrueAndAvailableTrueOrderByTypeAscRoomNumberAsc());
+        return "rooms";
     }
     @GetMapping("/login") public String login(Model model) { return "login"; }
 
@@ -110,7 +112,8 @@ public class HotelController {
 
         model.addAttribute("checkoutTodayReservations", customerReservations.stream()
                 .filter(r -> "APPROVED".equals(r.getStatus()))
-                .filter(r -> r.getCheckOut().equals(today))
+                // Keep overdue approved stays visible until the customer checks out.
+                .filter(r -> !r.getCheckOut().isAfter(today))
                 .toList());
 
         model.addAttribute("currentlyCheckedInReservationIds", customerReservations.stream()
@@ -206,8 +209,8 @@ public class HotelController {
                 java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
                 java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
                 if (!end.isAfter(now)) return false;
-                if ("PENDING".equals(r.getStatus())) return true;
-                return "APPROVED".equals(r.getStatus()) && !now.isBefore(start);
+                return java.util.List.of("PENDING", "APPROVED", "CANCELLATION_REQUESTED")
+                        .contains(r.getStatus());
             })
             .map(r -> {
                 java.time.LocalTime inTime = r.getCheckInTime() == null
@@ -358,8 +361,13 @@ public class HotelController {
     @PostMapping("/manager/reports/{id}/status") public String updateReportStatus(@PathVariable Long id,
             @RequestParam @Pattern(regexp="OPEN|RESOLVED") String status, RedirectAttributes flash) {
         GuestReport report = reports.findById(id).orElse(null);
-        if (report == null) flash.addFlashAttribute("error", "Report not found.");
-        else { report.setStatus(status); reports.save(report); flash.addFlashAttribute("success", "Report status updated."); }
+        if (report == null || !report.isVisible()) {
+            flash.addFlashAttribute("error", "Report not found.");
+        } else {
+            report.setStatus(status);
+            reports.save(report);
+            flash.addFlashAttribute("success", "Report status updated.");
+        }
         return "redirect:/manager/reports";
     }
 
@@ -367,7 +375,7 @@ public class HotelController {
     public String managerReplyToReport(@PathVariable Long id, @RequestParam String message, RedirectAttributes flash) {
         GuestReport report = reports.findById(id).orElse(null);
         String clean = message == null ? "" : message.trim();
-        if (report == null) {
+        if (report == null || !report.isVisible()) {
             flash.addFlashAttribute("error", "Report not found.");
         } else if (clean.isBlank() || clean.length() > 2000) {
             flash.addFlashAttribute("error", "Enter a reply of up to 2,000 characters.");
@@ -384,7 +392,7 @@ public class HotelController {
             @RequestParam String message, RedirectAttributes flash) {
         GuestReport report = reports.findById(id).orElse(null);
         String clean = message == null ? "" : message.trim();
-        if (report == null || report.getCustomer() == null ||
+        if (report == null || !report.isVisible() || report.getCustomer() == null ||
                 !report.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
             flash.addFlashAttribute("error", "Report not found.");
         } else if (clean.isBlank() || clean.length() > 2000) {
