@@ -204,9 +204,7 @@ public class HotelController {
             .filter(r -> {
                 java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
                 java.time.LocalDateTime now = java.time.LocalDateTime.now(zone);
-                java.time.LocalTime inTime = r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
                 java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
-                java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
                 java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
                 if (!end.isAfter(now)) return false;
                 return java.util.List.of("PENDING", "APPROVED", "CANCELLATION_REQUESTED")
