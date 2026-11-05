@@ -226,51 +226,6 @@ public class HotelController {
         return "redirect:/customer/reservations";
     }
 
-    @PostMapping("/customer/reservations/{id}/extend")
-    public String extendStay(@PathVariable Long id, Authentication auth,
-            @RequestParam LocalDate newCheckOut,
-            @RequestParam(defaultValue = "12:00") java.time.LocalTime newCheckOutTime,
-            RedirectAttributes flash) {
-        Reservation r = reservations.findById(id).orElse(null);
-        if (r == null || r.getCustomer() == null ||
-                !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
-            flash.addFlashAttribute("error", "Reservation not found.");
-            return "redirect:/customer/reservations";
-        }
-        if (!"APPROVED".equals(r.getStatus()) ||
-                !r.getCheckOut().equals(LocalDate.now(java.time.ZoneId.of("Asia/Manila")))) {
-            flash.addFlashAttribute("error", "Stay extensions are available on the scheduled checkout day for approved reservations.");
-            return "redirect:/customer/reservations";
-        }
-        java.time.LocalTime currentOut = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
-        if (newCheckOut == null || newCheckOutTime == null ||
-                !newCheckOut.atTime(newCheckOutTime).isAfter(r.getCheckOut().atTime(currentOut))) {
-            flash.addFlashAttribute("error", "Choose an extension date and time later than your current checkout.");
-            return "redirect:/customer/reservations";
-        }
-        if (!newCheckOut.isAfter(r.getCheckOut()) ||
-                !newCheckOut.atTime(newCheckOutTime).isAfter(r.getCheckOut().atTime(currentOut))) {
-            flash.addFlashAttribute("error", "Choose a checkout date and time later than your current checkout.");
-            return "redirect:/customer/reservations";
-        }
-
-        if (!reservationService.isAvailableForExtension(
-                r.getRoom(), r, newCheckOut, newCheckOutTime)) {
-            flash.addFlashAttribute("error",
-                    "That room is not available for the requested extension. Your original checkout remains unchanged.");
-            return "redirect:/customer/reservations";
-        }
-
-        r.setRequestedCheckOut(newCheckOut);
-        r.setRequestedCheckOutTime(newCheckOutTime);
-        r.setStatus("EXTENSION_REQUESTED");
-        reservations.save(r);
-
-        flash.addFlashAttribute("success",
-                "Your extension request was sent to the manager. Your original checkout remains unchanged until approval.");
-        return "redirect:/customer/reservations";
-    }
-
     @GetMapping("/api/rooms/{roomId}/availability")
     @ResponseBody
     public java.util.List<java.util.Map<String, String>> roomAvailability(@PathVariable Long roomId) {
@@ -530,14 +485,10 @@ public class HotelController {
             @RequestParam @Pattern(regexp = "APPROVE|REJECT") String decision,
             RedirectAttributes flash) {
         Reservation r = reservations.findById(id).orElse(null);
-        if (r == null ||
-                !java.util.List.of("EARLY_CHECKOUT_REQUESTED", "EXTENSION_REQUESTED")
-                        .contains(r.getStatus())) {
-            flash.addFlashAttribute("error", "Pending special request not found.");
+        if (r == null || !"EARLY_CHECKOUT_REQUESTED".equals(r.getStatus())) {
+            flash.addFlashAttribute("error", "Pending early checkout request not found.");
             return "redirect:/manager/reservation-requests";
         }
-
-        boolean extension = "EXTENSION_REQUESTED".equals(r.getStatus());
 
         if (r.getRequestedCheckOut() == null || r.getRequestedCheckOutTime() == null) {
             flash.addFlashAttribute("error", "The request has no valid checkout date or time.");
@@ -545,30 +496,15 @@ public class HotelController {
         }
 
         if ("APPROVE".equals(decision)) {
-            if (extension && !reservationService.isAvailableForExtension(
-                    r.getRoom(), r, r.getRequestedCheckOut(), r.getRequestedCheckOutTime())) {
-                flash.addFlashAttribute("error",
-                        "The requested extension is no longer available. The original reservation remains unchanged.");
-                return "redirect:/manager/reservation-requests";
-            }
-
             r.setCheckOut(r.getRequestedCheckOut());
             r.setCheckOutTime(r.getRequestedCheckOutTime());
-
-            if (extension) {
-                r.setStatus("APPROVED");
-                flash.addFlashAttribute("success",
-                        "Stay extension approved. The checkout date and room charge have been updated.");
-            } else {
-                r.setStatus("COMPLETED");
-                flash.addFlashAttribute("success",
-                        "Early checkout approved. The stay dates and room charge are updated.");
-            }
+            r.setStatus("COMPLETED");
+            flash.addFlashAttribute("success",
+                    "Early checkout approved. The stay dates and room charge are updated.");
         } else {
             r.setStatus("APPROVED");
-            flash.addFlashAttribute("success", extension
-                    ? "Stay extension declined. The original checkout date remains unchanged."
-                    : "Early checkout declined. The original reservation remains active.");
+            flash.addFlashAttribute("success",
+                    "Early checkout declined. The original reservation remains active.");
         }
 
         r.setRequestedCheckOut(null);
@@ -578,7 +514,7 @@ public class HotelController {
     }
 
     private boolean isProcessedHistory(Reservation r) {
-        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED", "EARLY_CHECKOUT_REQUESTED", "EXTENSION_REQUESTED").contains(r.getStatus());
+        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED", "EARLY_CHECKOUT_REQUESTED").contains(r.getStatus());
     }
 
     @PostMapping("/manager/history/{id}/delete")

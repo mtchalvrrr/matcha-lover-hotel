@@ -47,19 +47,6 @@ public class ReservationService {
 
         if (overlaps(requestedStart, requestedEnd, existing)) return true;
 
-        // An extension request temporarily holds the additional time,
-        // even though the original checkout remains unchanged until approval.
-        if ("EXTENSION_REQUESTED".equals(existing.getStatus()) &&
-                existing.getRequestedCheckOut() != null &&
-                existing.getRequestedCheckOutTime() != null) {
-            LocalDateTime extensionStart = end(existing);
-            LocalDateTime extensionEnd =
-                    existing.getRequestedCheckOut().atTime(existing.getRequestedCheckOutTime());
-
-            return requestedStart.isBefore(extensionEnd) &&
-                    requestedEnd.isAfter(extensionStart);
-        }
-
         return false;
     }
 
@@ -107,39 +94,6 @@ public class ReservationService {
             r.getRoom().getId().equals(room.getId()) &&
             occupiesInterval(requestedStart, requestedEnd, r)
         );
-    }
-
-    /**
-     * Rechecks an extension against other reservations while excluding
-     * the reservation that is requesting the extension.
-     */
-    public boolean isAvailableForExtension(Room room, Reservation current,
-                                           LocalDate newCheckOut, LocalTime newCheckOutTime) {
-        if (room == null || room.getId() == null || current == null ||
-                newCheckOut == null || newCheckOutTime == null ||
-                !room.isAvailable() || !room.isActive()) {
-            return false;
-        }
-
-        LocalTime currentOut = current.getCheckOutTime() == null
-                ? DEFAULT_CHECK_OUT : current.getCheckOutTime();
-
-        LocalDateTime extensionStart = current.getCheckOut().atTime(currentOut);
-        LocalDateTime extensionEnd = newCheckOut.atTime(newCheckOutTime);
-        LocalDateTime now = LocalDateTime.now(
-                java.time.ZoneId.of("Asia/Manila")).withNano(0);
-
-        // The extension can be requested after the original checkout time,
-        // but its new checkout must still be in the future.
-        if (!extensionEnd.isAfter(extensionStart) || !extensionEnd.isAfter(now)) {
-            return false;
-        }
-
-        return reservations.findAll().stream()
-                .filter(r -> !java.util.Objects.equals(r.getId(), current.getId()))
-                .filter(r -> r.getRoom() != null && r.getRoom().getId() != null)
-                .filter(r -> r.getRoom().getId().equals(room.getId()))
-                .noneMatch(r -> occupiesInterval(extensionStart, extensionEnd, r));
     }
 
     @Transactional
