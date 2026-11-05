@@ -61,12 +61,19 @@ public class ReservationService {
         LocalDateTime now = LocalDateTime.now(hotelZone).withNano(0);
 
         List<Reservation> expired = reservations.findAll().stream()
-            .filter(r -> "PENDING".equals(r.getStatus()))
+            // A cancellation request can still represent an unapproved pending booking.
+            // Void it at check-in only when its saved pre-cancellation state was PENDING.
+            .filter(r -> "PENDING".equals(r.getStatus()) ||
+                ("CANCELLATION_REQUESTED".equals(r.getStatus()) &&
+                 "PENDING".equals(r.getStatusBeforeCancellation())))
             .filter(r -> !now.isBefore(start(r)))
             .toList();
 
         if (!expired.isEmpty()) {
-            expired.forEach(r -> r.setStatus("VOID"));
+            expired.forEach(r -> {
+                r.setStatus("VOID");
+                r.setStatusBeforeCancellation(null);
+            });
             reservations.saveAll(expired);
         }
     }
@@ -139,6 +146,17 @@ public class ReservationService {
                 nextStatus = ("PENDING".equals(previousStatus) ||
                               "APPROVED".equals(previousStatus))
                         ? previousStatus : "APPROVED";
+
+                // If a pending request expired while awaiting the manager's decision,
+                // restoring it to PENDING would leave an unapprovable request in the queue.
+                if ("PENDING".equals(nextStatus)) {
+                    LocalDateTime now = LocalDateTime.now(
+                        java.time.ZoneId.of("Asia/Manila")
+                    ).withNano(0);
+                    if (!now.isBefore(start(reservation))) {
+                        nextStatus = "VOID";
+                    }
+                }
             } else {
                 throw new IllegalArgumentException(
                     "For a cancellation request, choose keep reservation or confirm cancellation."
