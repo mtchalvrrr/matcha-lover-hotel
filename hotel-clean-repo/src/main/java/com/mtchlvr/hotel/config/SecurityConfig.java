@@ -36,7 +36,7 @@ public class SecurityConfig {
             HttpSecurity http, CaptchaService captcha) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability", "/api/register/email-available").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat").permitAll()
                 .requestMatchers(
                     "/", "/rooms", "/register", "/login",
