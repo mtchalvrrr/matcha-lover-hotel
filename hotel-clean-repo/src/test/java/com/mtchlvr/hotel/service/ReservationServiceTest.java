@@ -86,6 +86,7 @@ class ReservationServiceTest {
         when(room.getId()).thenReturn(7L);
         Reservation target = mock(Reservation.class);
         when(target.getId()).thenReturn(1L);
+        when(target.getStatus()).thenReturn("PENDING");
         when(target.getRoom()).thenReturn(room);
         when(target.getCheckIn()).thenReturn(LocalDate.now().plusDays(4));
         when(target.getCheckOut()).thenReturn(LocalDate.now().plusDays(8));
