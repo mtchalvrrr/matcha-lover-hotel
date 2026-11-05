@@ -224,6 +224,56 @@ class ReservationServiceTest {
     }
 
     @Test
+    void automaticallyVoidsExpiredPendingCancellationRequests() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation expired = mock(Reservation.class);
+
+        when(expired.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(expired.getStatusBeforeCancellation()).thenReturn("PENDING");
+        when(expired.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(expired.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findAll()).thenReturn(List.of(expired));
+
+        service.voidExpiredPendingReservations();
+
+        verify(expired).setStatus("VOID");
+        verify(expired).setStatusBeforeCancellation(null);
+        verify(reservations).saveAll(anyList());
+    }
+
+    @Test
+    void doesNotVoidCancellationRequestForPreviouslyApprovedReservation() {
+        Reservation cancellation = mock(Reservation.class);
+
+        when(cancellation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(cancellation.getStatusBeforeCancellation()).thenReturn("APPROVED");
+        when(reservations.findAll()).thenReturn(List.of(cancellation));
+
+        service.voidExpiredPendingReservations();
+
+        verify(cancellation, never()).setStatus("VOID");
+        verify(reservations, never()).saveAll(anyList());
+    }
+
+    @Test
+    void keepingExpiredPendingCancellationRequestChangesItToVoid() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(reservation.getStatusBeforeCancellation()).thenReturn("PENDING");
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(reservation.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findById(14L)).thenReturn(Optional.of(reservation));
+        when(reservations.save(reservation)).thenReturn(reservation);
+
+        assertSame(reservation, service.updateStatus(14L, "APPROVED"));
+
+        verify(reservation).setStatus("VOID");
+        verify(reservation).setStatusBeforeCancellation(null);
+        verify(reservations).save(reservation);
+    }
+
+    @Test
     void doesNotVoidApprovedReservations() {
         Reservation approved = mock(Reservation.class);
 
