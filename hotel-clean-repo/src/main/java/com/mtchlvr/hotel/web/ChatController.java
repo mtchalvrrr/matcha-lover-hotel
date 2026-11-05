@@ -46,9 +46,34 @@ public class ChatController {
         }
 
         if (!authenticated) {
-            return new ChatResponse(
-                    "I can help signed-out visitors browse the hotel's public rooms. Please sign in to use account and reservation assistance.",
-                    List.of(new ChatAction("navigate", "Browse rooms", "/rooms", false)));
+            String managerUrl = managerFunction(normalized);
+
+            if (managerUrl != null) {
+                return new ChatResponse(
+                        "The manager workspace is restricted to authorized hotel managers. Please sign in with a manager account.",
+                        List.of(new ChatAction("navigate", "Go to sign in", "/login", false)));
+            }
+
+            if (isLoginHelpIntent(normalized)) {
+                return new ChatResponse(
+                        "Of course! I'd be happy to help you sign in. Open the login page, enter your registered email and password, complete the reCAPTCHA check, then select Sign in. Never share your password in this chat.",
+                        List.of(new ChatAction("navigate", "Go to login", "/login", false)));
+            }
+
+            if (isRegistrationIntent(normalized)) {
+                return new ChatResponse(
+                        "Of course! You can create an mtchlvr Hotel account by visiting our registration page and following the registration steps.",
+                        List.of(new ChatAction("navigate", "Create an account", "/register", false)));
+            }
+
+            if (isPrivateAccountIntent(normalized)) {
+                return new ChatResponse(
+                        "I'd be happy to help. Please sign in first so I can direct you to your private account and reservation information.",
+                        List.of(new ChatAction("navigate", "Go to login", "/login", false)));
+            }
+
+            // Public guests can ask general hotel questions without signing in.
+            return new ChatResponse(chatService.reply(message), List.of());
         }
 
         // Logout is available to both authenticated roles.
@@ -134,6 +159,25 @@ public class ChatController {
 
         // Ordinary hotel questions continue through the existing Groq integration.
         return new ChatResponse(chatService.reply(message), List.of());
+    }
+
+    private static boolean isLoginHelpIntent(String message) {
+        return containsAny(message, "login", "log in", "sign in", "signin",
+                "forgot password", "reset password", "can't login",
+                "cannot login", "can't sign in", "cannot sign in");
+    }
+
+    private static boolean isRegistrationIntent(String message) {
+        return containsAny(message, "register", "registration",
+                "sign up", "signup", "create account", "new account");
+    }
+
+    private static boolean isPrivateAccountIntent(String message) {
+        return containsAny(message, "my reservation", "my reservations",
+                "my booking", "my bookings", "booking status",
+                "my account", "my profile", "cancel my reservation",
+                "cancel my booking", "my bill", "my payments",
+                "my payment", "my reports", "my report");
     }
 
     private static boolean isRoomBrowseIntent(String message) {
