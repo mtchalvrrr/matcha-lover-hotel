@@ -25,16 +25,56 @@ public class ChatController {
             @Valid @RequestBody ChatRequest request,
             Authentication authentication) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException(
-                    "Please sign in to use the hotel assistant.");
-        }
+        String message = request.message().trim();
+        String normalized = message.toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N}]+", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
 
-        boolean manager = authentication.getAuthorities().stream()
+        boolean authenticated = authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName());
+        boolean manager = authenticated && authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
 
-        String message = request.message().trim();
-        String normalized = message.toLowerCase(Locale.ROOT);
+        // Room browsing is public, just like the /rooms page. Keep the chatbot
+        // useful to signed-out visitors without exposing account or manager data.
+        if (isRoomBrowseIntent(normalized)) {
+            return new ChatResponse(
+                    "You can browse the hotel's public room listings here. Sign in when you are ready to make a reservation.",
+                    List.of(new ChatAction("navigate", "Browse rooms", "/rooms", false)));
+        }
+
+        if (!authenticated) {
+            String managerUrl = managerFunction(normalized);
+
+            if (managerUrl != null) {
+                return new ChatResponse(
+                        "The manager workspace is restricted to authorized hotel managers. Please sign in with a manager account.",
+                        List.of(new ChatAction("navigate", "Go to sign in", "/login", false)));
+            }
+
+            if (isLoginHelpIntent(normalized)) {
+                return new ChatResponse(
+                        "Of course! I'd be happy to help you sign in. Open the login page, enter your registered email and password, complete the reCAPTCHA check, then select Sign in. Never share your password in this chat.",
+                        List.of(new ChatAction("navigate", "Go to login", "/login", false)));
+            }
+
+            if (isRegistrationIntent(normalized)) {
+                return new ChatResponse(
+                        "Of course! You can create an mtchlvr Hotel account by visiting our registration page and following the registration steps.",
+                        List.of(new ChatAction("navigate", "Create an account", "/register", false)));
+            }
+
+            if (isPrivateAccountIntent(normalized)) {
+                return new ChatResponse(
+                        "I'd be happy to help. Please sign in first so I can direct you to your private account and reservation information.",
+                        List.of(new ChatAction("navigate", "Go to login", "/login", false)));
+            }
+
+            // Public guests can ask general hotel questions without signing in.
+            return new ChatResponse(chatService.reply(message), List.of());
+        }
 
         // Logout is available to both authenticated roles.
         if (containsAny(normalized, "logout", "log out", "sign out", "signout")) {
@@ -79,14 +119,6 @@ public class ChatController {
         }
 
         if (!manager) {
-            if (containsAny(normalized, "browse rooms", "available rooms",
-                    "show rooms", "view rooms", "room list", "book a room",
-                    "reserve a room", "make a reservation")) {
-                return new ChatResponse(
-                        "You can browse the hotel's rooms here. Actual date availability is checked when you submit a reservation.",
-                        List.of(new ChatAction("navigate", "Browse rooms", "/rooms", false)));
-            }
-
             if (containsAny(normalized, "my reservation", "my booking",
                     "my bookings", "reservation list", "booking status",
                     "view reservation", "view booking")) {
@@ -127,6 +159,36 @@ public class ChatController {
 
         // Ordinary hotel questions continue through the existing Groq integration.
         return new ChatResponse(chatService.reply(message), List.of());
+    }
+
+    private static boolean isLoginHelpIntent(String message) {
+        return containsAny(message, "login", "log in", "sign in", "signin",
+                "forgot password", "reset password", "can't login",
+                "cannot login", "can't sign in", "cannot sign in");
+    }
+
+    private static boolean isRegistrationIntent(String message) {
+        return containsAny(message, "register", "registration",
+                "sign up", "signup", "create account", "new account");
+    }
+
+    private static boolean isPrivateAccountIntent(String message) {
+        return containsAny(message, "my reservation", "my reservations",
+                "my booking", "my bookings", "booking status",
+                "my account", "my profile", "cancel my reservation",
+                "cancel my booking", "my bill", "my payments",
+                "my payment", "my reports", "my report");
+    }
+
+    private static boolean isRoomBrowseIntent(String message) {
+        return containsAny(message,
+                "browse rooms", "browse the rooms", "available rooms",
+                "show rooms", "show me rooms", "show me the rooms",
+                "view rooms", "view the rooms", "see rooms", "see the rooms",
+                "let me see the rooms", "can i see the rooms",
+                "room list", "list rooms", "take me to rooms",
+                "take me to the rooms", "go to rooms", "go to the rooms",
+                "book a room", "reserve a room", "make a reservation");
     }
 
     private static String managerFunction(String message) {
