@@ -107,6 +107,7 @@ class ReservationServiceTest {
     @Test
     void acceptsValidStatusAndPersistsIt() {
         Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("PENDING");
         when(reservations.findById(9L)).thenReturn(Optional.of(reservation));
         when(reservations.save(reservation)).thenReturn(reservation);
         assertSame(reservation, service.updateStatus(9L, "REJECTED"));
@@ -164,6 +165,39 @@ class ReservationServiceTest {
         verify(reservation).setStatus("CANCELLED");
         verify(reservation).setStatusBeforeCancellation(null);
         verify(reservations).save(reservation);
+    }
+
+    @Test
+    void rejectsReactivatingCompletedReservation() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("COMPLETED");
+        when(reservations.findById(21L)).thenReturn(Optional.of(reservation));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(21L, "APPROVED"));
+        verify(reservations, never()).save(any(Reservation.class));
+    }
+
+    @Test
+    void rejectsDirectCancellationOfPendingReservation() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("PENDING");
+        when(reservations.findById(22L)).thenReturn(Optional.of(reservation));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(22L, "CANCELLED"));
+        verify(reservations, never()).save(any(Reservation.class));
+    }
+
+    @Test
+    void rejectsChangingRejectedReservation() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("REJECTED");
+        when(reservations.findById(23L)).thenReturn(Optional.of(reservation));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(23L, "APPROVED"));
+        verify(reservations, never()).save(any(Reservation.class));
     }
 
     @Test
