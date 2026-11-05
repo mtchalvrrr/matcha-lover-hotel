@@ -348,7 +348,10 @@ public class HotelController {
 
     @GetMapping("/manager/reports") public String managerReports(Model model) {
         ensureCustomerCodes();
-        model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
+        // Deleted reports remain stored for history, but must not appear in the active manager report list.
+        model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc().stream()
+                .filter(GuestReport::isVisible)
+                .toList());
         return "reports";
     }
 
