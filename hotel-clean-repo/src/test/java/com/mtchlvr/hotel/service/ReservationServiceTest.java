@@ -122,6 +122,11 @@ class ReservationServiceTest {
         Reservation reservation = mock(Reservation.class);
         when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
         when(reservation.getStatusBeforeCancellation()).thenReturn("PENDING");
+        // This test covers restoring a still-valid pending reservation.
+        // Give it a future check-in so the expiry guard can evaluate it safely.
+        when(reservation.getCheckIn()).thenReturn(
+            LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(2));
+        when(reservation.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
         when(reservations.findById(11L)).thenReturn(Optional.of(reservation));
         when(reservations.save(reservation)).thenReturn(reservation);
 
