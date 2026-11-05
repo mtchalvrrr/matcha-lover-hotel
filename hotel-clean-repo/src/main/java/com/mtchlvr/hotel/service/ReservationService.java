@@ -108,10 +108,24 @@ public class ReservationService {
         String currentStatus = reservation.getStatus();
         String nextStatus = status;
 
+        // Enforce the reservation lifecycle on the server, not only through the manager page buttons.
+        // A pending request can be approved/rejected; an approved booking must first receive
+        // a customer cancellation request before it can be cancelled.
         if ("VOID".equals(currentStatus)) {
             throw new IllegalArgumentException(
                 "This reservation has expired. The customer must submit a new reservation request."
             );
+        }
+        if ("PENDING".equals(currentStatus)) {
+            if (!"APPROVED".equals(status) && !"REJECTED".equals(status)) {
+                throw new IllegalArgumentException("A pending reservation can only be approved or rejected.");
+            }
+        } else if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
+            if (!"APPROVED".equals(status) && !"CANCELLED".equals(status)) {
+                throw new IllegalArgumentException("For a cancellation request, choose keep reservation or confirm cancellation.");
+            }
+        } else {
+            throw new IllegalArgumentException("This reservation can no longer be changed from its current status.");
         }
 
         if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
