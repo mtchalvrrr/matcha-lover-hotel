@@ -19,8 +19,6 @@ public class Reservation {
     // Nullable so existing SQLite reservations remain valid after the schema update.
     @Column(name = "check_in_time") private LocalTime checkInTime;
     @Column(name = "check_out_time") private LocalTime checkOutTime;
-    @Column(name = "requested_check_out") private LocalDate requestedCheckOut;
-    @Column(name = "requested_check_out_time") private LocalTime requestedCheckOutTime;
     @Column(nullable = false) private String status = "PENDING";
     @Column(name = "status_before_cancellation")
     private String statusBeforeCancellation;
@@ -48,10 +46,6 @@ public class Reservation {
     public LocalTime getCheckOutTime() { return checkOutTime; }
     public void setCheckInTime(LocalTime value) { checkInTime = value; }
     public void setCheckOutTime(LocalTime value) { checkOutTime = value; }
-    public LocalDate getRequestedCheckOut() { return requestedCheckOut; }
-    public void setRequestedCheckOut(LocalDate value) { requestedCheckOut = value; }
-    public LocalTime getRequestedCheckOutTime() { return requestedCheckOutTime; }
-    public void setRequestedCheckOutTime(LocalTime value) { requestedCheckOutTime = value; }
     public long getNights() {
         long dateNights =
                 java.time.temporal.ChronoUnit.DAYS.between(checkIn, checkOut);
