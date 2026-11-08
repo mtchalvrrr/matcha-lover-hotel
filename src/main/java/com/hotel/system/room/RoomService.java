@@ -50,6 +50,7 @@ public class RoomService {
         }
         return rooms.findByActiveTrueOrderByRoomCodeAsc().stream()
                 .filter(room -> room.getCapacity() >= guests)
+                .filter(Room::isBookable)
                 .filter(room -> !reservations.existsOverlappingReservation(
                         room.getId(), BLOCKING_STATUSES, checkIn, checkOut, null))
                 .toList();
@@ -59,7 +60,8 @@ public class RoomService {
     public boolean isAvailable(Long roomId, LocalDate checkIn, LocalDate checkOut) {
         if (checkIn == null || checkOut == null || !checkOut.isAfter(checkIn)
                 || checkIn.atTime(stayTimes.checkInTime()).isBefore(LocalDateTime.now(clock))) return false;
-        return !reservations.existsOverlappingReservation(
+        return rooms.findByIdAndActiveTrue(roomId).filter(Room::isBookable).isPresent()
+                && !reservations.existsOverlappingReservation(
                 roomId, BLOCKING_STATUSES, checkIn, checkOut, null);
     }
 
@@ -107,6 +109,17 @@ public class RoomService {
         room.updateFrom(form);
         audit.record(actor, "ROOM_UPDATED", "ROOM", id.toString(), "Updated room " + room.getRoomCode());
         return room;
+    }
+
+    public void updateOperationalStatus(Long id, CleaningStatus cleaningStatus,
+                                        MaintenanceStatus maintenanceStatus, String actor) {
+        Room room = getRoom(id);
+        String previous = "cleaning=" + room.getCleaningStatus()
+                + ", maintenance=" + room.getMaintenanceStatus();
+        room.updateOperationalStatus(cleaningStatus, maintenanceStatus);
+        audit.record(actor, "ROOM_OPERATIONAL_STATUS_UPDATED", "ROOM", id.toString(),
+                "Previous: " + previous + ". Updated: cleaning=" + cleaningStatus
+                        + ", maintenance=" + maintenanceStatus);
     }
 
     public void setActive(Long id, boolean active, String actor) {
