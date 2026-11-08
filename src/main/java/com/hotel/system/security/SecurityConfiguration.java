@@ -22,7 +22,7 @@ public class SecurityConfiguration {
         http
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
-                        "/customer/login", "/admin/login", "/super-admin/login",
+                        "/customer/login", "/admin/login", "/super-admin/login", "/register", "/register/**",
                         "/css/**", "/images/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/customer/**").hasRole("CUSTOMER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
