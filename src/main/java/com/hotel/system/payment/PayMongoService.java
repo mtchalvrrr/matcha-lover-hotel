@@ -111,7 +111,10 @@ public class PayMongoService {
         Map<String, Object> body = Map.of("data", Map.of("attributes", attributes));
 
         Map<?, ?> response = client.post().uri("/v2/checkout_sessions")
-                .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                .headers(headers -> {
+                    headers.setBasicAuth(secretKey, "");
+                    headers.set("Idempotency-Key", "hotel-checkout-" + payment.getTransactionReference());
+                })
                 .header("Content-Type", "application/json")
                 .body(body)
                 .retrieve()
