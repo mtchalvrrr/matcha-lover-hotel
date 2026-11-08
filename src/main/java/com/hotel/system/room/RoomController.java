@@ -128,7 +128,7 @@ public class RoomController {
             rooms.update(id, room, authentication.getName());
             redirect.addFlashAttribute("success", "Room updated successfully.");
             return "redirect:/admin/rooms";
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             model.addAttribute("pageTitle", "Edit room");
             model.addAttribute("formError", ex.getMessage());
             return "admin/rooms/form";
