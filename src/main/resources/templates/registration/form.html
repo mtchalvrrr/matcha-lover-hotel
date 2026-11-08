@@ -13,12 +13,6 @@
     <a class="back-link" th:href="@{/customer/login}">Customer sign in</a>
   </header>
 
-  <section class="registration-intro">
-    <p class="eyebrow">CUSTOMER / REGISTRATION</p>
-    <h1>Create your<br><em>account.</em></h1>
-    <p>Set up your guest account in a few simple steps.</p>
-  </section>
-
   <div class="registration-card">
     <div class="registration-progress" aria-label="Registration progress">
       <div class="registration-progress-line"><span id="registrationProgressFill"></span></div>
@@ -34,21 +28,20 @@
       <section class="registration-panel is-visible" data-step="0">
         <p class="registration-kicker">STEP 1 OF 3</p>
         <h2>Personal information</h2>
-        <p class="registration-description">Tell us how we should address you and where we can reach you.</p>
+
         <div class="registration-fields two-columns">
           <div class="registration-field">
             <label for="firstName">First name</label>
-            <input id="firstName" name="firstName" maxlength="80" autocomplete="given-name" placeholder="Enter your first name" required>
+            <input id="firstName" name="firstName" maxlength="80" autocomplete="given-name" placeholder="First name" required>
           </div>
           <div class="registration-field">
             <label for="lastName">Last name</label>
-            <input id="lastName" name="lastName" maxlength="80" autocomplete="family-name" placeholder="Enter your last name" required>
+            <input id="lastName" name="lastName" maxlength="80" autocomplete="family-name" placeholder="Last name" required>
           </div>
         </div>
         <div class="registration-field">
           <label for="email">Email address</label>
-          <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" required>
-          <small>We will send a six-digit verification code to this address after you submit.</small>
+          <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="Email address" required>
         </div>
       </section>
 
@@ -112,10 +105,8 @@
     </form>
   </div>
 
-  <p class="registration-footer">Already have an application? <a th:href="@{/registration/status}">Check registration status</a></p>
-  <p class="registration-footer">Already have an account? <a th:href="@{/customer/login}">Sign in</a></p>
+  <p class="registration-footer">Already registered? <a th:href="@{/customer/login}">Sign in</a></p>
 </main>
-<div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 <script>
 (() => {
   const form = document.getElementById('customerRegistrationForm');
@@ -158,6 +149,17 @@
         return false;
       }
     }
+    if (current === 0) {
+      for (const id of ['firstName', 'lastName']) {
+        const field = document.getElementById(id);
+        if (!/^[\p{L}\p{M}][\p{L}\p{M} .’'-]*$/u.test(field.value.trim())) {
+          error.textContent = 'Names must start with a letter and contain no numbers or symbols.';
+          error.hidden = false;
+          field.focus();
+          return false;
+        }
+      }
+    }
     if (current === 1) {
       const password = document.getElementById('password');
       const confirm = document.getElementById('confirmPassword');
@@ -180,7 +182,8 @@
     return true;
   };
 
-  next.addEventListener('click', () => {
+  next.addEventListener('click', event => {
+    event.preventDefault();
     if (validateStep()) showStep(Math.min(current + 1, panels.length - 1));
   });
   back.addEventListener('click', () => showStep(Math.max(current - 1, 0)));
@@ -196,6 +199,17 @@
       button.textContent = reveal ? 'Hide' : 'Show';
       button.setAttribute('aria-label', (reveal ? 'Hide ' : 'Show ') + 'password');
     });
+  });
+
+  const normalizeName = input => {
+    input.value = input.value
+      .replace(/[^\p{L}\p{M} .’'-]/gu, '')
+      .replace(/(^|[\s'-])([\p{L}])/gu, (_, prefix, letter) => prefix + letter.toLocaleUpperCase());
+  };
+  ['firstName', 'lastName'].forEach(id => {
+    const field = document.getElementById(id);
+    field.addEventListener('input', () => normalizeName(field));
+    field.addEventListener('blur', () => normalizeName(field));
   });
 
   const password = document.getElementById('password');
