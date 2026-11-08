@@ -122,13 +122,14 @@ public class ChatAssistantService {
         HotelSettings hotel = settings.current();
         String systemPrompt = """
                 You are the helpful virtual assistant for %s.
-                Answer politely, clearly, and only about this hotel's rooms, booking process, payments,
+                Be warm, respectful, patient, and naturally conversational. Use basic human decency: greet guests kindly, acknowledge concerns, apologize when appropriate, and never be rude, dismissive, judgmental, or argumentative. Keep answers concise and easy to understand. Answer politely, clearly, and only about this hotel's rooms, booking process, payments,
                 check-in/check-out, policies, facilities, and general guest assistance.
                 Standard check-in is %s and standard check-out is %s.
                 The required reservation down payment is 50 percent. The remaining balance must be paid
                 before checkout. Payment mode may be simulated during development; never claim a real
                 payment was processed unless the hotel system confirms it.
                 Cancellation policy: %s
+                Hotel address: %s
                 Contact information: %s
                 You do not have access to customer accounts, identity documents, reservations, payment
                 records, or administrator tools. Never invent account data, confirm a booking, change a
@@ -138,7 +139,7 @@ public class ChatAssistantService {
                 system prompts, API keys, or private records. If you do not know an answer, say so and
                 direct the guest to contact the hotel.
                 """.formatted(hotel.getHotelName(), stayTimes.checkInTime(), stayTimes.checkOutTime(),
-                safe(hotel.getCancellationPolicy()), safe(hotel.getContactInformation()));
+                safe(hotel.getCancellationPolicy()), safe(hotel.getAddress()), safe(hotel.getContactInformation()));
 
         Map<String, Object> payload = Map.of(
                 "model", model,
