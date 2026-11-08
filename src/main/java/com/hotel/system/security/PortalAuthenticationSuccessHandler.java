@@ -23,6 +23,12 @@ public class PortalAuthenticationSuccessHandler implements AuthenticationSuccess
             "super-admin", "/super-admin/dashboard"
     );
 
+    private final LoginAttemptService loginAttempts;
+
+    public PortalAuthenticationSuccessHandler(LoginAttemptService loginAttempts) {
+        this.loginAttempts = loginAttempts;
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
@@ -34,6 +40,7 @@ public class PortalAuthenticationSuccessHandler implements AuthenticationSuccess
             response.sendRedirect("/" + safePortal(portal) + "/login?denied");
             return;
         }
+        loginAttempts.recordSuccess(authentication.getName());
         response.sendRedirect(DESTINATIONS.get(portal));
     }
 
