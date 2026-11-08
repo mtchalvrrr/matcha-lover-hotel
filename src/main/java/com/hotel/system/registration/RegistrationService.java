@@ -97,8 +97,12 @@ public class RegistrationService {
     }
 
 
-    public void resendOtp(Long applicationId) {
-        RegistrationApplication app = applications.findById(applicationId)
+    public void resendOtp(Long applicationId, String email) {
+        if (applicationId == null || email == null || email.isBlank() || email.length() > 254) {
+            throw new IllegalArgumentException("Registration application not found.");
+        }
+        RegistrationApplication app = applications.findByIdAndEmailIgnoreCase(
+                        applicationId, email.trim().toLowerCase(java.util.Locale.ROOT))
                 .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
         String otp = String.format("%06d", random.nextInt(1_000_000));
         app.resendOtp(encoder.encode(otp), Instant.now(clock));
@@ -120,8 +124,12 @@ public class RegistrationService {
                 "A new email verification code was sent.");
     }
 
-    public boolean verify(Long id, String otp) {
-        RegistrationApplication app = applications.findById(id)
+    public boolean verify(Long id, String email, String otp) {
+        if (id == null || email == null || email.isBlank() || email.length() > 254) {
+            throw new IllegalArgumentException("Registration application not found.");
+        }
+        RegistrationApplication app = applications.findByIdAndEmailIgnoreCase(
+                        id, email.trim().toLowerCase(java.util.Locale.ROOT))
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
         if (otp == null) return false;
         boolean verified = app.verifyOtp(otp.trim(), encoder, Instant.now(clock));
