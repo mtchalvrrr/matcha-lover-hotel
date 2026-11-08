@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css(v=6)}"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css(v=7)}"></head>
 <body><main class="shell room-detail-shell">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
 <section class="room-detail-heading">
 <p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 class="room-detail-title" th:text="${room.name}">Room name</h1>
-<button class="room-availability-cta" type="button" id="openRoomAvailability">Check available dates &amp; times</button>
+<a class="room-availability-cta" href="#roomAvailabilityDialog">Check available dates &amp; times</a>
 </section>
 <section class="room-gallery-viewer room-gallery-large" id="roomGallery" aria-label="Room photo carousel">
 <div class="gallery-main-row">
@@ -32,8 +32,8 @@
 <p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
 <p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
-<div class="room-availability-dialog" id="roomAvailabilityDialog" role="dialog" aria-modal="true" aria-labelledby="roomAvailabilityTitle" hidden>
-<button type="button" class="availability-dialog-close" id="closeRoomAvailability" aria-label="Close">×</button>
+<div class="room-availability-dialog" id="roomAvailabilityDialog" role="dialog" aria-modal="true" aria-labelledby="roomAvailabilityTitle" tabindex="-1">
+<a class="availability-dialog-close" href="#" aria-label="Close">×</a>
 <section class="room-availability-panel" id="roomAvailability">
 <h2 id="roomAvailabilityTitle">Check room availability</h2>
 <div class="room-occupancy-list">
@@ -87,33 +87,6 @@
 <div class="action-row" th:unless="${customerSignedIn}"><a class="primary-link" th:href="@{/customer/login}">Sign in to reserve</a><a class="secondary-link" th:href="@{/rooms}">Browse other rooms</a></div>
 </section><footer><span th:text="${hotelSettings.address}">[HOTEL ADDRESS]</span><span th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</span></footer>
 <script th:src="@{/js/room-gallery.js(v=5)}" defer></script>
-<script>
-(() => {
-  const overlay = document.getElementById("roomAvailabilityDialog");
-  const openButton = document.getElementById("openRoomAvailability");
-  const closeButton = document.getElementById("closeRoomAvailability");
-  if (!overlay || !openButton || !closeButton) return;
-  const open = () => {
-    overlay.hidden = false;
-    overlay.classList.add("is-open");
-    document.body.classList.add("availability-modal-open");
-    closeButton.focus();
-  };
-  const close = () => {
-    overlay.classList.remove("is-open");
-    overlay.hidden = true;
-    document.body.classList.remove("availability-modal-open");
-    openButton.focus();
-  };
-  openButton.addEventListener("click", open);
-  closeButton.addEventListener("click", close);
-  overlay.addEventListener("click", event => {
-    if (event.target === overlay) close();
-  });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !overlay.hidden) close();
-  });
-})();
-</script>
+
 </main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body></html>
