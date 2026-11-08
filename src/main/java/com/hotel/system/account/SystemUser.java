@@ -67,4 +67,10 @@ public class SystemUser {
     public Instant getCreatedAt() { return createdAt; }
 
     public void setActive(boolean active) { this.active = active; }
+    public void updateProfile(String firstName, String lastName, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 }
