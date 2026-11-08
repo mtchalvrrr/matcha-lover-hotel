@@ -282,7 +282,9 @@ public class ReservationService {
         if (reservation.getStatus() != ReservationStatus.APPROVED)
             throw new IllegalStateException("Only approved reservations can be checked in.");
         LocalDateTime scheduledCheckIn = reservation.getCheckInDate().atTime(reservation.getCheckInTime());
-        if (LocalDateTime.now(clock).isBefore(scheduledCheckIn))
+        boolean sameDayWalkIn = reservation.getSource() == ReservationSource.WALK_IN
+                && reservation.getCheckInDate().equals(LocalDate.now(clock));
+        if (LocalDateTime.now(clock).isBefore(scheduledCheckIn) && !sameDayWalkIn)
             throw new IllegalStateException("The scheduled check-in time has not started.");
         BigDecimal requiredDeposit = reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
             .setScale(2, java.math.RoundingMode.HALF_UP);
@@ -334,9 +336,8 @@ public class ReservationService {
 
     private void validateWalkInDates(LocalDate checkIn, LocalDate checkOut) {
         LocalDate today = LocalDate.now(clock);
-        if (checkIn == null || checkOut == null
-                || checkIn.atTime(stayTimes.checkInTime()).isBefore(LocalDateTime.now(clock)))
-            throw new IllegalArgumentException("Walk-in check-in time cannot be in the past.");
+        if (checkIn == null || checkOut == null || checkIn.isBefore(today))
+            throw new IllegalArgumentException("Walk-in check-in date cannot be in the past.");
         if (!checkOut.isAfter(checkIn))
             throw new IllegalArgumentException("Check-out must be after check-in.");
         if (ChronoUnit.DAYS.between(checkIn, checkOut) > 365)
