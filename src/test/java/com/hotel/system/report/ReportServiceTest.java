@@ -1,0 +1,73 @@
+package com.hotel.system.report;
+
+import com.hotel.system.payment.PaymentRepository;
+import com.hotel.system.reservation.Reservation;
+import com.hotel.system.reservation.ReservationRepository;
+import com.hotel.system.reservation.ReservationSource;
+import com.hotel.system.reservation.ReservationStatus;
+import com.hotel.system.room.RoomRepository;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+class ReportServiceTest {
+    private final ReservationRepository reservations = mock(ReservationRepository.class);
+    private final PaymentRepository payments = mock(PaymentRepository.class);
+    private final RoomRepository rooms = mock(RoomRepository.class);
+    private final Clock clock = Clock.fixed(Instant.parse("2026-11-08T00:00:00Z"), ZoneId.of("Asia/Manila"));
+    private final ReportService service = new ReportService(reservations, payments, rooms, clock);
+
+    @Test
+    void calculatesBookingChannelsAndRoomNightCapacityForOverlappingStays() {
+        LocalDate from = LocalDate.of(2026, 11, 10);
+        LocalDate to = LocalDate.of(2026, 11, 12);
+
+        Reservation onlineBooking = new Reservation(7L, "guest", "guest@example.com",
+                3L, "A-01", "Garden Room", from, from.plusDays(1), 2, 1,
+                new BigDecimal("1500.00"), new BigDecimal("1500.00"));
+
+        Reservation overlappingStay = new Reservation(8L, "other", "other@example.com",
+                4L, "A-02", "Courtyard Room", from.minusDays(1), to.plusDays(1), 2, 4,
+                new BigDecimal("1200.00"), new BigDecimal("4800.00"));
+        overlappingStay.changeStatus(ReservationStatus.APPROVED);
+
+        when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
+                .thenReturn(List.of(onlineBooking));
+        when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
+                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                .thenReturn(List.of(overlappingStay));
+        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
+                .thenReturn(List.of());
+        when(rooms.countByActiveTrue()).thenReturn(2L);
+
+        ReportSummary summary = service.summarize(from, to);
+
+        assertEquals(1, summary.totalReservations());
+        assertEquals(1, summary.pendingReservations());
+        assertEquals(1, summary.onlineReservations());
+        assertEquals(0, summary.walkInReservations());
+        assertEquals(3, summary.reservedRoomNights());
+        assertEquals(6, summary.availableRoomNights());
+        assertEquals(new BigDecimal("50.00"), summary.bookedCapacityRate());
+        assertEquals(BigDecimal.ZERO, summary.paidRevenue());
+        assertEquals(1L, summary.bookingsByRoom().get("A-01 — Garden Room"));
+    }
+
+    @Test
+    void rejectsInvalidAndOverlongDateRanges() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.summarize(LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 10)));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.summarize(LocalDate.of(2025, 1, 1), LocalDate.of(2026, 1, 3)));
+    }
+}
