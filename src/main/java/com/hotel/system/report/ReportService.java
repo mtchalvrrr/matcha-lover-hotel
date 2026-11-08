@@ -21,6 +21,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,6 +87,31 @@ public class ReportService {
                 LinkedHashMap::new, Collectors.counting()));
         Map<LocalDate, Long> byCheckInDate = bookings.stream().collect(Collectors.groupingBy(
                 Reservation::getCheckInDate, LinkedHashMap::new, Collectors.counting()));
+        Map<LocalDate, Long> byCreatedDate = bookings.stream()
+                .filter(reservation -> reservation.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        reservation -> reservation.getCreatedAt().atZone(zone).toLocalDate(),
+                        LinkedHashMap::new, Collectors.counting()));
+
+        Set<Long> customerIds = bookings.stream()
+                .filter(reservation -> reservation.getSource() == ReservationSource.ONLINE)
+                .map(Reservation::getCustomerId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        List<Reservation> customerHistory = customerIds.isEmpty()
+                ? List.of() : reservations.findByCustomerIdIn(customerIds);
+        Set<Long> returningCustomerIds = customerHistory.stream()
+                .filter(reservation -> reservation.getCustomerId() != null)
+                .filter(reservation -> reservation.getCheckInDate() != null
+                        && reservation.getCheckInDate().isBefore(from))
+                .filter(reservation -> reservation.getStatus() != ReservationStatus.CANCELLED
+                        && reservation.getStatus() != ReservationStatus.REJECTED
+                        && reservation.getStatus() != ReservationStatus.NO_SHOW)
+                .map(Reservation::getCustomerId)
+                .collect(Collectors.toSet());
+        long uniqueCustomers = customerIds.size();
+        long returningCustomers = returningCustomerIds.size();
+        long newCustomers = uniqueCustomers - returningCustomers;
 
         long reservedRoomNights = overlappingStays.stream()
                 .mapToLong(reservation -> occupiedNightsWithin(reservation, from, to))
@@ -105,6 +133,9 @@ public class ReportService {
                 countStatus(bookings, ReservationStatus.CANCELLED),
                 bookings.stream().filter(r -> r.getSource() == ReservationSource.ONLINE).count(),
                 bookings.stream().filter(r -> r.getSource() == ReservationSource.WALK_IN).count(),
+                uniqueCustomers,
+                newCustomers,
+                returningCustomers,
                 reservedRoomNights,
                 availableRoomNights,
                 bookedCapacityRate,
@@ -113,6 +144,7 @@ public class ReportService {
                 outstandingBalance,
                 byRoom,
                 byCheckInDate,
+                byCreatedDate,
                 revenueByPaymentDate
         );
     }
