@@ -13,10 +13,16 @@ import java.util.Set;
 @Component
 public class PortalAuthenticationFailureHandler implements AuthenticationFailureHandler {
     private static final Set<String> PORTALS = Set.of("customer", "admin", "super-admin");
+    private final LoginAttemptService loginAttempts;
+
+    public PortalAuthenticationFailureHandler(LoginAttemptService loginAttempts) {
+        this.loginAttempts = loginAttempts;
+    }
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
+        loginAttempts.recordFailure(request.getParameter("username"));
         String portal = request.getParameter("portal");
         if (!PORTALS.contains(portal)) {
             portal = "customer";
