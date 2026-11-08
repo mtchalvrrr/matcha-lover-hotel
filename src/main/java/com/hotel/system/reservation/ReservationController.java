@@ -162,6 +162,18 @@ public class ReservationController {
         }
     }
 
+    @PostMapping("/admin/reservations/{id}/cancel")
+    public String cancelByAdmin(@PathVariable Long id, @RequestParam String reason,
+                                Authentication authentication, RedirectAttributes redirect) {
+        try {
+            reservations.cancelByAdmin(id, authentication.getName(), reason);
+            redirect.addFlashAttribute("success", "Reservation cancelled.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/reservations";
+    }
+
     @PostMapping("/admin/reservations/{id}/review")
     public String reviewReservation(@PathVariable Long id, @RequestParam boolean approve,
                                     Authentication authentication, RedirectAttributes redirect) {
