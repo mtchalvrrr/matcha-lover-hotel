@@ -78,7 +78,7 @@ class RoomServiceTest {
     @Test
     void roomUnderMaintenanceCannotBeBooked() {
         Room room = new Room();
-        room.updateOperationalStatus(CleaningStatus.READY, MaintenanceStatus.UNDER_MAINTENANCE);
+        room.updateOperationalStatus(CleaningStatus.READY, MaintenanceStatus.UNDER_MAINTENANCE, "admin");
         assertFalse(room.isBookable());
     }
 
