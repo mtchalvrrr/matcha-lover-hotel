@@ -23,14 +23,25 @@ public class AuditLog {
     private String details;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+    @Column(name = "previous_hash", length = 64)
+    private String previousHash;
+    @Column(name = "event_hash", length = 64)
+    private String eventHash;
 
     protected AuditLog() {}
     public AuditLog(String actorUsername, String action, String targetType, String targetId, String details) {
+        this(actorUsername, action, targetType, targetId, details, Instant.now(), null, null);
+    }
+    public AuditLog(String actorUsername, String action, String targetType, String targetId,
+                    String details, Instant createdAt, String previousHash, String eventHash) {
         this.actorUsername = actorUsername;
         this.action = action;
         this.targetType = targetType;
         this.targetId = targetId;
         this.details = details;
+        this.createdAt = createdAt;
+        this.previousHash = previousHash;
+        this.eventHash = eventHash;
     }
     public Long getId() { return id; }
     public String getActorUsername() { return actorUsername; }
@@ -39,4 +50,6 @@ public class AuditLog {
     public String getTargetId() { return targetId; }
     public String getDetails() { return details; }
     public Instant getCreatedAt() { return createdAt; }
+    public String getPreviousHash() { return previousHash; }
+    public String getEventHash() { return eventHash; }
 }
