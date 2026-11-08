@@ -51,6 +51,7 @@ class PaymentServiceTest {
         assertEquals(new BigDecimal("1000.00"), payment.getAmount());
         assertEquals(PaymentStatus.PAID, payment.getStatus());
         verify(payments).save(any(Payment.class));
+    }
 
     @Test
     void refundRequiresAnotherAdminAndIsRecordedOnlyAfterAuthorization() {
@@ -92,6 +93,5 @@ class PaymentServiceTest {
         assertEquals("admin-two", request.getReviewedBy());
         verify(audit).record(eq("admin-two"), eq("PAYMENT_REFUND_AUTHORIZED"),
                 eq("PAYMENT"), eq("20"), contains("admin-one"));
-    }
     }
 }
