@@ -7,12 +7,15 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class PortalAuthenticationSuccessHandlerTest {
-    private final PortalAuthenticationSuccessHandler handler = new PortalAuthenticationSuccessHandler();
+    private final LoginAttemptService attempts = mock(LoginAttemptService.class);
+    private final PortalAuthenticationSuccessHandler handler = new PortalAuthenticationSuccessHandler(attempts);
 
     @Test
-    void customerRoleCanEnterCustomerPortal() throws Exception {
+    void customerRoleCanEnterCustomerPortalAndClearsFailures() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setParameter("portal", "customer");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -21,6 +24,7 @@ class PortalAuthenticationSuccessHandlerTest {
         handler.onAuthenticationSuccess(request, response, authentication);
 
         assertEquals("/customer/dashboard", response.getRedirectedUrl());
+        verify(attempts).recordSuccess("guest");
     }
 
     @Test
@@ -46,5 +50,6 @@ class PortalAuthenticationSuccessHandlerTest {
         handler.onAuthenticationSuccess(request, response, authentication);
 
         assertEquals("/admin/dashboard", response.getRedirectedUrl());
+        verify(attempts).recordSuccess("booking-admin");
     }
 }
