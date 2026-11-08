@@ -1,23 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard | [HOTEL NAME]</title>
-    <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body>
-<main class="shell narrow">
-    <header class="topbar">
-        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
-        <form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form>
-    </header>
-    <section class="portal-hero">
-        <p class="eyebrow">ADMIN PORTAL</p>
-        <h1>Hotel operations</h1>
-        <p class="intro">Manage hotel room records and continue to the reservation, payment, and reporting workspaces as they become available.</p>
-    </section>
-    <section class="dashboard-links"><a class="portal-card" th:href="@{/admin/rooms}"><span class="portal-number">ROOM INVENTORY</span><h2>Room management</h2><p>Create rooms, update rates and capacity, and activate or deactivate room records.</p><span class="portal-link">Open room management ↗</span></a></section>
-</main>
-</body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin Dashboard | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></header>
+<section class="portal-hero"><p class="eyebrow">ADMIN PORTAL</p><h1>Hotel operations</h1><p class="intro">Manage room inventory and review online reservation requests.</p></section>
+<section class="dashboard-links">
+<a class="portal-card" th:href="@{/admin/rooms}"><span class="portal-number">ROOM INVENTORY</span><h2>Room management</h2><p>Create rooms, update rates and capacity, and activate or deactivate room records.</p><span class="portal-link">Open room management ↗</span></a>
+<a class="portal-card" th:href="@{/admin/reservations}"><span class="portal-number">BOOKING OPERATIONS</span><h2>Reservations</h2><p>Review customer requests, check stay dates, and approve or reject pending reservations.</p><span class="portal-link">Open reservations ↗</span></a>
+</section></main></body></html>
