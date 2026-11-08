@@ -123,7 +123,8 @@ public class RoomService {
         Room room = getRoom(id);
         String previous = "cleaning=" + room.getCleaningStatus()
                 + ", maintenance=" + room.getMaintenanceStatus();
-        room.updateOperationalStatus(cleaningStatus, maintenanceStatus);
+        room.updateOperationalStatus(cleaningStatus, maintenanceStatus,
+                cleaningStatus == CleaningStatus.READY ? actor : null);
         audit.record(actor, "ROOM_OPERATIONAL_STATUS_UPDATED", "ROOM", id.toString(),
                 "Previous: " + previous + ". Updated: cleaning=" + cleaningStatus
                         + ", maintenance=" + maintenanceStatus);
