@@ -10,6 +10,7 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
     List<Reservation> findAllByOrderByCreatedAtDesc();
+    List<Reservation> findByCheckInDateBetweenOrderByCheckInDateAsc(LocalDate from, LocalDate to);
 
     @Query("select case when count(r) > 0 then true else false end from Reservation r " +
            "where r.roomId = :roomId and r.status in :statuses " +
