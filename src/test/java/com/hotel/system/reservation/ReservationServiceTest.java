@@ -52,6 +52,7 @@ class ReservationServiceTest {
         when(newRoom.getRoomCode()).thenReturn("B-02");
         when(newRoom.getName()).thenReturn("New Room");
         when(newRoom.getCapacity()).thenReturn(3);
+        when(newRoom.isBookable()).thenReturn(true);
         when(newRoom.getNightlyRate()).thenReturn(new BigDecimal("1500.00"));
 
         when(users.findByUsernameIgnoreCase("guest")).thenReturn(Optional.of(
@@ -71,6 +72,22 @@ class ReservationServiceTest {
         assertEquals(new BigDecimal("3000.00"), updated.getTotalAmount());
         assertEquals(LocalTime.of(14, 0), updated.getCheckInTime());
         verify(notifications).notifyAdmins(eq("Reservation changed"), contains("#77"), eq("RESERVATION"));
+    }
+
+    @Test
+    void customerCannotReserveRoomThatIsNotReadyForGuests() {
+        Room room = mock(Room.class);
+        when(room.isBookable()).thenReturn(false);
+        when(users.findByUsernameIgnoreCase("guest")).thenReturn(Optional.of(
+                new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER)));
+        when(rooms.findByIdAndActiveTrue(9L)).thenReturn(Optional.of(room));
+
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> service().request("guest", 9L, LocalDate.of(2026, 11, 12),
+                        LocalDate.of(2026, 11, 14), 1));
+
+        assertTrue(error.getMessage().contains("not ready"));
+        verify(reservations, never()).save(any(Reservation.class));
     }
 
     @Test
