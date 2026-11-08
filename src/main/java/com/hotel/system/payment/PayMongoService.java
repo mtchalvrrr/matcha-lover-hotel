@@ -234,12 +234,19 @@ public class PayMongoService {
                 if (Boolean.TRUE.equals(attributes.get("livemode"))) continue;
                 String reference = String.valueOf(attributes.get("reference_number"));
                 if (!payment.getTransactionReference().equals(reference)) continue;
+
                 Object rawPayments = attributes.get("payments");
+                boolean activeAttempt = false;
+                boolean paidAttempt = false;
                 if (rawPayments instanceof List<?> entries) {
                     for (Object entry : entries) {
                         if (!(entry instanceof Map<?, ?> item)
-                                || !(item.get("attributes") instanceof Map<?, ?> paidAttributes)) continue;
-                        String attemptStatus = String.valueOf(paidAttributes.get("status")).toLowerCase(Locale.ROOT);
+                                || !(item.get("attributes") instanceof Map<?, ?> attempt)) continue;
+                        String attemptStatus = String.valueOf(attempt.get("status")).toLowerCase(Locale.ROOT);
+                        if ("pending".equals(attemptStatus) || "processing".equals(attemptStatus)) {
+                            activeAttempt = true;
+                            continue;
+                        }
                         if ("failed".equals(attemptStatus) || "cancelled".equals(attemptStatus)) {
                             String attemptId = String.valueOf(item.get("id"));
                             notifications.notifyUserOnceInAppOnly(payment.getCustomerUsername(),
@@ -250,10 +257,19 @@ public class PayMongoService {
                             continue;
                         }
                         if (!"paid".equals(attemptStatus)) continue;
-                        long amount = Long.parseLong(String.valueOf(paidAttributes.get("amount")));
+                        paidAttempt = true;
+                        long amount = Long.parseLong(String.valueOf(attempt.get("amount")));
                         long expected = payment.getAmount().movePointRight(2).longValueExact();
-                        if (!"PHP".equalsIgnoreCase(String.valueOf(paidAttributes.get("currency")))
-                                || amount != expected) continue;
+                        if (!"PHP".equalsIgnoreCase(String.valueOf(attempt.get("currency")))
+                                || amount != expected) {
+                            audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_AMOUNT_MISMATCH", "PAYMENT",
+                                    payment.getId().toString(), "Provider payment amount or currency did not match the hotel payment record.");
+                            notifications.notifyAdmins("PayMongo payment needs reconciliation",
+                                    "The provider reported a paid checkout with a mismatched amount/currency for payment #"
+                                            + payment.getId() + ". Do not fulfill or refund automatically; investigate the provider record.",
+                                    "PAYMENT");
+                            break;
+                        }
                         String providerPaymentId = String.valueOf(item.get("id"));
                         payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
                         audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_CONFIRMED", "PAYMENT",
@@ -261,22 +277,75 @@ public class PayMongoService {
                         notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
                                 "Your PayMongo payment for reservation #" + payment.getReservationId()
                                         + " has been confirmed.", "PAYMENT");
+                        Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
+                        if (linkedReservation == null
+                                || (linkedReservation.getStatus() != ReservationStatus.APPROVED
+                                    && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
+                            notifications.notifyAdmins("Payment received for inactive reservation",
+                                    "PayMongo confirmed payment #" + payment.getId()
+                                            + " for a reservation that is no longer active. Review and refund if required.",
+                                    "PAYMENT");
+                        }
                         break;
                     }
                 }
-                if ("expired".equalsIgnoreCase(String.valueOf(attributes.get("status")))
-                        && payment.getStatus() == PaymentStatus.PENDING) {
-                    payment.markFailedFromProvider(null);
-                    audit.record("PAYMONGO_RECONCILIATION", "CHECKOUT_EXPIRED", "PAYMENT",
-                            payment.getId().toString(), "PayMongo checkout session expired without a paid transaction.");
-                    notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment session expired",
-                            "Your payment session for reservation #" + payment.getReservationId()
-                                    + " expired without payment. You can start a new payment from your reservations.", "PAYMENT");
+                if (payment.getStatus() != PaymentStatus.PENDING || paidAttempt) continue;
+
+                String sessionStatus = String.valueOf(attributes.get("status"));
+                if ("expired".equalsIgnoreCase(sessionStatus)) {
+                    markCheckoutExpired(payment);
+                    continue;
+                }
+
+                Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
+                boolean reservationInactive = reservation == null
+                        || (reservation.getStatus() != ReservationStatus.APPROVED
+                            && reservation.getStatus() != ReservationStatus.CHECKED_IN);
+                boolean amountOutdated = reservation != null
+                        && !expectedCurrentDue(reservation, payment).equals(payment.getAmount());
+                boolean olderThan24Hours = payment.getCreatedAt() != null
+                        && payment.getCreatedAt().isBefore(Instant.now(clock).minusSeconds(24 * 60 * 60));
+
+                // Never expire while PayMongo reports an in-flight payment attempt.
+                if (!activeAttempt && (reservationInactive || amountOutdated || olderThan24Hours)) {
+                    expireAbandonedSession(payment);
                 }
             } catch (RuntimeException ex) {
-                // A temporary provider/API failure must not change the local payment status.
+                // Temporary provider/API failures leave the local payment pending for the next reconciliation.
             }
         }
+    }
+
+    private BigDecimal expectedCurrentDue(Reservation reservation, Payment pendingPayment) {
+        BigDecimal paid = paidAmountForReservation(reservation.getId());
+        if (pendingPayment.getType() == PaymentType.DOWN_PAYMENT && paid.signum() == 0) {
+            return reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+        return reservation.getTotalAmount().subtract(paid).max(BigDecimal.ZERO)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void expireAbandonedSession(Payment payment) {
+        Map<?, ?> response = client.post()
+                .uri("/v2/checkout_sessions/{id}/expire", payment.getProviderCheckoutSessionId())
+                .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                .retrieve().body(Map.class);
+        if (response != null && response.get("data") instanceof Map<?, ?> data
+                && data.get("attributes") instanceof Map<?, ?> attributes
+                && "expired".equalsIgnoreCase(String.valueOf(attributes.get("status")))) {
+            markCheckoutExpired(payment);
+        }
+    }
+
+    private void markCheckoutExpired(Payment payment) {
+        if (payment.getStatus() != PaymentStatus.PENDING) return;
+        payment.markFailedFromProvider(null);
+        audit.record("PAYMONGO_RECONCILIATION", "CHECKOUT_EXPIRED", "PAYMENT",
+                payment.getId().toString(), "PayMongo checkout session expired because the payment was abandoned, stale, or the reservation was no longer active.");
+        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment session expired",
+                "Your payment session for reservation #" + payment.getReservationId()
+                        + " expired without payment. You can start a new payment from your reservations.", "PAYMENT");
     }
 
     public String refund(Payment payment, PaymentRefundRequest refundRequest) {
