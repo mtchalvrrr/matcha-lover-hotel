@@ -158,6 +158,30 @@ class ReportServiceTest {
     }
 
     @Test
+    void calculatesCollectedRevenueSeparatelyForEachRoom() {
+        LocalDate from = LocalDate.of(2026, 11, 8);
+        LocalDate to = LocalDate.of(2026, 11, 8);
+        Payment paid = new Payment(41L, "guest", PaymentType.DOWN_PAYMENT,
+                new BigDecimal("750.00"), "PAYMONGO", "PAID-ROOM-41", PaymentStatus.PAID);
+        Reservation roomReservation = mock(Reservation.class);
+        when(roomReservation.getRoomCode()).thenReturn("A-01");
+        when(roomReservation.getRoomName()).thenReturn("Garden Room");
+        when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to)).thenReturn(List.of());
+        when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED))).thenReturn(List.of());
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
+                .thenReturn(List.of(paid), List.of(), List.of(paid));
+        when(reservations.findById(41L)).thenReturn(java.util.Optional.of(roomReservation));
+        when(payments.findByRefundedAtBetweenOrderByRefundedAtAsc(any(), any())).thenReturn(List.of());
+        when(rooms.countByActiveTrue()).thenReturn(1L);
+
+        ReportSummary summary = service.summarize(from, to);
+
+        assertEquals(new BigDecimal("750.00"), summary.roomRevenue().get("A-01 — Garden Room"));
+        assertEquals(1, summary.roomRevenue().size());
+    }
+
+    @Test
     void rejectsInvalidAndOverlongDateRanges() {
         assertThrows(IllegalArgumentException.class,
                 () -> service.summarize(LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 10)));
