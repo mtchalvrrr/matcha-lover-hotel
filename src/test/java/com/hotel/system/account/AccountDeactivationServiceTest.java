@@ -7,7 +7,6 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.User;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +24,11 @@ class AccountDeactivationServiceTest {
         AccountDeactivationService service = new AccountDeactivationService(
                 requests, users, audit, notifications, sessions);
 
-        SystemUser customer = new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER);
+        SystemUser customer = mock(SystemUser.class);
+        when(customer.getId()).thenReturn(1L);
+        when(customer.getUsername()).thenReturn("guest");
+        when(customer.getRole()).thenReturn(AccountRole.CUSTOMER);
+        when(customer.isActive()).thenReturn(true);
         AccountDeactivationRequest request = new AccountDeactivationRequest(1L, "guest", "No longer needed.");
         var principal = User.withUsername("guest").password("encoded").authorities("ROLE_CUSTOMER").build();
         SessionInformation session = new SessionInformation(principal, "session-1", new java.util.Date());
@@ -37,7 +40,7 @@ class AccountDeactivationServiceTest {
 
         service.review(100L, true, "superadmin", null);
 
-        assertFalse(customer.isActive());
+        verify(customer).setActive(false);
         assertEquals(DeactivationRequestStatus.APPROVED, request.getStatus());
         assertTrue(session.isExpired());
         verify(notifications).notifyUser(eq("guest"), eq("Account deactivated"), anyString(), eq("ACCOUNT"));
