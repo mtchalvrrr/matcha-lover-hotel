@@ -23,7 +23,7 @@ public class ReservationHistoryService {
             "RESERVATION_EXPIRED",
             "GUEST_CHECKED_IN",
             "GUEST_CHECKED_OUT",
-            "RESERVATION_MARKED_NO_SHOW",
+            "RESERVATION_MARKED_NO_SHOW"
     );
     private final ReservationRepository reservations;
     private final AuditLogRepository audit;
