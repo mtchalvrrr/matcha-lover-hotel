@@ -28,7 +28,7 @@ class AccountDeactivationServiceTest {
         SystemUser customer = new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER);
         AccountDeactivationRequest request = new AccountDeactivationRequest(1L, "guest", "No longer needed.");
         var principal = User.withUsername("guest").password("encoded").authorities("ROLE_CUSTOMER").build();
-        SessionInformation session = new SessionInformation(principal, "session-1", Instant.now());
+        SessionInformation session = new SessionInformation(principal, "session-1", new java.util.Date());
 
         when(requests.findById(100L)).thenReturn(Optional.of(request));
         when(users.findById(1L)).thenReturn(Optional.of(customer));
