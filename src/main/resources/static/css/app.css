@@ -181,3 +181,31 @@
 .backup-action h2{font-family:Georgia,serif;font-size:24px;font-weight:400;margin:0 0 5px}
 .backup-action p{flex:1 1 100%;margin:0;color:var(--muted);font-size:12px;line-height:1.6}
 .backup-action form{margin:0}
+
+
+/* Hotel admin pages: neutral editorial styling and photography */
+.visual-hotel-page{--ink:#202a32;--muted:#68747b;--paper:#f4f3ef;--line:#e0ded7;--green:#263e50;--sage:#e7e9e7}
+.visual-hotel-page .brand-mark{border-radius:8px;border-color:#263e50;color:#263e50;font-family:Georgia,serif}
+.visual-hotel-page .portal-hero h1 em{color:#7b8b92}
+.visual-hotel-page .eyebrow{color:#78858a}
+.visual-hotel-page .primary-button,.visual-hotel-page .primary-link{background:#263e50}
+.visual-hotel-page .primary-button:hover{background:#172d3c}
+.visual-hotel-page .text-button{border-color:#d5d9d9}
+.visual-photo{position:relative;margin:0 0 30px;overflow:hidden;background:#dfe3e2;border:1px solid var(--line)}
+.visual-photo img{display:block;width:100%;height:270px;object-fit:cover}
+.visual-photo figcaption{padding:10px 14px;background:#fff;color:#69747a;font-size:10px;letter-spacing:.09em;text-transform:uppercase}
+.visual-photo-short img{height:190px}
+.visual-form{max-width:700px;margin:0 0 55px;padding:30px;background:#fff;border:1px solid var(--line);box-shadow:0 14px 40px rgba(27,40,48,.06)}
+.visual-form label{display:block;margin:18px 0 8px;font-size:12px;font-weight:700;color:#3a464d}
+.visual-form input,.visual-form select{width:100%;padding:13px 14px;border:1px solid #d9dedf;background:#fbfcfb;color:#202a32;font:inherit;font-size:14px}
+.visual-form input:focus,.visual-form select:focus{outline:2px solid rgba(38,62,80,.16);border-color:#607887}
+.visual-filter{background:#fff;border-color:var(--line);box-shadow:0 8px 26px rgba(27,40,48,.035)}
+.visual-hotel-page .data-table th{background:#f0f2f1}
+.visual-hotel-page .data-table tbody tr:hover{background:#f8f9f8}
+.section-heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin:12px 0 14px}
+.section-heading h2,.visual-hotel-page .report-section h2{font-family:Georgia,serif;font-size:27px;font-weight:400;margin:7px 0 0}
+.section-caption{color:var(--muted);font-size:11px}
+.status-pill{display:inline-block;padding:6px 10px;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.status-pill.is-enabled{background:#e5efe8;color:#2d6344}
+.status-pill.is-disabled{background:#f2e9e7;color:#8c4439}
+@media(max-width:760px){.visual-photo img{height:210px}.visual-photo-short img{height:160px}.visual-form{padding:20px}.section-heading{align-items:flex-start;flex-direction:column}}
