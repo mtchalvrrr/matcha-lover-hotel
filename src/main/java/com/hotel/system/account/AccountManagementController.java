@@ -28,7 +28,7 @@ public class AccountManagementController {
             accounts.createAdmin(authentication.getName(), username, email, password);
             redirect.addFlashAttribute("success", "Admin account created.");
             return "redirect:/super-admin/accounts";
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/super-admin/accounts/new";
         }
