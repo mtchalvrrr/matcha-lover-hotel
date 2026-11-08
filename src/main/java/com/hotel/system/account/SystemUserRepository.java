@@ -12,5 +12,6 @@ public interface SystemUserRepository extends JpaRepository<SystemUser, Long> {
     boolean existsByUsernameIgnoreCase(String username);
     boolean existsByEmailIgnoreCase(String email);
     boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+    long countByRole(AccountRole role);
     List<SystemUser> findByRoleInOrderByCreatedAtDesc(Collection<AccountRole> roles);
 }
