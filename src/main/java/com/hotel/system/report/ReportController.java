@@ -59,7 +59,7 @@ public class ReportController {
         append(csv, "Summary", "Refunded amount PHP", summary.refundedAmount());
         append(csv, "Summary", "Outstanding balance PHP", summary.outstandingBalance());
         append(csv, "", "", "");
-        append(csv, "Bookings by room", "Room", "Reservations");
+        append(csv, "Reservations by room", "Room", "Reservations");
         for (Map.Entry<String, Long> entry : summary.bookingsByRoom().entrySet()) {
             append(csv, "Bookings by room", entry.getKey(), entry.getValue());
         }
@@ -69,7 +69,7 @@ public class ReportController {
             append(csv, "Daily reservation requests", entry.getKey(), entry.getValue());
         }
         append(csv, "", "", "");
-        append(csv, "Daily check-in trend", "Date", "Reservations");
+        append(csv, "Reservations by check-in date", "Date", "Reservations");
         for (Map.Entry<LocalDate, Long> entry : summary.bookingsByCheckInDate().entrySet()) {
             append(csv, "Daily check-in trend", entry.getKey(), entry.getValue());
         }
