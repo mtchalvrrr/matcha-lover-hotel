@@ -147,6 +147,11 @@ public class RegistrationService {
         return applications.findByStatusOrderBySubmittedAtAsc(RegistrationStatus.PENDING_REVIEW);
     }
 
+    @Transactional(readOnly = true)
+    public List<RegistrationApplication> approvedApplications() {
+        return applications.findByStatusOrderBySubmittedAtAsc(RegistrationStatus.APPROVED);
+    }
+
     public void review(Long id, boolean approve, String reviewer, String reason) {
         RegistrationApplication app = applications.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
@@ -182,6 +187,13 @@ public class RegistrationService {
 
     public java.nio.file.Path documentPath(Long id) {
         return documents.resolve(get(id).getIdDocumentPath());
+    }
+
+    public java.nio.file.Path approvedDocumentPath(Long id) {
+        RegistrationApplication application = get(id);
+        if (application.getStatus() != RegistrationStatus.APPROVED)
+            throw new IllegalArgumentException("Approved customer document not found.");
+        return documents.resolve(application.getIdDocumentPath());
     }
 
     private String fingerprint(org.springframework.web.multipart.MultipartFile file) {
