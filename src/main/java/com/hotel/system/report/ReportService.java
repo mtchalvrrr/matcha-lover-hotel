@@ -60,11 +60,12 @@ public class ReportService {
         ZoneId zone = clock.getZone();
         Instant start = from.atStartOfDay(zone).toInstant();
         Instant end = to.plusDays(1).atStartOfDay(zone).toInstant();
+        List<Reservation> actualStays = reservations.findActualStaysOverlapping(
+                ACTUAL_STAY_STATUSES, end, from, start);
         List<Reservation> overlappingStays = new ArrayList<>(
                 reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
                         to.plusDays(1), from, SCHEDULED_OCCUPANCY_STATUSES));
-        overlappingStays.addAll(reservations.findActualStaysOverlapping(
-                ACTUAL_STAY_STATUSES, end, from, start));
+        overlappingStays.addAll(actualStays);
         // Preserve the original receipt in payment-date reports even if it is refunded later.
         // Refunds are reported separately using refundedAt.
         List<Payment> paymentReceipts = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
@@ -95,6 +96,11 @@ public class ReportService {
                         (first, second) -> first, LinkedHashMap::new));
         Map<LocalDate, Long> byCheckInDate = bookings.stream().collect(Collectors.groupingBy(
                 Reservation::getCheckInDate, LinkedHashMap::new, Collectors.counting()));
+        Map<LocalDate, Long> byActualStayDate = actualStays.stream().collect(Collectors.groupingBy(
+                reservation -> reservation.getCheckedInAt() == null
+                        ? reservation.getCheckInDate()
+                        : reservation.getCheckedInAt().atZone(zone).toLocalDate(),
+                LinkedHashMap::new, Collectors.counting()));
         List<Reservation> requestsCreated = reservations.findByCreatedAtBetweenOrderByCreatedAtAsc(start, end);
         Map<LocalDate, Long> byCreatedDate = requestsCreated.stream()
                 .filter(reservation -> reservation.getCreatedAt() != null)
@@ -131,6 +137,15 @@ public class ReportService {
                 : BigDecimal.valueOf(reservedRoomNights)
                     .multiply(BigDecimal.valueOf(100))
                     .divide(BigDecimal.valueOf(availableRoomNights), 2, RoundingMode.HALF_UP);
+        LocalDate today = LocalDate.now(clock);
+        long actualOccupiedRoomNights = actualStays.stream()
+                .mapToLong(reservation -> actualOccupiedNightsWithin(reservation, from, to, zone, today))
+                .sum();
+        BigDecimal actualOccupancyRate = availableRoomNights == 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(actualOccupiedRoomNights)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(availableRoomNights), 2, RoundingMode.HALF_UP);
 
         return new ReportSummary(
                 from,
@@ -152,11 +167,14 @@ public class ReportService {
                 reservedRoomNights,
                 availableRoomNights,
                 bookedCapacityRate,
+                actualOccupiedRoomNights,
+                actualOccupancyRate,
                 revenue,
                 refundedAmount,
                 outstandingBalance,
                 byRoom,
                 byCheckInDate,
+                byActualStayDate,
                 byCreatedDate,
                 revenueByPaymentDate
         );
@@ -164,6 +182,20 @@ public class ReportService {
 
     private long countStatus(List<Reservation> bookings, ReservationStatus status) {
         return bookings.stream().filter(reservation -> reservation.getStatus() == status).count();
+    }
+
+    private long actualOccupiedNightsWithin(Reservation reservation, LocalDate from,
+                                             LocalDate to, ZoneId zone, LocalDate today) {
+        LocalDate actualCheckIn = reservation.getCheckedInAt() == null
+                ? reservation.getCheckInDate()
+                : reservation.getCheckedInAt().atZone(zone).toLocalDate();
+        LocalDate actualCheckOut = reservation.getCheckedOutAt() == null
+                ? today.plusDays(1)
+                : reservation.getCheckedOutAt().atZone(zone).toLocalDate();
+        LocalDate occupiedFrom = actualCheckIn.isAfter(from) ? actualCheckIn : from;
+        LocalDate periodEnd = to.plusDays(1);
+        LocalDate occupiedUntil = actualCheckOut.isBefore(periodEnd) ? actualCheckOut : periodEnd;
+        return Math.max(0, ChronoUnit.DAYS.between(occupiedFrom, occupiedUntil));
     }
 
     private long occupiedNightsWithin(Reservation reservation, LocalDate from, LocalDate to, ZoneId zone) {
