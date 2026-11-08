@@ -135,7 +135,9 @@ class SecurityRouteIntegrationTest {
                 .andExpect(view().name("admin/reports/index"))
                 .andExpect(model().attributeExists("dailyRequestTotal"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString(
-                        "Reservations with check-in dates in selected period")));
+                        "Reservations with check-in dates in selected period")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Approval rate")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Peak booking day")));
     }
 
     @Test
