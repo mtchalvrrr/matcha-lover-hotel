@@ -8,10 +8,21 @@
   const lightboxImage = document.getElementById("galleryLightboxImage");
   const status = document.getElementById("galleryCarouselStatus");
   const availabilityDialog = document.getElementById("roomAvailabilityDialog");
-  document.getElementById("openRoomAvailability")?.addEventListener("click", () => availabilityDialog?.showModal());
-  document.getElementById("closeRoomAvailability")?.addEventListener("click", () => availabilityDialog?.close());
+  document.getElementById("openRoomAvailability")?.addEventListener("click", () => {
+    if (!availabilityDialog) return;
+    if (typeof availabilityDialog.showModal === "function") availabilityDialog.showModal();
+    else availabilityDialog.setAttribute("open", "");
+  });
+  document.getElementById("closeRoomAvailability")?.addEventListener("click", () => {
+    if (!availabilityDialog) return;
+    if (typeof availabilityDialog.close === "function") availabilityDialog.close();
+    else availabilityDialog.removeAttribute("open");
+  });
   availabilityDialog?.addEventListener("click", event => {
-    if (event.target === availabilityDialog) availabilityDialog.close();
+    if (event.target === availabilityDialog) {
+      if (typeof availabilityDialog.close === "function") availabilityDialog.close();
+      else availabilityDialog.removeAttribute("open");
+    }
   });
   if (!activeImage || !thumbnailStrip) return;
 
