@@ -83,7 +83,11 @@ class SecurityRouteIntegrationTest {
     @Test
     @WithMockUser(username = "booking-admin", roles = "ADMIN")
     void adminReportsRenderWithDailyTrendAndCapacityMetrics() throws Exception {
-        mvc.perform(get("/admin/reports"))
+        reservations.save(new Reservation(null, "report-guest", "report@example.com", 1L,
+                "REPORT-01", "Report Room", java.time.LocalDate.of(2026, 12, 1),
+                java.time.LocalDate.of(2026, 12, 2), 2, 1,
+                new BigDecimal("1000.00"), new BigDecimal("1000.00")));
+        mvc.perform(get("/admin/reports").param("from", "2026-12-01").param("to", "2026-12-02"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/reports/index"));
     }
