@@ -14,11 +14,14 @@ import java.time.LocalDate;
 public class ReservationController {
     private final ReservationService reservations;
     private final PaymentService payments;
+    private final WalkInBookingService walkInBookings;
     private final RoomService rooms;
 
-    public ReservationController(ReservationService reservations, PaymentService payments, RoomService rooms) {
+    public ReservationController(ReservationService reservations, PaymentService payments,
+                                 WalkInBookingService walkInBookings, RoomService rooms) {
         this.reservations = reservations;
         this.payments = payments;
+        this.walkInBookings = walkInBookings;
         this.rooms = rooms;
     }
 
@@ -70,9 +73,10 @@ public class ReservationController {
         @RequestParam Integer guests, @RequestParam String paymentMethod,
         Authentication authentication, RedirectAttributes redirect) {
         try {
-            Reservation reservation = reservations.createWalkIn(authentication.getName(), guestName,
-                guestEmail, roomId, checkIn, checkOut, guests);
-            var payment = payments.recordWalkInPayment(reservation.getId(), paymentMethod, authentication.getName());
+            WalkInBookingService.WalkInBookingResult booking = walkInBookings.create(
+                authentication.getName(), guestName, guestEmail, roomId, checkIn, checkOut, guests, paymentMethod);
+            Reservation reservation = booking.reservation();
+            var payment = booking.payment();
             redirect.addFlashAttribute("success", "Walk-in reservation #" + reservation.getId()
                 + " created and onsite payment recorded. Receipt reference: " + payment.getTransactionReference());
         } catch (IllegalArgumentException | IllegalStateException ex) {
