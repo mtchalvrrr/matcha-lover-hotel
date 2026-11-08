@@ -538,3 +538,15 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 @media(max-width:480px){
  .room-availability-dialog .room-availability-form{grid-template-columns:1fr}
 }
+
+
+/* Definitive room detail overrides: no arrow columns; popup is independent. */
+.room-gallery-large .gallery-main-row{display:block!important;grid-template-columns:1fr!important;width:100%!important;margin:0!important;padding:0!important}
+.room-gallery-large .gallery-active{display:block!important;width:100%!important;height:clamp(340px,48vw,590px)!important;min-height:340px!important;padding:0!important;border:0!important;overflow:hidden!important;background:#e4eadf!important}
+.room-gallery-large .gallery-active img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.room-gallery-large .gallery-thumbnails{display:flex!important;gap:10px!important;overflow-x:auto!important}
+.room-availability-dialog{z-index:99999!important}
+.room-availability-dialog:not([open]){display:none!important}
+.room-availability-dialog[open],.room-availability-dialog.is-open{display:block!important;position:fixed!important;inset:0!important;margin:auto!important}
+.room-availability-dialog::backdrop{background:rgba(20,35,25,.62)!important}
+@media(max-width:600px){.room-gallery-large .gallery-active{height:68vw!important;min-height:250px!important}}
