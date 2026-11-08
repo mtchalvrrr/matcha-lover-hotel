@@ -236,7 +236,17 @@ public class PayMongoService {
                     for (Object entry : entries) {
                         if (!(entry instanceof Map<?, ?> item)
                                 || !(item.get("attributes") instanceof Map<?, ?> paidAttributes)) continue;
-                        if (!"paid".equalsIgnoreCase(String.valueOf(paidAttributes.get("status")))) continue;
+                        String attemptStatus = String.valueOf(paidAttributes.get("status")).toLowerCase(Locale.ROOT);
+                        if ("failed".equals(attemptStatus) || "cancelled".equals(attemptStatus)) {
+                            String attemptId = String.valueOf(item.get("id"));
+                            notifications.notifyUserOnceInAppOnly(payment.getCustomerUsername(),
+                                    "Payment attempt was not completed",
+                                    "Your PayMongo payment attempt for reservation #" + payment.getReservationId()
+                                            + " was not completed. You can retry using the same checkout page.",
+                                    "PAYMENT", "PAYMONGO-ATTEMPT-FAILED-" + payment.getId() + "-" + attemptId);
+                            continue;
+                        }
+                        if (!"paid".equals(attemptStatus)) continue;
                         long amount = Long.parseLong(String.valueOf(paidAttributes.get("amount")));
                         long expected = payment.getAmount().movePointRight(2).longValueExact();
                         if (!"PHP".equalsIgnoreCase(String.valueOf(paidAttributes.get("currency")))
