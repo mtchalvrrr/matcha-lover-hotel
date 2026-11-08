@@ -281,10 +281,15 @@ public class ReservationService {
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
         if (reservation.getStatus() != ReservationStatus.APPROVED)
             throw new IllegalStateException("Only approved reservations can be checked in.");
+        LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime scheduledCheckIn = reservation.getCheckInDate().atTime(reservation.getCheckInTime());
+        LocalDateTime scheduledCheckOut = reservation.getCheckOutDate().atTime(reservation.getCheckOutTime());
+        if (!now.isBefore(scheduledCheckOut)) {
+            throw new IllegalStateException("The scheduled checkout time has passed. Create a new reservation for a future stay.");
+        }
         boolean sameDayWalkIn = reservation.getSource() == ReservationSource.WALK_IN
-                && reservation.getCheckInDate().equals(LocalDate.now(clock));
-        if (LocalDateTime.now(clock).isBefore(scheduledCheckIn) && !sameDayWalkIn)
+                && reservation.getCheckInDate().equals(now.toLocalDate());
+        if (now.isBefore(scheduledCheckIn) && !sameDayWalkIn)
             throw new IllegalStateException("The scheduled check-in time has not started.");
         BigDecimal requiredDeposit = reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
             .setScale(2, java.math.RoundingMode.HALF_UP);
