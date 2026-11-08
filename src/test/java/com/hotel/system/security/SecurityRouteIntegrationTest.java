@@ -157,7 +157,8 @@ class SecurityRouteIntegrationTest {
                         .param("to", "2026-12-02"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/pdf"))
-                .andExpect(content().bytes(org.hamcrest.Matchers.notNullValue()));
+                .andExpect(result -> org.junit.jupiter.api.Assertions.assertTrue(
+                        result.getResponse().getContentAsByteArray().length > 100));
     }
 
     @Test
