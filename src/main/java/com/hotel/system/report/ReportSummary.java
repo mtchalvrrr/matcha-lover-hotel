@@ -12,6 +12,7 @@ public record ReportSummary(
     long approvedReservations,
     long rejectedReservations,
     long cancelledReservations,
+    long expiredReservations,
     long noShowReservations,
     long checkedInReservations,
     long checkedOutReservations,
