@@ -35,6 +35,9 @@
         <div class="notice">The reservation payment rule is fixed at a 50% down payment. Payment mode remains SIMULATED until a verified payment gateway is configured.</div>
         <button class="primary-button" type="submit">Save hotel settings</button>
     </form>
+    <form th:if="${!readOnly}" th:action="@{/super-admin/settings/test-email}" method="post" class="action-row">
+        <button class="secondary-button" type="submit">Send SMTP test email to Super Admin</button>
+    </form>
 </main>
 </body>
 </html>
