@@ -7,7 +7,7 @@
 <p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 class="room-detail-title" th:text="${room.name}">Room name</h1>
 <a class="room-availability-cta" href="#roomAvailability">Check available dates &amp; times <span aria-hidden="true">→</span></a>
 </section>
-<section class="room-gallery-viewer room-gallery-large" id="roomGallery" th:if="${!#lists.isEmpty(photos)}" aria-label="Room photo gallery">
+<section class="room-gallery-viewer room-gallery-large" id="roomGallery" aria-label="Room photo carousel">
 <div class="gallery-main-row">
 <button type="button" class="gallery-arrow" id="galleryPrevious" aria-label="Previous photo">‹</button>
 <button type="button" class="gallery-active" id="galleryOpenLightbox" aria-label="Open photo zoom">
@@ -16,6 +16,7 @@
 </button>
 <button type="button" class="gallery-arrow" id="galleryNext" aria-label="Next photo">›</button>
 </div>
+<div class="gallery-carousel-status" id="galleryCarouselStatus" aria-live="polite">1 / 5 · Sample room photos</div>
 <div class="gallery-thumbnails" id="galleryThumbnails">
 <button type="button" class="gallery-thumbnail" th:each="photo,stat : ${photos}"
  th:classappend="${stat.index == 0 ? 'is-active' : ''}"
@@ -28,7 +29,7 @@
 <button type="button" class="lightbox-close" id="galleryCloseLightbox" aria-label="Close enlarged photo">×</button>
 <img id="galleryLightboxImage" alt="Enlarged room photo">
 </dialog>
-<div class="room-image room-image-empty room-detail-photo-empty" th:if="${#lists.isEmpty(photos)}"><span>Room photos will appear here</span></div>
+
 <p class="intro" th:text="${room.description}">Room description</p>
 <p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
 <p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
