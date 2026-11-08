@@ -25,7 +25,11 @@ public class RoomController {
 
     @GetMapping("/rooms")
     public String browseRooms(Model model) {
-        model.addAttribute("rooms", rooms.publicRooms());
+        var availableRooms = rooms.publicRooms();
+        model.addAttribute("rooms", availableRooms);
+        model.addAttribute("roomTypes", availableRooms.stream()
+                .map(Room::getRoomType).filter(java.util.Objects::nonNull)
+                .distinct().sorted(String.CASE_INSENSITIVE_ORDER).toList());
         return "rooms/list";
     }
 
