@@ -14,6 +14,12 @@ public class SystemUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "first_name", length = 80)
+    private String firstName;
+
+    @Column(name = "last_name", length = 80)
+    private String lastName;
+
     @Column(nullable = false, length = 80)
     private String username;
 
@@ -37,6 +43,12 @@ public class SystemUser {
     }
 
     public SystemUser(String username, String email, String passwordHash, AccountRole role) {
+        this(null, null, username, email, passwordHash, role);
+    }
+
+    public SystemUser(String firstName, String lastName, String username, String email, String passwordHash, AccountRole role) {
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -45,6 +57,8 @@ public class SystemUser {
     }
 
     public Long getId() { return id; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
     public String getUsername() { return username; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
