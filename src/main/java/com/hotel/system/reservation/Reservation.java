@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "hotel_reservations", indexes = {
@@ -34,6 +35,10 @@ public class Reservation {
     private LocalDate checkInDate;
     @Column(name = "check_out_date", nullable = false)
     private LocalDate checkOutDate;
+    @Column(name = "check_in_time")
+    private LocalTime checkInTime = LocalTime.of(14, 0);
+    @Column(name = "check_out_time")
+    private LocalTime checkOutTime = LocalTime.NOON;
     @Column(nullable = false)
     private Integer guests;
     @Column(nullable = false)
@@ -84,6 +89,13 @@ public class Reservation {
     public String getRoomName() { return roomName; }
     public LocalDate getCheckInDate() { return checkInDate; }
     public LocalDate getCheckOutDate() { return checkOutDate; }
+    public LocalTime getCheckInTime() { return checkInTime == null ? LocalTime.of(14, 0) : checkInTime; }
+    public LocalTime getCheckOutTime() { return checkOutTime == null ? LocalTime.NOON : checkOutTime; }
+    public void setStayTimes(LocalTime checkInTime, LocalTime checkOutTime) {
+        this.checkInTime = checkInTime;
+        this.checkOutTime = checkOutTime;
+        this.updatedAt = Instant.now();
+    }
     public Integer getGuests() { return guests; }
     public Integer getNights() { return nights; }
     public BigDecimal getNightlyRate() { return nightlyRate; }
