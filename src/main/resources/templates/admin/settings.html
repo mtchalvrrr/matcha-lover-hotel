@@ -10,16 +10,16 @@
 <main class="shell narrow">
     <header class="topbar">
         <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
-        <a class="back-link" th:href="@{/admin/dashboard}">Admin dashboard</a>
+        <a class="back-link" th:href="${readOnly ? '/admin/dashboard' : '/super-admin/dashboard'}">Admin dashboard</a>
     </header>
     <section class="portal-hero compact-hero">
-        <p class="eyebrow">ADMIN / HOTEL CONFIGURATION</p>
+        <p class="eyebrow" th:text="${readOnly ? 'ADMIN / HOTEL INFORMATION' : 'SUPER ADMIN / SYSTEM SETTINGS'}">SYSTEM SETTINGS</p>
         <h1>Hotel<br><em>settings.</em></h1>
-        <p class="intro">Maintain the hotel profile, guest information, stay schedule, and cancellation policy.</p>
+        <p class="intro" th:text="${readOnly ? 'View the current hotel profile and guest policies.' : 'Maintain the hotel profile, guest information, stay schedule, and cancellation policy.'}">Hotel settings.</p>
     </section>
     <p class="notice" th:if="${success}" th:text="${success}"></p>
     <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
-    <form class="auth-card wide-form" th:action="@{/admin/settings}" method="post">
+    <section th:if="${readOnly}" class="auth-card wide-form"><h2>Current hotel settings</h2><p><strong>Hotel name:</strong> <span th:text="${settings.hotelName}"></span></p><p><strong>Address:</strong> <span th:text="${settings.address}"></span></p><p><strong>Contact:</strong> <span th:text="${settings.contactInformation}"></span></p><p><strong>Check-in:</strong> <span th:text="${settings.checkInTime}"></span></p><p><strong>Check-out:</strong> <span th:text="${settings.checkOutTime}"></span></p><p><strong>Cancellation policy:</strong> <span th:text="${settings.cancellationPolicy}"></span></p></section><form th:if="${!readOnly}" class="auth-card wide-form" th:action="@{/super-admin/settings}" method="post">
         <label for="hotelName">Hotel name</label>
         <input id="hotelName" name="hotelName" type="text" maxlength="120" th:value="${settings.hotelName}" required>
         <label for="address">Hotel address</label>
