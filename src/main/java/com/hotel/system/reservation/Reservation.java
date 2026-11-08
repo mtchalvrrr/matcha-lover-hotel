@@ -13,12 +13,17 @@ import java.time.LocalDate;
 public class Reservation {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "customer_id", nullable = false)
+    @Column(name = "customer_id")
     private Long customerId;
     @Column(name = "customer_username", nullable = false, length = 80)
     private String customerUsername;
     @Column(name = "customer_email", nullable = false, length = 254)
     private String customerEmail;
+    @Column(name = "guest_name", nullable = false, length = 160)
+    private String guestName;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private ReservationSource source = ReservationSource.ONLINE;
     @Column(name = "room_id", nullable = false)
     private Long roomId;
     @Column(name = "room_code_snapshot", nullable = false, length = 30)
@@ -54,6 +59,8 @@ public class Reservation {
         this.customerId = customerId;
         this.customerUsername = customerUsername;
         this.customerEmail = customerEmail;
+        this.guestName = customerUsername;
+        this.source = ReservationSource.ONLINE;
         this.roomId = roomId;
         this.roomCode = roomCode;
         this.roomName = roomName;
@@ -70,6 +77,8 @@ public class Reservation {
     public Long getCustomerId() { return customerId; }
     public String getCustomerUsername() { return customerUsername; }
     public String getCustomerEmail() { return customerEmail; }
+    public String getGuestName() { return guestName; }
+    public ReservationSource getSource() { return source; }
     public Long getRoomId() { return roomId; }
     public String getRoomCode() { return roomCode; }
     public String getRoomName() { return roomName; }
@@ -82,6 +91,26 @@ public class Reservation {
     public ReservationStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public Reservation(Long roomId, String guestName, String guestEmail, String adminUsername,
+                       String roomCode, String roomName, LocalDate checkInDate, LocalDate checkOutDate,
+                       Integer guests, Integer nights, BigDecimal nightlyRate, BigDecimal totalAmount) {
+        this.customerId = null;
+        this.customerUsername = "WALK-IN (" + adminUsername + ")";
+        this.customerEmail = guestEmail;
+        this.guestName = guestName;
+        this.source = ReservationSource.WALK_IN;
+        this.roomId = roomId;
+        this.roomCode = roomCode;
+        this.roomName = roomName;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+        this.guests = guests;
+        this.nights = nights;
+        this.nightlyRate = nightlyRate;
+        this.totalAmount = totalAmount;
+        this.status = ReservationStatus.APPROVED;
+    }
 
     public void changeStatus(ReservationStatus status) {
         this.status = status;
