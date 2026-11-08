@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.config.Customizer;
 
 @Configuration
 public class SecurityConfiguration {
@@ -39,6 +41,15 @@ public class SecurityConfiguration {
                                              SessionRegistry sessionRegistry,
                                              LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
         http
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(Customizer.withDefaults())
+                .referrerPolicy(referrer -> referrer.policy(
+                        ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .cacheControl(Customizer.withDefaults())
+                .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
+                        "camera=(), microphone=(), geolocation=()"))
+            )
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
