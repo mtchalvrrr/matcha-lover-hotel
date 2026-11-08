@@ -10,8 +10,8 @@
 <p><strong>Submitted:</strong> <span th:text="${application.submittedAt}">Date</span></p>
 <div th:switch="${application.status.name()}">
 <p th:case="'PENDING_OTP'" class="notice">Email verification is not complete. Use the verification code sent to your registered email.</p>
-<p th:case="'PENDING_REVIEW'" class="notice">Your email is verified. Your application is waiting for Super Admin review.</p>
-<p th:case="'APPROVED'" class="notice">Your application has been approved. You can now sign in using your registered username and password.</p>
+<p th:case="'PENDING_REVIEW'" class="notice">Your email is verified and your customer account is active. You can now sign in.</p>
+<p th:case="'APPROVED'" class="notice">Your customer account is active. You can sign in using your registered username and password.</p>
 <div th:case="'REJECTED'">
 <p class="alert alert-error">Your application was not approved.</p>
 <p><strong>Review reason:</strong> <span th:text="${application.reviewReason}">Reason</span></p>
