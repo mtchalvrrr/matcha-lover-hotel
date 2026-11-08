@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.io.IOException;
+import java.util.HexFormat;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -57,10 +61,14 @@ public class RegistrationService {
         if (users.existsByUsernameIgnoreCase(user) || applications.existsByUsernameIgnoreCaseAndStatusIn(user, ACTIVE_APPLICATIONS))
             throw new IllegalArgumentException("An account or active application already uses this username.");
 
+        String documentHash = fingerprint(idFile);
+        if (applications.existsByDocumentHash(documentHash)) {
+            throw new IllegalArgumentException("This ID document has already been submitted with another application.");
+        }
         String path = documents.store(idFile);
         String otp = String.format("%06d", random.nextInt(1_000_000));
         RegistrationApplication application = applications.save(new RegistrationApplication(first, last,
-            address, user, encoder.encode(password), path, encoder.encode(otp),
+            address, user, encoder.encode(password), path, documentHash, encoder.encode(otp),
             Instant.now(clock).plus(Duration.ofMinutes(10))));
         try {
             if (fromAddress == null || fromAddress.isBlank()) throw new IllegalStateException("Email delivery is not configured.");
@@ -122,6 +130,20 @@ public class RegistrationService {
 
     public java.nio.file.Path documentPath(Long id) {
         return documents.resolve(get(id).getIdDocumentPath());
+    }
+
+    private String fingerprint(org.springframework.web.multipart.MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Upload a valid ID document.");
+        }
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(file.getBytes());
+            return HexFormat.of().formatHex(digest);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("The ID document could not be read. Please upload it again.", ex);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Secure document fingerprinting is unavailable.", ex);
+        }
     }
 
     private void validatePassword(String password) {
