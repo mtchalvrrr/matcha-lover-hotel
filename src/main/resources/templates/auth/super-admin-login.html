@@ -18,7 +18,7 @@
             <h1>System oversight.</h1>
             <p class="intro">Restricted access for the designated Super Admin account.</p>
         </div>
-        <form class="auth-card" th:action="@{/authenticate}" method="post">
+        <form class="auth-card" th:action="@{/super-admin/authenticate}" method="post">
             <h2>Sign in</h2>
             <p class="form-help">Use the account credentials assigned to you.</p>
             <div class="alert alert-error" th:if="${param.error}">The username or password is incorrect, or this account is inactive.</div>
