@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Customer Dashboard | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></header>
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></header>
 <section class="portal-hero"><p class="eyebrow">CUSTOMER PORTAL</p><h1>Your stay</h1><p class="intro">Browse rooms, manage reservation requests, and review payment records.</p></section>
 <section class="dashboard-links">
 <a class="portal-card" th:href="@{/rooms}"><span class="portal-number">ROOM COLLECTION</span><h2>Browse rooms</h2><p>View room details, rates, capacity, and amenities.</p><span class="portal-link">Explore rooms ↗</span></a>
