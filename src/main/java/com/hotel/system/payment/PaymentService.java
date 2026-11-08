@@ -46,8 +46,9 @@ public class PaymentService {
         if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())) {
             throw new IllegalArgumentException("Reservation not found.");
         }
-        if (reservation.getStatus() != ReservationStatus.APPROVED) {
-            throw new IllegalStateException("Only approved reservations can be paid.");
+        if (reservation.getStatus() != ReservationStatus.APPROVED
+                && reservation.getStatus() != ReservationStatus.CHECKED_IN) {
+            throw new IllegalStateException("Payments are available only for approved or currently checked-in reservations.");
         }
         if (!"SIMULATED".equalsIgnoreCase(paymentMode)) {
             throw new IllegalStateException("A verified payment gateway is not configured. No payment was taken.");
