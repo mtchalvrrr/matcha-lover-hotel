@@ -29,6 +29,7 @@ class PendingReservationExpirySchedulerTest {
                 new BigDecimal("1500.00"), new BigDecimal("1500.00"));
         ReflectionTestUtils.setField(stale, "id", 88L);
         ReflectionTestUtils.setField(stale, "createdAt", now.minusSeconds(25 * 3600L));
+        ReflectionTestUtils.setField(stale, "updatedAt", now.minusSeconds(25 * 3600L));
         when(reservations.findByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc(
                 ReservationStatus.PENDING, now.minusSeconds(24 * 3600L))).thenReturn(List.of(stale));
 
