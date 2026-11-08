@@ -65,6 +65,15 @@ class ChatAssistantServiceTest {
     }
 
     @Test
+    void blocksSensitiveCredentialsAndEmailFromAiProcessing() {
+        ChatAssistantService assistant = service();
+
+        assertTrue(assistant.reply("My password is Secret123!", false).reply().contains("do not send passwords"));
+        assertTrue(assistant.reply("My email is guest@example.com", false).reply().contains("secure account pages"));
+        assertTrue(assistant.reply("My card is 4111 1111 1111 1111", false).reply().contains("payment-card numbers"));
+    }
+
+    @Test
     void rejectsBlankAndOverlongMessages() {
         ChatAssistantService assistant = service();
         assertThrows(IllegalArgumentException.class, () -> assistant.reply(" ", false));
