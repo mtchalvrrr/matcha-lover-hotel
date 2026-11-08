@@ -21,9 +21,7 @@ public class AccountManagementService {
 
     @Transactional(readOnly = true)
     public List<SystemUser> manageableAccounts() {
-        return users.findAll().stream()
-            .filter(u -> u.getRole() == AccountRole.ADMIN || u.getRole() == AccountRole.CUSTOMER)
-            .toList();
+        return users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.ADMIN, AccountRole.CUSTOMER));
     }
 
     public SystemUser createAdmin(String actor, String username, String email, String password) {
