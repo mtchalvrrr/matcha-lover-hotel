@@ -28,7 +28,15 @@ public class ReportController {
                           @RequestParam(required = false) LocalDate to, Model model) {
         LocalDate end = to == null ? LocalDate.now(clock) : to;
         LocalDate start = from == null ? end.minusDays(29) : from;
-        ReportSummary summary = reports.summarize(start, end);
+        ReportSummary summary;
+        try {
+            summary = reports.summarize(start, end);
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("reportError", ex.getMessage());
+            end = LocalDate.now(clock);
+            start = end.minusDays(29);
+            summary = reports.summarize(start, end);
+        }
         model.addAttribute("summary", summary);
         model.addAttribute("dailyRequestTotal", summary.bookingsByCreatedDate().values().stream()
                 .mapToLong(Long::longValue).sum());
@@ -37,7 +45,14 @@ public class ReportController {
 
     @GetMapping("/admin/reports/export.csv")
     public ResponseEntity<byte[]> exportCsv(@RequestParam LocalDate from, @RequestParam LocalDate to) {
-        ReportSummary summary = reports.summarize(from, to);
+        ReportSummary summary;
+        try {
+            summary = reports.summarize(from, to);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(ex.getMessage().getBytes(StandardCharsets.UTF_8));
+        }
         StringBuilder csv = new StringBuilder("\uFEFF");
         append(csv, "Section", "Metric", "Value");
         append(csv, "Summary", "From date", summary.fromDate().toString());
