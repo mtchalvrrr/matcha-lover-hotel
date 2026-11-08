@@ -1,6 +1,7 @@
 package com.hotel.system.web;
 
 import com.hotel.system.dashboard.DashboardService;
+import com.hotel.system.settings.HotelSettingsService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,16 +10,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PortalController {
     private final DashboardService dashboards;
+    private final HotelSettingsService hotelSettings;
 
-    public PortalController(DashboardService dashboards) {
+    public PortalController(DashboardService dashboards, HotelSettingsService hotelSettings) {
         this.dashboards = dashboards;
+        this.hotelSettings = hotelSettings;
     }
 
     @GetMapping("/")
     public String home() { return "index"; }
 
     @GetMapping("/customer")
-    public String customerProgram() { return "customer-program"; }
+    public String customerProgram(Model model) {
+        model.addAttribute("hotelSettings", hotelSettings.current());
+        return "customer-program";
+    }
 
     @GetMapping("/admin")
     public String adminProgram() { return "admin-program"; }
