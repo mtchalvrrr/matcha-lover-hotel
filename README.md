@@ -33,7 +33,7 @@ The three portals are separate entry points within one coordinated backend, not 
 - 50% down payment and balance tracking, printable payment receipts, and audited refund/void status workflows. The default payment mode is simulated; it does not collect real money.
 - Admin reservation search by guest, email, room, or reservation ID, with status, source, and check-in date filters; audited admin cancellation with payment-refund safeguards.
 - In-app notifications and optional SMTP email notifications.
-- Admin reports for reservation status, online versus walk-in bookings, paid revenue, refunds, outstanding balances, bookings by room, daily check-in trends, booked room-night capacity, print/PDF, and CSV export.
+- Admin reports for reservation status, online versus walk-in bookings, paid revenue, refunds, outstanding balances, bookings by room, daily check-in and paid-revenue trends, booked room-night capacity, print/PDF, and CSV export.
 - Hotel profile, contact, stay-time, and cancellation-policy settings.
 - Super Admin account management, customer application review, and audit log.
 - Customer-facing hotel FAQ assistant with optional Groq AI integration, public room-page redirection, and per-session request limiting.
