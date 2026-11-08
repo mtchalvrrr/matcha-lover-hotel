@@ -71,3 +71,5 @@
 .metric-card strong{font-family:Georgia,serif;font-size:30px;font-weight:400;color:var(--green)}
 .report-section h2{font-family:Georgia,serif;font-weight:400;font-size:26px}
 @media(max-width:760px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.report-filter{align-items:stretch;flex-direction:column}}
+
+.auth-card select,.auth-card textarea{width:100%;padding:13px 14px;border:1px solid var(--line);background:#fcfcf9;color:var(--ink);font:inherit;font-size:14px}
