@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomRepository;
 import com.hotel.system.room.RoomPhoto;
@@ -13,7 +15,9 @@ import com.hotel.system.room.RoomPhotoRepository;
 import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.is;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:sqlite:./target/security-route-test.db",
@@ -55,6 +59,16 @@ class SecurityRouteIntegrationTest {
         mvc.perform(get("/rooms/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("rooms/detail"));
+    }
+
+    @Test
+    void publicHotelChatCanRedirectGuestsToRoomCatalog() throws Exception {
+        mvc.perform(post("/api/chat")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"Show me the rooms\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.redirectUrl", is("/rooms")));
     }
 
     @Test
