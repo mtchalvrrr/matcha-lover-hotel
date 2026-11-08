@@ -4,6 +4,7 @@ import com.hotel.system.account.SystemUser;
 import com.hotel.system.account.SystemUserRepository;
 import com.hotel.system.audit.AuditService;
 import com.hotel.system.payment.PaymentRepository;
+import com.hotel.system.payment.PaymentStatus;
 import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomNotFoundException;
 import com.hotel.system.room.RoomRepository;
@@ -148,7 +149,7 @@ public class ReservationService {
             throw new IllegalStateException("The check-in date has not started.");
         BigDecimal requiredDeposit = reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
             .setScale(2, java.math.RoundingMode.HALF_UP);
-        if (payments.sumPaidForReservation(id).compareTo(requiredDeposit) < 0)
+        if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(requiredDeposit) < 0)
             throw new IllegalStateException("The 50% down payment must be recorded before check-in.");
         reservation.changeStatus(ReservationStatus.CHECKED_IN);
         audit.record(adminUsername, "GUEST_CHECKED_IN", "RESERVATION", id.toString(),
