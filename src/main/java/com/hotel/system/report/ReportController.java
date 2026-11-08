@@ -1,5 +1,6 @@
 package com.hotel.system.report;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +28,13 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 public class ReportController {
     private final ReportService reports;
     private final Clock clock;
+    private final String hotelName;
 
-    public ReportController(ReportService reports, Clock clock) {
+    public ReportController(ReportService reports, Clock clock,
+                            @Value("${hotel.name:[HOTEL NAME]}") String hotelName) {
         this.reports = reports;
         this.clock = clock;
+        this.hotelName = hotelName;
     }
 
     @GetMapping("/admin/reports")
@@ -145,7 +149,7 @@ public class ReportController {
         }
 
         List<String> lines = new ArrayList<>();
-        lines.add("[HOTEL NAME] — HOTEL PERFORMANCE REPORT");
+        lines.add(hotelName + " - HOTEL PERFORMANCE REPORT");
         lines.add("Reporting period: " + summary.fromDate() + " to " + summary.toDate());
         lines.add("");
         lines.add("RESERVATIONS");
@@ -160,6 +164,11 @@ public class ReportController {
                 + " | Checked out: " + summary.checkedOutReservations());
         lines.add("Online: " + summary.onlineReservations()
                 + " | Walk-in: " + summary.walkInReservations());
+        lines.add("Approval rate: " + percentage(summary.approvedReservations(), summary.totalReservations()) + "%"
+                + " | Cancellation rate: " + percentage(summary.cancelledReservations(), summary.totalReservations()) + "%"
+                + " | Rejection rate: " + percentage(summary.rejectedReservations(), summary.totalReservations()) + "%");
+        lines.add("Peak booking day: " + peakDay(summary.bookingsByCreatedDate()));
+        lines.add("Peak stay day: " + peakDay(summary.bookingsByCheckInDate()));
         lines.add("");
         lines.add("OCCUPANCY AND CUSTOMERS");
         lines.add("Reserved room nights: " + summary.reservedRoomNights()
