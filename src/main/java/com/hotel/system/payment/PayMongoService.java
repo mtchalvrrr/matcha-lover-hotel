@@ -361,16 +361,27 @@ public class PayMongoService {
         String providerPaymentId = attributes.path("payment_id").asText("");
         String refundId = resource.path("id").asText("");
         String status = attributes.path("status").asText("").toLowerCase(Locale.ROOT);
+        long refundAmount = attributes.path("amount").asLong(-1);
         if (providerPaymentId.isBlank() && attributes.path("refunds").isArray()
                 && !attributes.path("refunds").isEmpty()) {
             JsonNode refund = attributes.path("refunds").get(0);
             providerPaymentId = refund.path("attributes").path("payment_id").asText("");
             refundId = refund.path("id").asText(refundId);
             status = refund.path("attributes").path("status").asText(status).toLowerCase(Locale.ROOT);
+            refundAmount = refund.path("attributes").path("amount").asLong(refundAmount);
         }
         if (providerPaymentId.isBlank()) return;
         Payment payment = payments.findByProviderPaymentId(providerPaymentId).orElse(null);
         if (payment == null) return;
+        long expectedRefundAmount = payment.getAmount().movePointRight(2).longValueExact();
+        if (refundAmount >= 0 && refundAmount != expectedRefundAmount) {
+            audit.record("PAYMONGO_WEBHOOK", "UNSUPPORTED_PARTIAL_REFUND", "PAYMENT",
+                    payment.getId().toString(), "Provider refund amount did not match the full hotel payment amount; manual reconciliation is required.");
+            notifications.notifyAdmins("Manual refund reconciliation required",
+                    "A partial or unexpected PayMongo refund was reported for payment #" + payment.getId()
+                            + ". The hotel payment status was not changed.", "PAYMENT");
+            return;
+        }
         if ("succeeded".equals(status)) {
             if (payment.getStatus() != PaymentStatus.REFUNDED) payment.markRefunded(Instant.now(clock));
         } else if ("failed".equals(status)) {
