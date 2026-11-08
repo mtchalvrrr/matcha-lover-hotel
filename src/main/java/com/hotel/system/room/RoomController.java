@@ -55,14 +55,14 @@ public class RoomController {
 
     @PostMapping("/admin/rooms")
     public String createRoom(@Valid @ModelAttribute("room") Room room,
-                             BindingResult result, Model model,
+                             BindingResult result, Model model, Authentication authentication,
                              RedirectAttributes redirect) {
         if (result.hasErrors()) {
             model.addAttribute("pageTitle", "Add room");
             return "admin/rooms/form";
         }
         try {
-            rooms.create(room);
+            rooms.create(room, authentication.getName());
             redirect.addFlashAttribute("success", "Room created successfully.");
             return "redirect:/admin/rooms";
         } catch (IllegalArgumentException ex) {
@@ -81,13 +81,13 @@ public class RoomController {
 
     @PostMapping("/admin/rooms/{id}")
     public String updateRoom(@PathVariable Long id, @Valid @ModelAttribute("room") Room room,
-                             BindingResult result, Model model, RedirectAttributes redirect) {
+                             BindingResult result, Model model, Authentication authentication, RedirectAttributes redirect) {
         if (result.hasErrors()) {
             model.addAttribute("pageTitle", "Edit room");
             return "admin/rooms/form";
         }
         try {
-            rooms.update(id, room);
+            rooms.update(id, room, authentication.getName());
             redirect.addFlashAttribute("success", "Room updated successfully.");
             return "redirect:/admin/rooms";
         } catch (IllegalArgumentException ex) {
@@ -99,8 +99,8 @@ public class RoomController {
 
     @PostMapping("/admin/rooms/{id}/status")
     public String changeRoomStatus(@PathVariable Long id, @RequestParam boolean active,
-                                   RedirectAttributes redirect) {
-        rooms.setActive(id, active);
+                                   Authentication authentication, RedirectAttributes redirect) {
+        rooms.setActive(id, active, authentication.getName());
         redirect.addFlashAttribute("success", active ? "Room activated." : "Room deactivated.");
         return "redirect:/admin/rooms";
     }
