@@ -2,6 +2,7 @@ package com.hotel.system.payment;
 
 import com.hotel.system.audit.AuditService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +47,7 @@ public class PaymentController {
         }
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('PAYMENT_MANAGE')")
     @GetMapping("/admin/payments")
     public String adminPayments(Model model) {
         model.addAttribute("payments", payments.allPayments());
@@ -53,6 +55,7 @@ public class PaymentController {
         return "admin/payments/list";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('PAYMENT_MANAGE')")
     @GetMapping("/admin/payments/{id}/receipt")
     public String adminReceipt(@PathVariable Long id, Model model, RedirectAttributes redirect) {
         try {
@@ -64,6 +67,7 @@ public class PaymentController {
         }
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('PAYMENT_MANAGE')")
     @PostMapping("/admin/payments/{id}/refund-request")
     public String requestRefund(@PathVariable Long id, @RequestParam String reason,
                                 Authentication authentication, RedirectAttributes redirect) {
@@ -76,6 +80,7 @@ public class PaymentController {
         return "redirect:/admin/payments";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('PAYMENT_MANAGE')")
     @PostMapping("/admin/refunds/{id}/review")
     public String reviewRefund(@PathVariable Long id, @RequestParam boolean approve,
                                @RequestParam(required = false) String reason,
@@ -91,6 +96,7 @@ public class PaymentController {
         return "redirect:/admin/payments";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('PAYMENT_MANAGE')")
     @PostMapping("/admin/payments/{id}/void")
     public String voidPayment(@PathVariable Long id, @RequestParam String reason,
                               Authentication authentication, RedirectAttributes redirect) {
