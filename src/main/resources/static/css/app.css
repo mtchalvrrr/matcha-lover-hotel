@@ -692,3 +692,48 @@ body.availability-modal-open{overflow:hidden}
  .registration-progress{margin-bottom:30px}
  .registration-step-indicator small{font-size:9px}
 }
+
+
+/* Compact registration layout: keep the first step within a normal desktop viewport. */
+.registration-page{min-height:100svh;background:#f2f3ec}
+.registration-shell{width:min(100% - 40px,900px);max-width:900px;padding-top:14px;padding-bottom:10px}
+.registration-shell>.topbar{min-height:38px;margin-bottom:12px}
+.registration-card{width:min(100%,700px);margin:0 auto 10px;padding:22px 32px 20px;border-radius:5px}
+.registration-progress{margin:0 0 20px}
+.registration-progress-line{top:14px}
+.registration-step-indicator{gap:5px}
+.registration-step-indicator span{width:29px;height:29px}
+.registration-step-indicator small{font-size:9px}
+.registration-panel h2{font-size:27px;margin-bottom:6px}
+.registration-kicker{margin-bottom:6px}
+.registration-fields{gap:10px}
+.registration-fields.two-columns{gap:12px}
+.registration-field{gap:5px;margin-bottom:12px}
+.registration-field input{min-height:42px;padding:9px 12px}
+.registration-actions{position:relative;z-index:2;margin-top:12px;padding-top:14px}
+.registration-next,.registration-back{position:relative;z-index:3;min-height:42px;cursor:pointer;pointer-events:auto}
+.registration-footer{margin:5px auto;font-size:10px}
+.registration-inline-error{margin:9px 0 0;padding:8px 11px}
+@media(min-height:700px){
+  .registration-page{overflow-y:hidden}
+  .registration-shell{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start}
+  .registration-card{margin-top:0}
+}
+@media(max-height:699px){
+  .registration-shell{padding-top:8px}
+  .registration-shell>.topbar{margin-bottom:6px}
+  .registration-card{padding:16px 24px 14px}
+  .registration-progress{margin-bottom:12px}
+  .registration-field{margin-bottom:8px}
+  .registration-actions{margin-top:8px;padding-top:10px}
+}
+@media(max-width:650px){
+  .registration-shell{width:auto;padding:10px 14px}
+  .registration-card{padding:20px 16px 16px}
+  .registration-fields.two-columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .registration-panel h2{font-size:25px}
+  .registration-description{margin-bottom:14px}
+}
+@media(max-width:380px){
+  .registration-fields.two-columns{grid-template-columns:1fr;gap:0}
+}
