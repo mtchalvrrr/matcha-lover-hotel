@@ -232,6 +232,62 @@ public class ReservationService {
 
 
 
+    public Reservation adminModifyReservation(Long id, String adminUsername, Long roomId,
+                                               LocalDate checkIn, LocalDate checkOut, Integer guests) {
+        Reservation reservation = reservations.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (reservation.getStatus() != ReservationStatus.PENDING
+                && reservation.getStatus() != ReservationStatus.APPROVED) {
+            throw new IllegalStateException("Only pending or approved reservations can be modified.");
+        }
+        if (reservation.getCheckedInAt() != null || reservation.getCheckedOutAt() != null) {
+            throw new IllegalStateException("A stay that has started or ended cannot be modified.");
+        }
+        boolean hasFinancialActivity = payments.findByReservationIdOrderByCreatedAtAsc(id).stream()
+                .anyMatch(payment -> payment.getStatus() != PaymentStatus.FAILED
+                        && payment.getStatus() != PaymentStatus.VOIDED);
+        if (hasFinancialActivity) {
+            throw new IllegalStateException("This reservation has payment activity. Void or refund the related transactions before modifying the stay.");
+        }
+        Room room = rooms.findByIdAndActiveTrue(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("The selected room is not available."));
+        if (!room.isBookable()) {
+            throw new IllegalStateException("The selected room is not ready for guests or is under maintenance.");
+        }
+        validateDates(checkIn, checkOut);
+        if (guests == null || guests < 1 || guests > room.getCapacity()) {
+            throw new IllegalArgumentException("Guest count must be between 1 and the room capacity.");
+        }
+        if (isUnavailable(roomId, checkIn, checkOut, id)) {
+            throw new IllegalArgumentException("The selected room is already reserved for some or all of those dates.");
+        }
+        ReservationStatus previousStatus = reservation.getStatus();
+        String before = reservation.getRoomCode() + " " + reservation.getCheckInDate()
+                + " to " + reservation.getCheckOutDate() + ", guests=" + reservation.getGuests()
+                + ", total=" + reservation.getTotalAmount();
+        int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
+        BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
+        if (!java.util.Objects.equals(reservation.getRoomId(), room.getId())) {
+            rooms.findById(reservation.getRoomId()).ifPresent(Room::touchAvailability);
+        }
+        room.touchAvailability();
+        reservation.modifyStay(room.getId(), room.getRoomCode(), room.getName(), checkIn, checkOut,
+                guests, nights, room.getNightlyRate(), total,
+                stayTimes.checkInTime(), stayTimes.checkOutTime());
+        reservation.changeStatus(previousStatus);
+        audit.record(adminUsername, "ADMIN_RESERVATION_MODIFIED", "RESERVATION", id.toString(),
+                "Before: " + before + ". After: " + room.getRoomCode() + " " + checkIn + " to "
+                        + checkOut + ", guests=" + guests + ", total=" + total
+                        + ". Status preserved as " + previousStatus + ".");
+        if (reservation.getSource() == ReservationSource.ONLINE) {
+            notifications.notifyUser(reservation.getCustomerUsername(), "Reservation updated by the hotel",
+                    "Your reservation #" + id + " was updated by the hotel. New stay: "
+                            + checkIn + " to " + checkOut + ". New total: " + total + ".",
+                    "RESERVATION");
+        }
+        return reservation;
+    }
+
     public void cancelByAdmin(Long id, String adminUsername, String reason) {
         Reservation reservation = reservations.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
