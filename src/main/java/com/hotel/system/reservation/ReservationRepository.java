@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    List<Reservation> findByCustomerIdIn(Collection<Long> customerIds);
     List<Reservation> findAllByOrderByCreatedAtDesc();
     long countByStatus(ReservationStatus status);
     long countByCustomerUsernameAndStatus(String username, ReservationStatus status);
