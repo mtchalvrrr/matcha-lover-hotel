@@ -23,7 +23,7 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
                         "/customer/login", "/admin/login", "/super-admin/login", "/register", "/register/**",
-                        "/css/**", "/images/**", "/favicon.ico", "/error").permitAll()
+                        "/css/**", "/images/**", "/room-images/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/customer/**").hasRole("CUSTOMER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
