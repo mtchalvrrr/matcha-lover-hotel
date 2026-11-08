@@ -34,10 +34,33 @@ public class PaymentController {
         return "customer/payments";
     }
 
+    @GetMapping("/customer/payments/{id}/receipt")
+    public String customerReceipt(@PathVariable Long id, Authentication authentication,
+                                  Model model, RedirectAttributes redirect) {
+        try {
+            model.addAttribute("payment", payments.customerPayment(id, authentication.getName()));
+            return "payments/receipt";
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/customer/payments";
+        }
+    }
+
     @GetMapping("/admin/payments")
     public String adminPayments(Model model) {
         model.addAttribute("payments", payments.allPayments());
         return "admin/payments/list";
+    }
+
+    @GetMapping("/admin/payments/{id}/receipt")
+    public String adminReceipt(@PathVariable Long id, Model model, RedirectAttributes redirect) {
+        try {
+            model.addAttribute("payment", payments.paymentDetails(id));
+            return "payments/receipt";
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/payments";
+        }
     }
 
     @PostMapping("/admin/payments/{id}/refund")
