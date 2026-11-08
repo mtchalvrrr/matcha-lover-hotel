@@ -22,10 +22,7 @@ public class ReservationExtensionController {
     public String extensionForm(@PathVariable Long id, Authentication authentication,
                                 Model model, RedirectAttributes redirect) {
         try {
-            Reservation reservation = reservations.customerReservationForModification(id, authentication.getName());
-            if (reservation.getStatus() != ReservationStatus.APPROVED
-                    && reservation.getStatus() != ReservationStatus.CHECKED_IN)
-                throw new IllegalStateException("Only approved or checked-in reservations can be extended.");
+            Reservation reservation = extensions.customerReservation(id, authentication.getName());
             model.addAttribute("reservation", reservation);
             model.addAttribute("extensionRequests", extensions.customerRequests(authentication.getName()).stream()
                     .filter(request -> request.getReservationId().equals(id)).toList());
