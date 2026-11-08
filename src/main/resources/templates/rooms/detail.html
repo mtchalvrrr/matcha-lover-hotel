@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
 <section class="portal-hero">
 <p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 th:text="${room.name}">Room name</h1>
 <section class="room-gallery-viewer" id="roomGallery" th:if="${!#lists.isEmpty(photos)}" aria-label="Room photo gallery">
@@ -45,7 +45,7 @@
 </form>
 </section>
 <div class="action-row" th:unless="${customerSignedIn}"><a class="primary-link" th:href="@{/customer/login}">Sign in to reserve</a><a class="secondary-link" th:href="@{/rooms}">Browse other rooms</a></div>
-</section><footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
+</section><footer><span th:text="${hotelSettings.address}">[HOTEL ADDRESS]</span><span th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</span></footer>
 <script th:src="@{/js/room-gallery.js}" defer></script>
 </main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body></html>
