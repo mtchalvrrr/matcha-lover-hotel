@@ -14,6 +14,12 @@ import com.hotel.system.room.RoomPhotoRepository;
 import com.hotel.system.reservation.Reservation;
 import com.hotel.system.reservation.ReservationRepository;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.mock.web.MockHttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 
@@ -34,6 +40,12 @@ class SecurityRouteIntegrationTest {
     private MockMvc mvc;
 
     @Autowired
+    private SessionRegistry sessionRegistry;
+
+    @Autowired
+    private HttpSessionEventPublisher sessionEventPublisher;
+
+    @Autowired
     private RoomRepository rooms;
 
     @Autowired
@@ -41,6 +53,23 @@ class SecurityRouteIntegrationTest {
 
     @Autowired
     private ReservationRepository reservations;
+
+
+    @Test
+    void destroyedHttpSessionsAreRemovedFromConcurrentSessionRegistry() {
+        var principal = User.withUsername("session-cleanup-user")
+                .password("not-used")
+                .roles("ADMIN")
+                .build();
+        MockHttpSession session = new MockHttpSession();
+        sessionRegistry.registerNewSession(session.getId(), principal);
+
+        assertEquals(1, sessionRegistry.getAllSessions(principal, false).size());
+
+        sessionEventPublisher.sessionDestroyed(new HttpSessionEvent(session));
+
+        assertEquals(0, sessionRegistry.getAllSessions(principal, false).size());
+    }
 
     @Test
     void responsesIncludeSecurityHeaders() throws Exception {
