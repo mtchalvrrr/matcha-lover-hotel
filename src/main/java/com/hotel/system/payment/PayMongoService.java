@@ -414,8 +414,13 @@ public class PayMongoService {
                 }
             }
         }
-        expireAbandonedSession(payment);
-        if (payment.getStatus() == PaymentStatus.PENDING)
+        Map<?, ?> expired = client.post()
+                .uri("/v2/checkout_sessions/{id}/expire", payment.getProviderCheckoutSessionId())
+                .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                .retrieve().body(Map.class);
+        if (expired == null || !(expired.get("data") instanceof Map<?, ?> expiredData)
+                || !(expiredData.get("attributes") instanceof Map<?, ?> expiredAttributes)
+                || !"expired".equalsIgnoreCase(String.valueOf(expiredAttributes.get("status"))))
             throw new IllegalStateException("PayMongo has not confirmed checkout expiration. The local payment remains pending.");
         payment.markVoided();
         audit.record("PAYMONGO", "PAYMONGO_CHECKOUT_VOIDED", "PAYMENT", payment.getId().toString(),
