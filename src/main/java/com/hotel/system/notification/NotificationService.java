@@ -3,7 +3,6 @@ package com.hotel.system.notification;
 import com.hotel.system.account.AccountRole;
 import com.hotel.system.account.SystemUser;
 import com.hotel.system.account.SystemUserRepository;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
