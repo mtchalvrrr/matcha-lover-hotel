@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System Reports | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System Reports | Hotel</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / ANALYTICS</p><h1>System-wide<br><em>reports.</em></h1><p class="intro">View hotel-wide reservation, occupancy, customer, revenue, payment, and refund performance.</p></section>
+<figure class="visual-photo report-photo"><img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1800&q=85" alt="Modern hotel building and swimming pool"><figcaption>Hotel overview · System-wide performance</figcaption></figure>
 <form class="report-filter" th:action="@{/super-admin/reports}" method="get"><label for="from">From</label><input id="from" type="date" name="from" th:value="${summary.fromDate}" required><label for="to">To</label><input id="to" type="date" name="to" th:value="${summary.toDate}" required><button class="primary-button" type="submit">Apply date range</button></form>
 <div class="action-row"><a class="secondary-link" th:href="@{/super-admin/reports/export.csv(from=${summary.fromDate},to=${summary.toDate})}">Export CSV</a><a class="secondary-link" th:href="@{/super-admin/reports/export.pdf(from=${summary.fromDate},to=${summary.toDate})}">Export PDF</a></div>
 <section class="metric-grid dashboard-metrics">
