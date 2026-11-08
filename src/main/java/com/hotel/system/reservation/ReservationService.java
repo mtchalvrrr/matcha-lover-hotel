@@ -71,7 +71,7 @@ public class ReservationService {
         return reservations.findAllByOrderByCreatedAtDesc();
     }
 
-    public void review(Long id, boolean approve) {
+    public void review(Long id, boolean approve, String adminUsername) {
         Reservation reservation = reservations.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
         if (reservation.getStatus() != ReservationStatus.PENDING) {
@@ -83,11 +83,11 @@ public class ReservationService {
                 throw new IllegalStateException("The room dates are no longer available.");
             }
             reservation.changeStatus(ReservationStatus.APPROVED);
-            audit.record("ADMIN", "RESERVATION_APPROVED", "RESERVATION", id.toString(),
+            audit.record(adminUsername, "RESERVATION_APPROVED", "RESERVATION", id.toString(),
                 "Approved reservation for " + reservation.getCustomerUsername());
         } else {
             reservation.changeStatus(ReservationStatus.REJECTED);
-            audit.record("ADMIN", "RESERVATION_REJECTED", "RESERVATION", id.toString(),
+            audit.record(adminUsername, "RESERVATION_REJECTED", "RESERVATION", id.toString(),
                 "Rejected reservation for " + reservation.getCustomerUsername());
         }
     }
