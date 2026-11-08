@@ -1,6 +1,7 @@
 package com.hotel.system.account;
 
 import org.springframework.beans.factory.annotation.Value;
+import java.net.URI;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -56,10 +57,18 @@ public class PasswordRecoveryController {
     private String normalizeBaseUrl(String value) {
         String clean = value == null ? "" : value.trim();
         while (clean.endsWith("/")) clean = clean.substring(0, clean.length() - 1);
-        if (!(clean.startsWith("https://") || clean.startsWith("http://"))
-                || clean.contains("@") || clean.contains("\\n") || clean.contains("\\r")) {
-            throw new IllegalArgumentException("HOTEL_PUBLIC_BASE_URL must be a valid absolute HTTP(S) URL.");
+        try {
+            URI uri = URI.create(clean);
+            String scheme = uri.getScheme();
+            if (uri.getHost() == null || uri.getUserInfo() != null
+                    || uri.getRawQuery() != null || uri.getRawFragment() != null
+                    || !("https".equalsIgnoreCase(scheme) || "http".equalsIgnoreCase(scheme))) {
+                throw new IllegalArgumentException();
+            }
+            return clean;
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException(
+                    "HOTEL_PUBLIC_BASE_URL must be a valid absolute HTTP(S) URL without credentials, query, or fragment.", ex);
         }
-        return clean;
     }
-}
+}}
