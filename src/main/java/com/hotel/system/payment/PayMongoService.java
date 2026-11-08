@@ -193,6 +193,61 @@ public class PayMongoService {
         }
     }
 
+    public boolean isConfigured() {
+        return "PAYMONGO_TEST".equalsIgnoreCase(mode) && secretKey.startsWith("sk_test_")
+                && !webhookSecret.isBlank();
+    }
+
+    public void reconcilePendingCheckouts() {
+        if (!isConfigured()) return;
+        List<Payment> pending = payments.findByPaymentMethodAndStatusAndProviderCheckoutSessionIdIsNotNull(
+                "PAYMONGO", PaymentStatus.PENDING);
+        for (Payment payment : pending) {
+            try {
+                Map<?, ?> response = client.get()
+                        .uri("/v2/checkout_sessions/{id}", payment.getProviderCheckoutSessionId())
+                        .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                        .retrieve().body(Map.class);
+                if (response == null || !(response.get("data") instanceof Map<?, ?> data)
+                        || !(data.get("attributes") instanceof Map<?, ?> attributes)) continue;
+                if (Boolean.TRUE.equals(attributes.get("livemode"))) continue;
+                String reference = String.valueOf(attributes.get("reference_number"));
+                if (!payment.getTransactionReference().equals(reference)) continue;
+                Object rawPayments = attributes.get("payments");
+                if (rawPayments instanceof List<?> entries) {
+                    for (Object entry : entries) {
+                        if (!(entry instanceof Map<?, ?> item)
+                                || !(item.get("attributes") instanceof Map<?, ?> paidAttributes)) continue;
+                        if (!"paid".equalsIgnoreCase(String.valueOf(paidAttributes.get("status")))) continue;
+                        long amount = Long.parseLong(String.valueOf(paidAttributes.get("amount")));
+                        long expected = payment.getAmount().movePointRight(2).longValueExact();
+                        if (!"PHP".equalsIgnoreCase(String.valueOf(paidAttributes.get("currency")))
+                                || amount != expected) continue;
+                        String providerPaymentId = String.valueOf(item.get("id"));
+                        payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
+                        audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_CONFIRMED", "PAYMENT",
+                                payment.getId().toString(), "Payment confirmed by authenticated PayMongo checkout retrieval.");
+                        notifications.notifyUser(payment.getCustomerUsername(), "Payment confirmed",
+                                "Your PayMongo payment for reservation #" + payment.getReservationId()
+                                        + " has been confirmed.", "PAYMENT");
+                        break;
+                    }
+                }
+                if ("expired".equalsIgnoreCase(String.valueOf(attributes.get("status")))
+                        && payment.getStatus() == PaymentStatus.PENDING) {
+                    payment.markFailedFromProvider(null);
+                    audit.record("PAYMONGO_RECONCILIATION", "CHECKOUT_EXPIRED", "PAYMENT",
+                            payment.getId().toString(), "PayMongo checkout session expired without a paid transaction.");
+                    notifications.notifyUser(payment.getCustomerUsername(), "Payment session expired",
+                            "Your payment session for reservation #" + payment.getReservationId()
+                                    + " expired without payment. You can start a new payment from your reservations.", "PAYMENT");
+                }
+            } catch (RuntimeException ex) {
+                // A temporary provider/API failure must not change the local payment status.
+            }
+        }
+    }
+
     public String refund(Payment payment, String reason) {
         requireTestConfiguration();
         if (payment == null || !"PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())
