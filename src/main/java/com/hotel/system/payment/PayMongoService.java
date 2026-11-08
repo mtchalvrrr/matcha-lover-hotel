@@ -138,6 +138,10 @@ public class PayMongoService {
                 throw new IllegalArgumentException("Live-mode PayMongo events are not accepted by this test integration.");
             }
             String eventType = eventAttributes.path("type").asText(event.path("type").asText(""));
+            if ("payment.refund.updated".equals(eventType) || "payment.refunded".equals(eventType)) {
+                processRefundWebhook(eventAttributes.path("data"));
+                return;
+            }
             if (!"checkout_session.payment.paid".equals(eventType)) return;
             JsonNode session = eventAttributes.path("data");
             if (session.isMissingNode() || session.isNull()) session = event.path("data");
@@ -179,6 +183,82 @@ public class PayMongoService {
             throw ex;
         } catch (Exception ex) {
             throw new IllegalArgumentException("The PayMongo webhook payload could not be processed.", ex);
+        }
+    }
+
+    public String refund(Payment payment, String reason) {
+        requireTestConfiguration();
+        if (payment == null || !"PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())
+                || payment.getProviderPaymentId() == null || payment.getProviderPaymentId().isBlank()) {
+            throw new IllegalStateException("This payment has no confirmed PayMongo payment reference to refund.");
+        }
+        String notes = reason == null ? "Hotel refund approved by a second administrator" : reason.trim();
+        if (notes.length() > 255) notes = notes.substring(0, 255);
+        Map<String, Object> attributes = Map.of(
+                "amount", payment.getAmount().movePointRight(2).longValueExact(),
+                "payment_id", payment.getProviderPaymentId(),
+                "reason", "requested_by_customer",
+                "notes", notes);
+        Map<String, Object> body = Map.of("data", Map.of("attributes", attributes));
+        Map<?, ?> response = client.post().uri("/v1/refunds")
+                .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                .header("Content-Type", "application/json")
+                .body(body)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, result) -> {
+                    throw new IllegalStateException("PayMongo could not process the refund. The payment remains recorded as paid.");
+                })
+                .body(Map.class);
+        if (response == null || !(response.get("data") instanceof Map<?, ?> data)
+                || !(data.get("id") instanceof String refundId)
+                || !(data.get("attributes") instanceof Map<?, ?> refundAttributes)) {
+            throw new IllegalStateException("PayMongo returned an incomplete refund response.");
+        }
+        String status = String.valueOf(refundAttributes.get("status")).toLowerCase(Locale.ROOT);
+        if ("succeeded".equals(status)) {
+            payment.markRefunded(Instant.now(clock));
+        } else if ("pending".equals(status) || "processing".equals(status)) {
+            payment.markRefundPending(refundId, status);
+        } else {
+            throw new IllegalStateException("PayMongo did not accept the refund. The payment remains recorded as paid.");
+        }
+        audit.record("PAYMONGO", "PAYMONGO_REFUND_" + status.toUpperCase(Locale.ROOT),
+                "PAYMENT", payment.getId().toString(), "Provider refund " + refundId + " status " + status);
+        return status;
+    }
+
+    private void processRefundWebhook(JsonNode resource) {
+        JsonNode attributes = resource.path("attributes");
+        String providerPaymentId = attributes.path("payment_id").asText("");
+        String refundId = resource.path("id").asText("");
+        String status = attributes.path("status").asText("").toLowerCase(Locale.ROOT);
+        if (providerPaymentId.isBlank() && attributes.path("refunds").isArray()
+                && !attributes.path("refunds").isEmpty()) {
+            JsonNode refund = attributes.path("refunds").get(0);
+            providerPaymentId = refund.path("attributes").path("payment_id").asText("");
+            refundId = refund.path("id").asText(refundId);
+            status = refund.path("attributes").path("status").asText(status).toLowerCase(Locale.ROOT);
+        }
+        if (providerPaymentId.isBlank()) return;
+        Payment payment = payments.findByProviderPaymentId(providerPaymentId).orElse(null);
+        if (payment == null) return;
+        if ("succeeded".equals(status)) {
+            if (payment.getStatus() != PaymentStatus.REFUNDED) payment.markRefunded(Instant.now(clock));
+        } else if ("failed".equals(status)) {
+            payment.markRefundFailed(refundId);
+        } else if ("pending".equals(status) || "processing".equals(status)) {
+            payment.markRefundPending(refundId, status);
+        }
+        audit.record("PAYMONGO_WEBHOOK", "PAYMONGO_REFUND_STATUS_" + status.toUpperCase(Locale.ROOT),
+                "PAYMENT", payment.getId().toString(), "Provider refund " + refundId + " status " + status);
+        if ("succeeded".equals(status)) {
+            notifications.notifyUser(payment.getCustomerUsername(), "Refund completed",
+                    "Your refund for payment " + payment.getTransactionReference() + " has been processed by PayMongo.",
+                    "PAYMENT");
+        } else if ("failed".equals(status)) {
+            notifications.notifyUser(payment.getCustomerUsername(), "Refund failed",
+                    "The payment provider could not complete your refund. Please contact the hotel.",
+                    "PAYMENT");
         }
     }
 
