@@ -26,6 +26,8 @@ import java.util.List;
 public class RegistrationService {
     private static final List<RegistrationStatus> ACTIVE_APPLICATIONS =
         List.of(RegistrationStatus.PENDING_OTP, RegistrationStatus.PENDING_REVIEW);
+    private static final List<RegistrationStatus> DOCUMENT_HASH_BLOCKING_STATUSES =
+        List.of(RegistrationStatus.PENDING_OTP, RegistrationStatus.PENDING_REVIEW, RegistrationStatus.APPROVED);
     private final RegistrationRepository applications;
     private final SystemUserRepository users;
     private final RegistrationDocumentStorage documents;
@@ -62,7 +64,7 @@ public class RegistrationService {
             throw new IllegalArgumentException("An account or active application already uses this username.");
 
         String documentHash = fingerprint(idFile);
-        if (applications.existsByDocumentHash(documentHash)) {
+        if (applications.existsByDocumentHashAndStatusIn(documentHash, DOCUMENT_HASH_BLOCKING_STATUSES)) {
             throw new IllegalArgumentException("This ID document has already been submitted with another application.");
         }
         String path = documents.store(idFile);
