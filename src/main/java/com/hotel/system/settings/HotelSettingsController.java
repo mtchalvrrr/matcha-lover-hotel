@@ -16,9 +16,17 @@ public class HotelSettingsController {
         this.settings = settings;
     }
 
+    @GetMapping("/admin/settings")
+    public String adminReadOnlySettings(Model model) {
+        model.addAttribute("settings", settings.current());
+        model.addAttribute("readOnly", true);
+        return "admin/settings";
+    }
+
     @GetMapping("/super-admin/settings")
     public String settings(Model model) {
         model.addAttribute("settings", settings.current());
+        model.addAttribute("readOnly", false);
         return "admin/settings";
     }
 
