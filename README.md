@@ -27,7 +27,7 @@ The three portals are separate entry points within one coordinated backend, not 
 - Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, and temporary lockout.
 - Customer registration application with ID upload, email OTP verification, and Super Admin approval/rejection.
 - Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
-- Public room catalog, room details, filters, sorting, photo galleries, and admin room/photo management.
+- Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management.
 - Online reservation requests and modification with shared room-date conflict checks, Admin approval/rejection, walk-in bookings, check-in, checkout, and no-show processing.
 - Configurable hotel check-in/check-out times, including same-day time validation.
 - 50% down payment and balance tracking, printable payment receipts, and audited refund/void status workflows. The default payment mode is simulated; it does not collect real money.
