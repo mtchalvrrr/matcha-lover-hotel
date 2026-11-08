@@ -1,6 +1,9 @@
 package com.hotel.system.report;
 
+import com.hotel.system.payment.Payment;
 import com.hotel.system.payment.PaymentRepository;
+import com.hotel.system.payment.PaymentStatus;
+import com.hotel.system.payment.PaymentType;
 import com.hotel.system.reservation.Reservation;
 import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationSource;
@@ -92,6 +95,33 @@ class ReportServiceTest {
 
         assertEquals(new BigDecimal("1500.00"), summary.outstandingBalance());
         assertEquals(BigDecimal.ZERO, summary.refundedAmount());
+    }
+
+
+    @Test
+    void calculatesRefundedAmountByTheDateRefundWasIssued() {
+        LocalDate from = LocalDate.of(2026, 11, 8);
+        LocalDate to = LocalDate.of(2026, 11, 8);
+        Payment refunded = new Payment(12L, "guest", PaymentType.DOWN_PAYMENT,
+                new BigDecimal("500.00"), "SIMULATED", "SIM-REFUND", PaymentStatus.PAID);
+        refunded.markRefunded(Instant.parse("2026-11-08T04:00:00Z"));
+
+        when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to)).thenReturn(List.of());
+        when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
+                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT))).thenReturn(List.of());
+        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), eq(PaymentStatus.PAID)))
+                .thenReturn(List.of());
+        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), eq(PaymentStatus.REFUNDED)))
+                .thenReturn(List.of());
+        when(payments.findByRefundedAtBetweenOrderByRefundedAtAsc(any(), any())).thenReturn(List.of(refunded));
+        when(rooms.countByActiveTrue()).thenReturn(1L);
+
+        ReportSummary summary = service.summarize(from, to);
+
+        assertEquals(new BigDecimal("500.00"), summary.refundedAmount());
+        verify(payments).findByRefundedAtBetweenOrderByRefundedAtAsc(
+                Instant.parse("2026-11-07T16:00:00Z"), Instant.parse("2026-11-08T16:00:00Z"));
     }
 
     @Test
