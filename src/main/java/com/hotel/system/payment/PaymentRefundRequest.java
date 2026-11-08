@@ -28,6 +28,9 @@ public class PaymentRefundRequest {
     private Instant createdAt = Instant.now();
     @Column(name = "reviewed_at")
     private Instant reviewedAt;
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
+    private long version;
 
     protected PaymentRefundRequest() {}
 
