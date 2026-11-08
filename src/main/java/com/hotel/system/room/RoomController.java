@@ -81,6 +81,8 @@ public class RoomController {
     @GetMapping("/admin/rooms")
     public String manageRooms(Model model) {
         model.addAttribute("rooms", rooms.allRooms());
+        model.addAttribute("cleaningStatuses", CleaningStatus.values());
+        model.addAttribute("maintenanceStatuses", MaintenanceStatus.values());
         return "admin/rooms/list";
     }
 
@@ -133,6 +135,21 @@ public class RoomController {
             model.addAttribute("formError", ex.getMessage());
             return "admin/rooms/form";
         }
+    }
+
+    @PostMapping("/admin/rooms/{id}/operations")
+    public String updateRoomOperations(@PathVariable Long id,
+                                       @RequestParam CleaningStatus cleaningStatus,
+                                       @RequestParam MaintenanceStatus maintenanceStatus,
+                                       Authentication authentication,
+                                       RedirectAttributes redirect) {
+        try {
+            rooms.updateOperationalStatus(id, cleaningStatus, maintenanceStatus, authentication.getName());
+            redirect.addFlashAttribute("success", "Room housekeeping and maintenance status updated.");
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/rooms";
     }
 
     @PostMapping("/admin/rooms/{id}/status")
