@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface NotificationRepository extends JpaRepository<Notification,Long>{
     List<Notification> findByRecipientUsernameOrderByCreatedAtDesc(String username);
     Optional<Notification> findByIdAndRecipientUsername(Long id,String username);
+    boolean existsByEventKey(String eventKey);
 }
