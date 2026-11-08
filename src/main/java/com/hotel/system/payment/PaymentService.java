@@ -114,9 +114,13 @@ public class PaymentService {
         audit.record(adminUsername, "PAYMENT_REFUNDED", "PAYMENT", paymentId.toString(),
                 "Refunded " + payment.getAmount() + " for reservation #" + payment.getReservationId()
                         + ". Reason: " + cleanReason);
-        notifications.notifyUser(payment.getCustomerUsername(), "Payment refunded",
-                "Payment " + payment.getTransactionReference() + " was marked as refunded. Contact the hotel for settlement details.",
-                "PAYMENT");
+        String refundNotice = "Payment " + payment.getTransactionReference()
+                + " was marked as refunded. Contact the hotel for settlement details.";
+        if (payment.getCustomerUsername().startsWith("WALK-IN (")) {
+            notifications.notifyAdmins("Walk-in payment refunded", refundNotice, "PAYMENT");
+        } else {
+            notifications.notifyUser(payment.getCustomerUsername(), "Payment refunded", refundNotice, "PAYMENT");
+        }
     }
 
     public void voidPendingPayment(Long paymentId, String adminUsername, String reason) {
