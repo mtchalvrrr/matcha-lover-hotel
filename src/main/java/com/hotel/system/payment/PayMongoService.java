@@ -130,6 +130,9 @@ public class PayMongoService {
         verifySignature(rawBody, signatureHeader);
         try {
             JsonNode root = mapper.readTree(rawBody);
+            if (root.path("data").path("livemode").asBoolean(false)) {
+                throw new IllegalArgumentException("Live-mode PayMongo events are not accepted by this test integration.");
+            }
             JsonNode event = root.path("data");
             String eventType = event.path("type").asText("");
             if (!"checkout_session.payment.paid".equals(eventType)) return;
