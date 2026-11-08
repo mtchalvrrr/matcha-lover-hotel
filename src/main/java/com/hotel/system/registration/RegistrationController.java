@@ -39,7 +39,11 @@ public class RegistrationController {
     @PostMapping("/register/verify")
     public String verify(@RequestParam Long applicationId, @RequestParam String otp, RedirectAttributes redirect) {
         try {
-            registrations.verify(applicationId, otp);
+            if (!registrations.verify(applicationId, otp)) {
+                redirect.addFlashAttribute("applicationId", applicationId);
+                redirect.addFlashAttribute("error", "Verification code is incorrect.");
+                return "redirect:/register/verify";
+            }
             redirect.addFlashAttribute("success", "Email verified. Your application is now waiting for Super Admin review.");
             return "redirect:/customer/login?registration=pending";
         } catch (IllegalArgumentException | IllegalStateException ex) {
