@@ -49,6 +49,7 @@ public class PaymentController {
     @GetMapping("/admin/payments")
     public String adminPayments(Model model) {
         model.addAttribute("payments", payments.allPayments());
+        model.addAttribute("refundRequests", payments.allRefundRequests());
         return "admin/payments/list";
     }
 
@@ -63,12 +64,27 @@ public class PaymentController {
         }
     }
 
-    @PostMapping("/admin/payments/{id}/refund")
-    public String refund(@PathVariable Long id, @RequestParam String reason,
-                         Authentication authentication, RedirectAttributes redirect) {
+    @PostMapping("/admin/payments/{id}/refund-request")
+    public String requestRefund(@PathVariable Long id, @RequestParam String reason,
+                                Authentication authentication, RedirectAttributes redirect) {
         try {
-            payments.refundPayment(id, authentication.getName(), reason);
-            redirect.addFlashAttribute("success", "Payment marked as refunded.");
+            payments.requestRefund(id, authentication.getName(), reason);
+            redirect.addFlashAttribute("success", "Refund request submitted. A different Admin must authorize it.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/payments";
+    }
+
+    @PostMapping("/admin/refunds/{id}/review")
+    public String reviewRefund(@PathVariable Long id, @RequestParam boolean approve,
+                               @RequestParam(required = false) String reason,
+                               Authentication authentication, RedirectAttributes redirect) {
+        try {
+            payments.reviewRefund(id, approve, authentication.getName(), reason);
+            redirect.addFlashAttribute("success", approve
+                    ? "Refund authorized and recorded in the hotel system."
+                    : "Refund request rejected.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
