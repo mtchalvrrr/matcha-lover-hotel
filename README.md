@@ -53,4 +53,6 @@ mvn clean verify
 mvn spring-boot:run
 ```
 
-The exact launch commands for each program will be documented as separate entry points are implemented.
+When Spring Boot finishes starting on a computer with a desktop browser, it automatically opens the Customer, Admin, and Super Admin programs in three browser tabs at `http://localhost:8080/customer`, `/admin`, and `/super-admin`. The tabs use the same application process and shared SQLite database.
+
+GitHub Codespaces runs the application remotely and cannot launch tabs in the user's local browser from the remote Maven process. In Codespaces, the application logs the three forwarded URLs; open each URL in a tab in the same browser window.
