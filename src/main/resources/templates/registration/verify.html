@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Verify Email | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/register}">Register again</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / EMAIL VERIFICATION</p><h1>Check your<br><em>inbox.</em></h1><p class="intro">Enter the six-digit verification code sent to your email. The code expires after 10 minutes and allows up to five attempts.</p></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<form class="auth-card wide-form" th:action="@{/register/verify}" method="post">
+<label for="applicationId">Application reference</label><input id="applicationId" name="applicationId" type="number" th:value="${applicationId}" required>
+<label for="otp">Six-digit code</label><input id="otp" name="otp" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" required>
+<button class="primary-button" type="submit">Verify email</button>
+</form></main></body></html>
