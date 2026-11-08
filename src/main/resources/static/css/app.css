@@ -455,3 +455,40 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 .room-feedback-item time{font-size:10px;color:var(--muted)}
 .customer-room-rating-form textarea{width:100%;padding:8px;border:1px solid var(--line);font:inherit;font-size:11px;resize:vertical}
 @media(max-width:600px){.room-detail-hero{padding:40px 0 28px}.room-gallery-large .gallery-active{height:70vw;min-height:240px}.room-gallery-large .gallery-thumbnail{width:82px;height:62px}}
+
+
+/* Room detail layout correction */
+.room-detail-shell{width:min(100% - 48px,1280px);max-width:1280px;padding:24px 0 30px}
+.room-detail-heading{margin:34px 0 18px;padding:0 2px;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;min-height:0!important}
+.room-detail-heading .eyebrow{margin:0 0 8px;color:#70866d;font-size:10px;font-weight:800;letter-spacing:.18em}
+.room-detail-title{margin:0 0 16px!important;color:#304c39!important;font-family:Georgia,serif!important;font-size:clamp(28px,3vw,40px)!important;font-weight:500!important;line-height:1.12!important;letter-spacing:-.025em!important;text-shadow:none!important}
+.room-availability-cta{display:inline-flex;align-items:center;gap:18px;padding:12px 18px;border-radius:999px;background:#304c39;color:#fffdf4;text-decoration:none;font-size:11px;font-weight:800;box-shadow:0 7px 18px rgba(48,76,57,.13)}
+.room-gallery-large{margin:18px 0 30px;padding:0}
+.room-gallery-large .gallery-main-row{grid-template-columns:52px minmax(0,1fr) 52px;gap:12px}
+.room-gallery-large .gallery-active{height:clamp(440px,60vw,740px);min-height:440px;border-radius:22px;overflow:hidden;background:#e4eadf;touch-action:pan-y;cursor:grab;box-shadow:0 18px 44px rgba(39,61,43,.13)}
+.room-gallery-large .gallery-active:active{cursor:grabbing}
+.room-gallery-large .gallery-active img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.room-gallery-large .gallery-arrow{height:54px;width:52px;border:1px solid #d5e0d0;border-radius:50%;background:rgba(255,253,247,.96);font-size:30px;box-shadow:0 6px 18px rgba(39,61,43,.08)}
+.room-gallery-large .gallery-thumbnails{gap:10px;padding:14px 0 4px;overflow-x:auto}
+.room-gallery-large .gallery-thumbnail{width:116px;height:82px;border:2px solid transparent;border-radius:10px;overflow:hidden}
+.room-gallery-large .gallery-thumbnail.is-active{border-color:#466b50}
+.room-detail-photo-empty{height:clamp(440px,60vw,740px);min-height:440px;margin:18px 0 30px;border-radius:22px;font-size:14px}
+.room-detail-information{max-width:980px;margin:0 auto}
+.room-detail-summary{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:14px 18px;border:1px solid #dce5d6;border-radius:16px;background:rgba(255,253,247,.92)}
+.room-detail-summary .room-rating-display,.room-detail-summary .room-meta{margin:0}
+.room-availability-panel,.room-customer-feedback{max-width:980px;margin:24px auto;padding:24px 26px;border:1px solid #dce5d6;border-radius:18px;background:rgba(255,253,247,.96);box-shadow:0 10px 28px rgba(44,68,46,.06)}
+.room-availability-panel{scroll-margin-top:24px}
+.room-availability-panel h2,.room-customer-feedback h2{margin:0 0 16px;color:#304c39;font-family:Georgia,serif;font-size:25px;font-weight:500}
+.room-detail-shell .action-row,.room-detail-shell .booking-request{max-width:980px;margin-left:auto;margin-right:auto}
+.room-detail-shell footer{margin-top:36px}
+@media(max-width:760px){
+ .room-detail-shell{width:auto;padding:16px}
+ .room-detail-heading{margin:24px 0 14px}
+ .room-detail-title{font-size:29px!important}
+ .room-gallery-large .gallery-main-row{grid-template-columns:38px minmax(0,1fr) 38px;gap:6px}
+ .room-gallery-large .gallery-active,.room-detail-photo-empty{height:70vw;min-height:270px;border-radius:15px}
+ .room-gallery-large .gallery-arrow{width:38px;height:42px;font-size:24px}
+ .room-gallery-large .gallery-thumbnail{width:84px;height:62px}
+ .room-detail-summary{align-items:flex-start;flex-direction:column}
+ .room-availability-panel,.room-customer-feedback{padding:19px}
+}
