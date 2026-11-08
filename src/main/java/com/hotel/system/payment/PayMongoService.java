@@ -43,6 +43,7 @@ public class PayMongoService {
     private final Clock clock;
 
     public PayMongoService(RestClient.Builder builder, ObjectMapper mapper, PaymentRepository payments,
+            ProcessedPayMongoEventRepository processedEvents,
             ReservationRepository reservations, SystemUserRepository users, AuditService audit,
             NotificationService notifications, @Value("${payment.mode:SIMULATED}") String mode,
             @Value("${payment.paymongo.secret-key:}") String secretKey,
