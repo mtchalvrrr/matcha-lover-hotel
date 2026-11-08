@@ -12,6 +12,7 @@
 <label for="auditTo">To</label><input id="auditTo" name="to" type="date" th:value="${to}">
 <button class="primary-button" type="submit">Apply filters</button><a class="secondary-link" th:href="@{/super-admin/audit}">Clear</a>
 </form>
+<div class="action-row"><a class="secondary-link" th:href="@{/super-admin/audit/export.csv(actor=${actor},action=${action},from=${from},to=${to})}">Export filtered audit CSV</a></div>
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody>
 <tr th:each="event : ${events}"><td th:text="${event.createdAt}">Date</td><td th:text="${event.actorUsername}">actor</td><td th:text="${event.action}">ACTION</td><td th:text="${event.targetType + ' / ' + event.targetId}">Target</td><td th:text="${event.details}">Details</td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(events)}">No audit events match these filters.</p>
