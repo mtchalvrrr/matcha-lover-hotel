@@ -89,6 +89,30 @@ public class RegistrationService {
         return application;
     }
 
+
+    public void resendOtp(Long applicationId) {
+        RegistrationApplication app = applications.findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
+        String otp = String.format("%06d", random.nextInt(1_000_000));
+        app.resendOtp(encoder.encode(otp), Instant.now(clock));
+        try {
+            if (fromAddress == null || fromAddress.isBlank()) {
+                throw new IllegalStateException("Email delivery is not configured.");
+            }
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromAddress);
+            message.setTo(app.getEmail());
+            message.setSubject("[HOTEL NAME] — Email verification code");
+            message.setText("Your new email verification code is " + otp
+                    + ". It expires in 10 minutes. If you did not request this, ignore this email.");
+            mail.send(message);
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException("We could not send a new verification code. Please try again later.", ex);
+        }
+        audit.record(app.getUsername(), "REGISTRATION_OTP_RESENT", "REGISTRATION", applicationId.toString(),
+                "A new email verification code was sent.");
+    }
+
     public boolean verify(Long id, String otp) {
         RegistrationApplication app = applications.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
