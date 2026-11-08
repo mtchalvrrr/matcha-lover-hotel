@@ -76,13 +76,14 @@ public class RegistrationService {
         return application;
     }
 
-    public void verify(Long id, String otp) {
+    public boolean verify(Long id, String otp) {
         RegistrationApplication app = applications.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
-        if (otp == null || !app.verifyOtp(otp.trim(), encoder, Instant.now(clock)))
-            throw new IllegalArgumentException("Verification code is incorrect.");
-        audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
+        if (otp == null) return false;
+        boolean verified = app.verifyOtp(otp.trim(), encoder, Instant.now(clock));
+        if (verified) audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
             "Email OTP verified; awaiting Super Admin review.");
+        return verified;
     }
 
 
