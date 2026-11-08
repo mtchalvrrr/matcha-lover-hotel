@@ -15,6 +15,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByReservationIdOrderByCreatedAtAsc(Long reservationId);
     java.util.Optional<Payment> findByTransactionReference(String transactionReference);
     java.util.Optional<Payment> findByProviderCheckoutSessionId(String providerCheckoutSessionId);
+    java.util.Optional<Payment> findByProviderPaymentId(String providerPaymentId);
     java.util.Optional<Payment> findFirstByReservationIdAndPaymentMethodAndStatusOrderByCreatedAtDesc(
             Long reservationId, String paymentMethod, PaymentStatus status);
 
