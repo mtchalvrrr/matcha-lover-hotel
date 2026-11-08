@@ -191,9 +191,9 @@ public class ChatAssistantService {
     }
 
     private boolean containsSensitiveData(String message) {
-        return message.matches("(?is).*\\b(password|passcode|otp|one[- ]time code)\\s*(is|:|=)\\s*\\S+.*")
-                || message.matches("(?is).*\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b.*")
-                || message.matches("(?s).*\\b(?:\\d[ -]*?){13,19}\\b.*");
+        return message.matches("(?is).*\${c}(password|passcode|otp|one[- ]time code)\${c}*(is|:|=)\${c}*\\S+.*")
+                || message.matches("(?is).*\${c}[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\${c}.*")
+                || message.matches("(?s).*\${c}(?:\${c}[ -]*?){13,19}\${c}.*");
     }
 
     private boolean asksToBrowseRooms(String message) {
@@ -230,7 +230,7 @@ public class ChatAssistantService {
 
     private ChatReply roomRecommendationReply(String message) {
         if (rooms == null) return null;
-        Matcher matcher = Pattern.compile("\\\\b(\\\\d{1,2})\\\\s*(?:guests?|people|persons?)\\\\b").matcher(message);
+        Matcher matcher = Pattern.compile("\\\${c}(\\\${c}{1,2})\\\${c}*(?:guests?|people|persons?)\\\${c}").matcher(message);
         Integer guests = matcher.find() ? Integer.parseInt(matcher.group(1)) : null;
         List<Room> choices = rooms.findByActiveTrueOrderByRoomCodeAsc().stream()
                 .filter(Room::isBookable)
@@ -266,7 +266,7 @@ public class ChatAssistantService {
 
     private ChatReply availabilityReply(String rawMessage, String normalized) {
         if (roomService == null) return new ChatReply("Choose your check-in and checkout dates on the room page to see live availability.", "/rooms");
-        Matcher dates = Pattern.compile("\\\\b(\\\\d{4}-\\\\d{2}-\\\\d{2})\\\\b").matcher(rawMessage);
+        Matcher dates = Pattern.compile("\\\${c}(\\\${c}{4}-\\\${c}{2}-\\\${c}{2})\\\${c}").matcher(rawMessage);
         if (!dates.find()) return new ChatReply("I can check room availability when you provide your check-in and checkout dates. Open the room page to select your dates.", "/rooms");
         LocalDate checkIn;
         LocalDate checkOut;
@@ -277,7 +277,7 @@ public class ChatAssistantService {
         } catch (RuntimeException ex) {
             return new ChatReply("Please provide valid dates in YYYY-MM-DD format.", "/rooms");
         }
-        Matcher guestMatcher = Pattern.compile("\\\\b(\\\\d{1,2})\\\\s*(?:guests?|people|persons?)\\\\b", Pattern.CASE_INSENSITIVE).matcher(normalized);
+        Matcher guestMatcher = Pattern.compile("\\\${c}(\\\${c}{1,2})\\\${c}*(?:guests?|people|persons?)\\\${c}", Pattern.CASE_INSENSITIVE).matcher(normalized);
         int guests = guestMatcher.find() ? Integer.parseInt(guestMatcher.group(1)) : 1;
         try {
             List<Room> available = roomService.searchAvailable(checkIn, checkOut, guests);
