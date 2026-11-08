@@ -1,13 +1,11 @@
 package com.hotel.system.security;
 
-import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.session.MapSessionRepository;
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
-import org.springframework.session.web.http.SessionEventHttpSessionListenerAdapter;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
@@ -23,7 +21,6 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.web.http.HttpSessionIdResolver;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
@@ -48,9 +45,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    SessionEventHttpSessionListenerAdapter sessionEventHttpSessionListenerAdapter() {
-        List<HttpSessionListener> listeners = List.of(new HttpSessionEventPublisher());
-        return new SessionEventHttpSessionListenerAdapter(listeners);
+    HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     @Bean
