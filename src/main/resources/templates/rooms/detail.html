@@ -29,6 +29,7 @@
 <div class="room-image room-image-empty" th:if="${#lists.isEmpty(photos)}"><span>[ROOM PHOTOS]</span></div>
 <p class="intro" th:text="${room.description}">Room description</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
+<p class="form-help" th:text="${'Standard check-in: ' + checkInTime + ' · Standard check-out: ' + checkOutTime}">Standard check-in: 14:00 · Standard check-out: 12:00</p>
 <h2>Amenities</h2><p th:text="${room.amenities != null and !#strings.isEmpty(room.amenities) ? room.amenities : 'Please contact the hotel for amenity details.'}">Amenities</p>
 <p class="notice" th:if="${success}" th:text="${success}"></p>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
