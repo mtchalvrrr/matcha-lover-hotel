@@ -4,11 +4,12 @@
 <body><main class="shell"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/dashboard}">Admin dashboard</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / PAYMENT MONITORING</p><h1>Payment<br><em>records.</em></h1><p class="intro">Review payment transactions linked to reservation references.</p></section>
 <p class="notice">Payment mode: SIMULATED. All displayed transactions are test records, not real collections.</p>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Customer</th><th>Reservation</th><th>Type</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>
 <tr th:each="payment : ${payments}"><td th:text="${payment.transactionReference}">Reference</td><td th:text="${payment.customerUsername}">customer</td><td th:text="${'#' + payment.reservationId}">#1</td><td th:text="${payment.paymentType}">DOWN_PAYMENT</td><td th:text="${'₱' + #numbers.formatDecimal(payment.amount,1,'COMMA',2,'POINT')}">₱0.00</td><td th:text="${payment.paymentMethod}">SIMULATED</td><td th:text="${payment.status}">PAID</td><td th:text="${payment.createdAt}">Date</td><td><a th:href="@{/admin/payments/{id}/receipt(id=${payment.id})}">Receipt</a>
-<form th:if="${payment.status.name() == 'PAID'}" th:action="@{/admin/payments/{id}/refund(id=${payment.id})}" method="post" class="inline-form">
+<form th:if="${payment.status.name() == 'PAID'}" th:action="@{/admin/payments/{id}/refund-request(id=${payment.id})}" method="post" class="inline-form">
 <input type="text" name="reason" maxlength="500" placeholder="Refund reason" required aria-label="Refund reason">
-<button class="secondary-button" type="submit">Mark refunded</button>
+<button class="secondary-button" type="submit">Request refund</button>
 </form>
 <form th:if="${payment.status.name() == 'PENDING'}" th:action="@{/admin/payments/{id}/void(id=${payment.id})}" method="post" class="inline-form">
 <input type="text" name="reason" maxlength="500" placeholder="Void reason" required aria-label="Void reason">
@@ -17,4 +18,29 @@
 <span th:if="${payment.status.name() != 'PAID' and payment.status.name() != 'PENDING'}">—</span>
 </td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(payments)}">No payment records yet.</p>
+<section class="report-section">
+<h2>Refund authorization queue</h2>
+<p class="form-help">The administrator who requested a refund cannot approve their own request. Refund approval records the refund state; actual settlement must be completed through the original payment channel.</p>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Request</th><th>Payment</th><th>Requested by</th><th>Reason</th><th>Status</th><th>Review</th></tr></thead><tbody>
+<tr th:each="refundRequest : ${refundRequests}">
+<td th:text="${'#' + refundRequest.id}">#1</td>
+<td th:text="${'#' + refundRequest.paymentId}">#1</td>
+<td th:text="${refundRequest.requestedBy}">admin</td>
+<td th:text="${refundRequest.reason}">Reason</td>
+<td th:text="${refundRequest.status}">PENDING</td>
+<td>
+<form th:if="${refundRequest.status.name() == 'PENDING'}" th:action="@{/admin/refunds/{id}/review(id=${refundRequest.id})}" method="post" class="inline-form">
+<input type="hidden" name="approve" value="true">
+<button class="primary-button" type="submit">Authorize refund</button>
+</form>
+<form th:if="${refundRequest.status.name() == 'PENDING'}" th:action="@{/admin/refunds/{id}/review(id=${refundRequest.id})}" method="post" class="inline-form">
+<input type="hidden" name="approve" value="false">
+<input type="text" name="reason" maxlength="500" placeholder="Rejection reason" required>
+<button class="secondary-button" type="submit">Reject request</button>
+</form>
+<span th:if="${refundRequest.status.name() != 'PENDING'}" th:text="${'Reviewed by ' + refundRequest.reviewedBy}">Reviewed</span>
+</td></tr>
+</tbody></table></div>
+<p class="notice" th:if="${#lists.isEmpty(refundRequests)}">No refund requests have been submitted.</p>
+</section>
 </main></body></html>
