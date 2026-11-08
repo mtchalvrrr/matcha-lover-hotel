@@ -69,9 +69,15 @@ public class RegistrationService {
         }
         String path = documents.store(idFile);
         String otp = String.format("%06d", random.nextInt(1_000_000));
-        RegistrationApplication application = applications.save(new RegistrationApplication(first, last,
-            address, user, encoder.encode(password), path, documentHash, encoder.encode(otp),
-            Instant.now(clock).plus(Duration.ofMinutes(10))));
+        RegistrationApplication application;
+        try {
+            application = applications.save(new RegistrationApplication(first, last,
+                    address, user, encoder.encode(password), path, documentHash, encoder.encode(otp),
+                    Instant.now(clock).plus(Duration.ofMinutes(10))));
+        } catch (RuntimeException ex) {
+            try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            throw ex;
+        }
         try {
             if (fromAddress == null || fromAddress.isBlank()) throw new IllegalStateException("Email delivery is not configured.");
             SimpleMailMessage message = new SimpleMailMessage();
@@ -82,6 +88,7 @@ public class RegistrationService {
             mail.send(message);
         } catch (RuntimeException ex) {
             applications.delete(application);
+            try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
             throw new IllegalStateException("We could not send the verification code. Email delivery must be configured before registration.", ex);
         }
         audit.record(user, "CUSTOMER_REGISTRATION_SUBMITTED", "REGISTRATION", application.getId().toString(),
