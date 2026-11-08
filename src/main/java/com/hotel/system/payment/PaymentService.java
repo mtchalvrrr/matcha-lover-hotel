@@ -85,7 +85,7 @@ public class PaymentService {
         String paymentMethod = method == null ? "" : method.trim().toUpperCase();
         if (!List.of("CASH", "CARD", "GCASH", "BANK_TRANSFER").contains(paymentMethod))
             throw new IllegalArgumentException("Choose a valid onsite payment method.");
-        if (payments.sumPaidForReservation(reservationId).signum() > 0)
+        if (payments.sumPaidForReservation(reservationId, PaymentStatus.PAID).signum() > 0)
             throw new IllegalStateException("Payment has already been recorded for this walk-in reservation.");
         String reference = "WALKIN-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, reservation.getCustomerUsername(),
@@ -105,6 +105,6 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public BigDecimal amountPaid(Long reservationId) {
-        return payments.sumPaidForReservation(reservationId);
+        return payments.sumPaidForReservation(reservationId, PaymentStatus.PAID);
     }
 }
