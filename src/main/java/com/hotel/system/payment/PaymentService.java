@@ -40,7 +40,7 @@ public class PaymentService {
             .orElseThrow(() -> new IllegalArgumentException("Customer account was not found."));
         Reservation reservation = reservations.findById(reservationId)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
-        if (!reservation.getCustomerId().equals(customer.getId())) {
+        if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())) {
             throw new IllegalArgumentException("Reservation not found.");
         }
         if (reservation.getStatus() != ReservationStatus.APPROVED) {
