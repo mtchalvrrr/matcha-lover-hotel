@@ -33,6 +33,8 @@ public class AccountManagementService {
         String cleanUsername = username == null ? "" : username.trim();
         String cleanEmail = email == null ? "" : email.trim().toLowerCase();
         validateCredentials(cleanUsername, cleanEmail, password);
+        if (users.countByRole(AccountRole.ADMIN) >= 2)
+            throw new IllegalStateException("The system is limited to two Admin accounts with identical permissions.");
         if (users.existsByUsernameIgnoreCase(cleanUsername)) throw new IllegalArgumentException("Username is already in use.");
         if (users.existsByEmailIgnoreCase(cleanEmail)) throw new IllegalArgumentException("Email is already in use.");
         SystemUser admin = users.save(new SystemUser(cleanUsername, cleanEmail, encoder.encode(password), AccountRole.ADMIN));
