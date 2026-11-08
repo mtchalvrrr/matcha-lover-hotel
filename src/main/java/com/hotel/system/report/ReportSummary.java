@@ -18,5 +18,6 @@ public record ReportSummary(
     long availableRoomNights,
     BigDecimal bookedCapacityRate,
     BigDecimal paidRevenue,
-    Map<String, Long> bookingsByRoom
+    Map<String, Long> bookingsByRoom,
+    Map<LocalDate, Long> bookingsByCheckInDate
 ) {}
