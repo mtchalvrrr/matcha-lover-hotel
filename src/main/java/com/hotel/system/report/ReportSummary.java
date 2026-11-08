@@ -18,6 +18,8 @@ public record ReportSummary(
     long availableRoomNights,
     BigDecimal bookedCapacityRate,
     BigDecimal paidRevenue,
+    BigDecimal refundedAmount,
+    BigDecimal outstandingBalance,
     Map<String, Long> bookingsByRoom,
     Map<LocalDate, Long> bookingsByCheckInDate
 ) {}
