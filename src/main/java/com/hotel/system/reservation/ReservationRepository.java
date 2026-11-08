@@ -16,6 +16,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     long countByCustomerUsernameAndStatus(String username, ReservationStatus status);
     long countByCustomerUsernameAndStatusIn(String username, Collection<ReservationStatus> statuses);
 
+    @Query("select case when count(r) > 0 then true else false end from Reservation r " +
+           "where r.roomId = :roomId and r.status in :statuses and r.guests > :capacity")
+    boolean existsReservationExceedingCapacity(@Param("roomId") Long roomId,
+            @Param("statuses") Collection<ReservationStatus> statuses,
+            @Param("capacity") Integer capacity);
+
     @Query("select r from Reservation r where " +
            "(:query is null or lower(r.guestName) like lower(concat('%', :query, '%')) " +
            "or lower(r.customerUsername) like lower(concat('%', :query, '%')) " +
