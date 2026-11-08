@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Super Admin Dashboard | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></header>
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><form th:action="@{/super-admin/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></header>
 <section class="portal-hero"><p class="eyebrow">SUPER ADMIN PORTAL</p><h1>System control</h1><p class="intro">Review system activity and monitor recorded actions across the hotel programs.</p></section>
 <section class="metric-grid dashboard-metrics">
 <article class="metric-card"><span>Pending registrations</span><strong th:text="${summary.pendingRegistrations}">0</strong></article>
