@@ -8,6 +8,7 @@ import com.hotel.system.config.HotelStayTimePolicy;
 import org.springframework.security.core.GrantedAuthority;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,8 @@ public class RoomController {
             availabilitySearch = false;
         }
         model.addAttribute("rooms", availableRooms);
+        model.addAttribute("roomPhotos", availableRooms.stream().collect(Collectors.toMap(
+                Room::getId, room -> photos.list(room.getId()))));
         model.addAttribute("roomTypes", rooms.publicRooms().stream()
                 .map(Room::getRoomType).filter(java.util.Objects::nonNull)
                 .distinct().sorted(String.CASE_INSENSITIVE_ORDER).toList());
