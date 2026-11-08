@@ -42,6 +42,11 @@ public class NotificationService {
         saveAndDeliver(username, title, message, category, null);
     }
 
+    public void notifyUserInAppOnly(String username, String title, String message, String category) {
+        if (username == null || username.isBlank()) return;
+        notifications.save(new Notification(username, title, message, category, null));
+    }
+
     public void notifyUserOnce(String username, String title, String message, String category, String eventKey) {
         if (eventKey == null || eventKey.isBlank()) {
             notifyUser(username, title, message, category);
