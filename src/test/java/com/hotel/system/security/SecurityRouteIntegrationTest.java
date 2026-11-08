@@ -11,6 +11,9 @@ import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomRepository;
 import com.hotel.system.room.RoomPhoto;
 import com.hotel.system.room.RoomPhotoRepository;
+import com.hotel.system.reservation.Reservation;
+import com.hotel.system.reservation.ReservationRepository;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 
@@ -36,6 +39,9 @@ class SecurityRouteIntegrationTest {
     @Autowired
     private RoomPhotoRepository roomPhotos;
 
+    @Autowired
+    private ReservationRepository reservations;
+
     @Test
     void anonymousVisitorsCanBrowseRooms() throws Exception {
         mvc.perform(get("/rooms"))
@@ -59,6 +65,19 @@ class SecurityRouteIntegrationTest {
         mvc.perform(get("/rooms/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("rooms/detail"));
+    }
+
+    @Test
+    @WithMockUser(username = "booking-admin", roles = "ADMIN")
+    void adminReservationSearchRendersFilteredResults() throws Exception {
+        Reservation reservation = reservations.save(new Reservation(null, "searchable-guest",
+                "searchable@example.com", 1L, "SEARCH-01", "Search Room",
+                java.time.LocalDate.of(2026, 12, 1), java.time.LocalDate.of(2026, 12, 3),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00")));
+
+        mvc.perform(get("/admin/reservations").param("q", reservation.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/reservations/list"));
     }
 
     @Test
