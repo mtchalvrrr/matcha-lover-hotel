@@ -158,7 +158,7 @@ class SecurityRouteIntegrationTest {
                 1, 1, new BigDecimal("1000.00"), new BigDecimal("1000.00")));
         mvc.perform(get("/customer/reservations/{id}/history", anotherCustomer.getId()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/customer/reservations"));
+                .andExpect(redirectedUrl("/customer/reservations"));
     }
 
     @Test
