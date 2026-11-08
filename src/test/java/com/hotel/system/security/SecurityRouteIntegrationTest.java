@@ -141,6 +141,23 @@ class SecurityRouteIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "history-guest", roles = "CUSTOMER")
+    void customerCanViewOnlyTheirOwnReservationHistory() throws Exception {
+        Reservation reservation = reservations.save(new Reservation(null, "history-guest",
+                "history@example.com", 1L, "HIST-01", "History Room",
+                java.time.LocalDate.of(2026, 12, 20), java.time.LocalDate.of(2026, 12, 22),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00")));
+
+        mvc.perform(get("/customer/reservations/{id}/history", reservation.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("reservations/history"));
+
+        mvc.perform(get("/customer/reservations/{id}/history", 999999L))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/customer/reservations"));
+    }
+
+    @Test
     void publicHotelChatCanRedirectGuestsToRoomCatalog() throws Exception {
         mvc.perform(post("/api/chat")
                         .with(csrf())
