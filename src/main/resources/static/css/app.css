@@ -521,3 +521,20 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 .room-availability-dialog .room-availability-panel{max-width:none;margin:0;padding:8px 0 0;border:0;border-radius:0;background:transparent;box-shadow:none}
 .availability-dialog-close{position:absolute;top:12px;right:14px;width:36px;height:36px;border:0;border-radius:50%;background:#edf2e9;color:#304c39;font-size:25px;line-height:1;cursor:pointer}
 @media(max-width:600px){.room-availability-dialog{padding:38px 18px 20px;border-radius:17px}.room-availability-dialog .room-availability-form{grid-template-columns:1fr}}
+
+
+/* Final room detail layout: single-column swipe carousel and reliable modal */
+.room-gallery-large .gallery-main-row{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:0!important;width:100%}
+.room-gallery-large .gallery-active{width:100%;height:clamp(400px,52vw,620px)!important;min-height:400px!important;border-radius:20px}
+.room-gallery-large .gallery-thumbnails{display:flex;justify-content:flex-start}
+.room-availability-dialog:not([open]){display:none}
+.room-availability-dialog[open]{display:block;position:fixed;inset:0;margin:auto;z-index:2000}
+.room-availability-dialog .room-availability-form{grid-template-columns:repeat(3,minmax(0,1fr)) auto}
+@media(max-width:760px){
+ .room-gallery-large .gallery-active{height:68vw!important;min-height:260px!important}
+ .room-availability-dialog .room-availability-form{grid-template-columns:1fr 1fr}
+ .room-availability-dialog .room-availability-form .primary-button{grid-column:1/-1}
+}
+@media(max-width:480px){
+ .room-availability-dialog .room-availability-form{grid-template-columns:1fr}
+}
