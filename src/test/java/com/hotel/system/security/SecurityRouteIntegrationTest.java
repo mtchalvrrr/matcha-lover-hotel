@@ -152,7 +152,11 @@ class SecurityRouteIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("reservations/history"));
 
-        mvc.perform(get("/customer/reservations/{id}/history", 999999L))
+        Reservation anotherCustomer = reservations.save(new Reservation(null, "different-guest",
+                "different@example.com", 1L, "OTHER-01", "Other Room",
+                java.time.LocalDate.of(2026, 12, 23), java.time.LocalDate.of(2026, 12, 24),
+                1, 1, new BigDecimal("1000.00"), new BigDecimal("1000.00")));
+        mvc.perform(get("/customer/reservations/{id}/history", anotherCustomer.getId()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost/customer/reservations"));
     }
