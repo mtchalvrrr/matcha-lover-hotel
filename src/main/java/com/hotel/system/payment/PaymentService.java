@@ -23,6 +23,7 @@ import java.util.UUID;
 @Transactional
 public class PaymentService {
     private final PaymentRepository payments;
+    private final PaymentRefundRequestRepository refundRequests;
     private final ReservationRepository reservations;
     private final SystemUserRepository users;
     private final AuditService audit;
@@ -30,11 +31,12 @@ public class PaymentService {
     private final NotificationService notifications;
     private final Clock clock;
 
-    public PaymentService(PaymentRepository payments, ReservationRepository reservations,
-                          SystemUserRepository users, AuditService audit,
+    public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
+                          ReservationRepository reservations, SystemUserRepository users, AuditService audit,
                           @Value("${payment.mode:SIMULATED}") String paymentMode,
                           NotificationService notifications, Clock clock) {
         this.payments = payments;
+        this.refundRequests = refundRequests;
         this.reservations = reservations;
         this.users = users;
         this.audit = audit;
@@ -113,25 +115,68 @@ public class PaymentService {
     }
 
 
-    public void refundPayment(Long paymentId, String adminUsername, String reason) {
+    public PaymentRefundRequest requestRefund(Long paymentId, String adminUsername, String reason) {
         Payment payment = payments.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
         String cleanReason = reason == null ? "" : reason.trim();
         if (cleanReason.isBlank() || cleanReason.length() > 500) {
             throw new IllegalArgumentException("Enter a refund reason up to 500 characters.");
         }
-        touchReservation(payment.getReservationId());
-        payment.markRefunded(Instant.now(clock));
-        audit.record(adminUsername, "PAYMENT_REFUNDED", "PAYMENT", paymentId.toString(),
-                "Refunded " + payment.getAmount() + " for reservation #" + payment.getReservationId()
-                        + ". Reason: " + cleanReason);
-        String refundNotice = "Payment " + payment.getTransactionReference()
-                + " was marked as refunded. Contact the hotel for settlement details.";
-        if (payment.getCustomerUsername().startsWith("WALK-IN (")) {
-            notifications.notifyAdmins("Walk-in payment refunded", refundNotice, "PAYMENT");
-        } else {
-            notifications.notifyUser(payment.getCustomerUsername(), "Payment refunded", refundNotice, "PAYMENT");
+        if (payment.getStatus() != PaymentStatus.PAID) {
+            throw new IllegalStateException("Only paid transactions can be submitted for refund review.");
         }
+        if (refundRequests.existsByPaymentIdAndStatus(paymentId, RefundRequestStatus.PENDING)) {
+            throw new IllegalStateException("A refund request is already awaiting authorization.");
+        }
+        PaymentRefundRequest request = refundRequests.save(
+                new PaymentRefundRequest(paymentId, adminUsername, cleanReason));
+        audit.record(adminUsername, "PAYMENT_REFUND_REQUESTED", "PAYMENT", paymentId.toString(),
+                "Refund request #" + request.getId() + " submitted. Reason: " + cleanReason);
+        notifications.notifyAdmins("Payment refund awaiting authorization",
+                "Admin " + adminUsername + " requested a refund for payment #" + paymentId
+                        + ". A different administrator must review it.", "PAYMENT");
+        return request;
+    }
+
+    public void reviewRefund(Long requestId, boolean approve, String reviewer, String reviewReason) {
+        PaymentRefundRequest request = refundRequests.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Refund request not found."));
+        if (request.getStatus() != RefundRequestStatus.PENDING) {
+            throw new IllegalStateException("This refund request has already been reviewed.");
+        }
+        Payment payment = payments.findById(request.getPaymentId())
+                .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
+        if (approve) {
+            if (payment.getStatus() != PaymentStatus.PAID) {
+                throw new IllegalStateException("The payment is no longer eligible for refund.");
+            }
+            touchReservation(payment.getReservationId());
+            payment.markRefunded(Instant.now(clock));
+        }
+        request.review(approve, reviewer, reviewReason, Instant.now(clock));
+        audit.record(reviewer, approve ? "PAYMENT_REFUND_AUTHORIZED" : "PAYMENT_REFUND_REJECTED",
+                "PAYMENT", payment.getId().toString(),
+                "Refund request #" + requestId + " submitted by " + request.getRequestedBy()
+                        + "; reason: " + request.getReason()
+                        + (approve ? "; refund status recorded as REFUNDED (settlement must be completed through the original payment channel)."
+                                   : "; review reason: " + (reviewReason == null ? "" : reviewReason.trim())));
+        String message = approve
+                ? "Your payment " + payment.getTransactionReference()
+                    + " was approved for refund review and marked REFUNDED in the hotel system. "
+                    + "Contact the hotel for confirmation of settlement through the original payment channel."
+                : "Your refund request for payment " + payment.getTransactionReference()
+                    + " was rejected. Reason: " + (reviewReason == null ? "" : reviewReason.trim());
+        if (payment.getCustomerUsername().startsWith("WALK-IN (")) {
+            notifications.notifyAdmins("Walk-in refund request reviewed", message, "PAYMENT");
+        } else {
+            notifications.notifyUser(payment.getCustomerUsername(),
+                    approve ? "Refund approved" : "Refund request rejected", message, "PAYMENT");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentRefundRequest> allRefundRequests() {
+        return refundRequests.findAllByOrderByCreatedAtDesc();
     }
 
     public void voidPendingPayment(Long paymentId, String adminUsername, String reason) {
