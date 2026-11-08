@@ -53,7 +53,7 @@ public class DashboardService {
                 reservations.countByStatus(ReservationStatus.CHECKED_IN),
                 reservations.countByStatus(ReservationStatus.CHECKED_OUT),
                 reservations.countByCheckInDateAndStatusIn(LocalDate.now(clock),
-                        List.of(ReservationStatus.APPROVED)),
+                        List.of(ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN)),
                 reservations.countByCheckOutDateAndStatusIn(LocalDate.now(clock),
                         List.of(ReservationStatus.CHECKED_IN)),
                 rooms.countByActiveTrue(),
