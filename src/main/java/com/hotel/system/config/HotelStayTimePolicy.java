@@ -13,9 +13,8 @@ public class HotelStayTimePolicy {
     public HotelStayTimePolicy(
             @Value("${hotel.check-in-time:14:00}") LocalTime checkInTime,
             @Value("${hotel.check-out-time:12:00}") LocalTime checkOutTime) {
-        if (checkInTime == null || checkOutTime == null || !checkOutTime.isAfter(LocalTime.MIDNIGHT)
-                || checkInTime.equals(checkOutTime)) {
-            throw new IllegalArgumentException("Hotel check-in and check-out times must be valid and different.");
+        if (checkInTime == null || checkOutTime == null) {
+            throw new IllegalArgumentException("Hotel check-in and check-out times are required.");
         }
         this.checkInTime = checkInTime;
         this.checkOutTime = checkOutTime;
