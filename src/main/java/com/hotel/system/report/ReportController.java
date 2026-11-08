@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.ArrayList;
@@ -37,9 +38,10 @@ public class ReportController {
         this.hotelName = hotelName;
     }
 
-    @GetMapping("/admin/reports")
+    @GetMapping({"/admin/reports", "/super-admin/reports"})
     public String reports(@RequestParam(required = false) LocalDate from,
-                          @RequestParam(required = false) LocalDate to, Model model) {
+                          @RequestParam(required = false) LocalDate to, Model model,
+                          HttpServletRequest request) {
         LocalDate end = to == null ? LocalDate.now(clock) : to;
         LocalDate start = from == null ? end.minusDays(29) : from;
         ReportSummary summary;
@@ -60,7 +62,8 @@ public class ReportController {
         model.addAttribute("peakBookingDay", peakDay(summary.bookingsByCreatedDate()));
         model.addAttribute("peakStayDay", peakDay(summary.bookingsByActualStayDate()));
         model.addAttribute("actualOccupancyRate", summary.actualOccupancyRate());
-        return "admin/reports/index";
+        return request.getRequestURI().startsWith("/super-admin/")
+                ? "super-admin/reports" : "admin/reports/index";
     }
 
     private BigDecimal percentage(long count, long total) {
@@ -76,7 +79,7 @@ public class ReportController {
                 .orElse("No activity");
     }
 
-    @GetMapping("/admin/reports/export.csv")
+    @GetMapping({"/admin/reports/export.csv", "/super-admin/reports/export.csv"})
     public ResponseEntity<byte[]> exportCsv(@RequestParam LocalDate from, @RequestParam LocalDate to) {
         ReportSummary summary;
         try {
@@ -145,7 +148,7 @@ public class ReportController {
                 .body(csv.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    @GetMapping("/admin/reports/export.pdf")
+    @GetMapping({"/admin/reports/export.pdf", "/super-admin/reports/export.pdf"})
     public ResponseEntity<byte[]> exportPdf(@RequestParam LocalDate from,
                                             @RequestParam LocalDate to) throws IOException {
         ReportSummary summary;
