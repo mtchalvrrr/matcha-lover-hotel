@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,16 +28,19 @@ public class PaymentService {
     private final AuditService audit;
     private final String paymentMode;
     private final NotificationService notifications;
+    private final Clock clock;
 
     public PaymentService(PaymentRepository payments, ReservationRepository reservations,
                           SystemUserRepository users, AuditService audit,
-                          @Value("${payment.mode:SIMULATED}") String paymentMode, NotificationService notifications) {
+                          @Value("${payment.mode:SIMULATED}") String paymentMode,
+                          NotificationService notifications, Clock clock) {
         this.payments = payments;
         this.reservations = reservations;
         this.users = users;
         this.audit = audit;
         this.paymentMode = paymentMode;
         this.notifications = notifications;
+        this.clock = clock;
     }
 
     public Payment payNextDue(Long reservationId, String username) {
@@ -116,7 +121,7 @@ public class PaymentService {
             throw new IllegalArgumentException("Enter a refund reason up to 500 characters.");
         }
         touchReservation(payment.getReservationId());
-        payment.markRefunded();
+        payment.markRefunded(Instant.now(clock));
         audit.record(adminUsername, "PAYMENT_REFUNDED", "PAYMENT", paymentId.toString(),
                 "Refunded " + payment.getAmount() + " for reservation #" + payment.getReservationId()
                         + ". Reason: " + cleanReason);
