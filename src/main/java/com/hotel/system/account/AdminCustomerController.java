@@ -43,7 +43,7 @@ public class AdminCustomerController {
     @GetMapping("/admin/customers/applications/{id}/document")
     @ResponseBody
     public ResponseEntity<FileSystemResource> document(@PathVariable Long id) throws java.io.IOException {
-        java.nio.file.Path path = registrations.documentPath(id);
+        java.nio.file.Path path = registrations.approvedDocumentPath(id);
         if (!Files.exists(path)) return ResponseEntity.notFound().build();
         String lower = path.toString().toLowerCase(java.util.Locale.ROOT);
         MediaType type = lower.endsWith(".pdf") ? MediaType.APPLICATION_PDF
