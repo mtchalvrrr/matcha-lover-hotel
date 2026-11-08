@@ -31,6 +31,7 @@ public class PayMongoService {
     private final RestClient client;
     private final ObjectMapper mapper;
     private final PaymentRepository payments;
+    private final ProcessedPayMongoEventRepository processedEvents;
     private final ReservationRepository reservations;
     private final SystemUserRepository users;
     private final AuditService audit;
@@ -51,6 +52,7 @@ public class PayMongoService {
         this.client = builder.baseUrl("https://api.paymongo.com").build();
         this.mapper = mapper;
         this.payments = payments;
+        this.processedEvents = processedEvents;
         this.reservations = reservations;
         this.users = users;
         this.audit = audit;
@@ -135,6 +137,8 @@ public class PayMongoService {
             JsonNode root = mapper.readTree(rawBody);
             JsonNode event = root.path("data");
             JsonNode eventAttributes = event.path("attributes");
+            String eventId = event.path("id").asText("");
+            if (!eventId.isBlank() && processedEvents.existsByEventId(eventId)) return;
             boolean liveMode = eventAttributes.path("livemode").asBoolean(
                     event.path("livemode").asBoolean(false));
             if (liveMode) {
@@ -143,10 +147,12 @@ public class PayMongoService {
             String eventType = eventAttributes.path("type").asText(event.path("type").asText(""));
             if ("payment.refund.updated".equals(eventType) || "payment.refunded".equals(eventType)) {
                 processRefundWebhook(eventAttributes.path("data"));
+                recordProcessedEvent(eventId, eventType);
                 return;
             }
             if ("payment.failed".equals(eventType) || "checkout_session.payment.failed".equals(eventType)) {
                 processFailedPaymentWebhook(eventAttributes.path("data"));
+                recordProcessedEvent(eventId, eventType);
                 return;
             }
             if (!"checkout_session.payment.paid".equals(eventType)) return;
@@ -176,7 +182,10 @@ public class PayMongoService {
             long expectedAmount = payment.getAmount().movePointRight(2).longValueExact();
             if (providerAmount != expectedAmount)
                 throw new IllegalArgumentException("The provider payment amount does not match the hotel payment.");
-            if (payment.getStatus() == PaymentStatus.PAID) return;
+            if (payment.getStatus() == PaymentStatus.PAID) {
+                recordProcessedEvent(eventId, eventType);
+                return;
+            }
             if (!Objects.equals(payment.getProviderCheckoutSessionId(), sessionId))
                 throw new IllegalArgumentException("The checkout session does not match the pending hotel payment.");
             String providerPaymentId = paidEntry.path("id").asText("");
@@ -186,6 +195,7 @@ public class PayMongoService {
             notifications.notifyUser(payment.getCustomerUsername(), "Payment confirmed",
                     "Your PayMongo payment of ₱" + payment.getAmount()
                             + " for reservation #" + payment.getReservationId() + " has been confirmed.", "PAYMENT");
+            recordProcessedEvent(eventId, eventType);
         } catch (IllegalArgumentException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -287,6 +297,11 @@ public class PayMongoService {
         audit.record("PAYMONGO", "PAYMONGO_REFUND_" + status.toUpperCase(Locale.ROOT),
                 "PAYMENT", payment.getId().toString(), "Provider refund " + refundId + " status " + status);
         return status;
+    }
+
+    private void recordProcessedEvent(String eventId, String eventType) {
+        if (eventId != null && !eventId.isBlank())
+            processedEvents.save(new ProcessedPayMongoEvent(eventId, eventType));
     }
 
     private void processFailedPaymentWebhook(JsonNode resource) {
