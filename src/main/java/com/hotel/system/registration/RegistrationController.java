@@ -25,6 +25,7 @@ public class RegistrationController {
         try {
             RegistrationApplication app = registrations.submit(firstName, lastName, email, username, password, idDocument);
             redirect.addFlashAttribute("applicationId", app.getId());
+            redirect.addFlashAttribute("email", app.getEmail());
             redirect.addFlashAttribute("success", "Verification code sent to your email. Enter it to submit your application for review.");
             return "redirect:/register/verify";
         } catch (IllegalArgumentException | IllegalStateException ex) {
@@ -37,10 +38,12 @@ public class RegistrationController {
     public String verifyPage() { return "registration/verify"; }
 
     @PostMapping("/register/verify")
-    public String verify(@RequestParam Long applicationId, @RequestParam String otp, RedirectAttributes redirect) {
+    public String verify(@RequestParam Long applicationId, @RequestParam String email,
+                         @RequestParam String otp, RedirectAttributes redirect) {
         try {
-            if (!registrations.verify(applicationId, otp)) {
+            if (!registrations.verify(applicationId, email, otp)) {
                 redirect.addFlashAttribute("applicationId", applicationId);
+                redirect.addFlashAttribute("email", email);
                 redirect.addFlashAttribute("error", "Verification code is incorrect.");
                 return "redirect:/register/verify";
             }
@@ -48,16 +51,19 @@ public class RegistrationController {
             return "redirect:/customer/login?registration=pending";
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("applicationId", applicationId);
+            redirect.addFlashAttribute("email", email);
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/register/verify";
         }
     }
 
     @PostMapping("/register/verify/resend")
-    public String resendOtp(@RequestParam Long applicationId, RedirectAttributes redirect) {
+    public String resendOtp(@RequestParam Long applicationId, @RequestParam String email,
+                             RedirectAttributes redirect) {
         try {
-            registrations.resendOtp(applicationId);
+            registrations.resendOtp(applicationId, email);
             redirect.addFlashAttribute("applicationId", applicationId);
+            redirect.addFlashAttribute("email", email);
             redirect.addFlashAttribute("success", "A new verification code was sent. It expires in 10 minutes.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("applicationId", applicationId);
