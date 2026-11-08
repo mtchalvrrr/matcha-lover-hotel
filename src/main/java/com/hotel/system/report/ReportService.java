@@ -67,11 +67,11 @@ public class ReportService {
                 ACTUAL_STAY_STATUSES, end, from, start));
         // Preserve the original receipt in payment-date reports even if it is refunded later.
         // Refunds are reported separately using refundedAt.
-        List<Payment> paidPayments = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
+        List<Payment> paymentReceipts = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
                 start, end, List.of(PaymentStatus.PAID, PaymentStatus.REFUNDED));
-        BigDecimal revenue = paidPayments.stream().map(Payment::getAmount)
+        BigDecimal revenue = paymentReceipts.stream().map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        Map<LocalDate, BigDecimal> revenueByPaymentDate = paidPayments.stream().collect(Collectors.groupingBy(
+        Map<LocalDate, BigDecimal> revenueByPaymentDate = paymentReceipts.stream().collect(Collectors.groupingBy(
                 payment -> payment.getCreatedAt().atZone(zone).toLocalDate(),
                 LinkedHashMap::new,
                 Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)));
