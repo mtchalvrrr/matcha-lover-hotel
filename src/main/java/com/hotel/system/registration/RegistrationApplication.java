@@ -55,7 +55,7 @@ public class RegistrationApplication {
         this.username = username; this.passwordHash = passwordHash; this.idDocumentPath = idDocumentPath;
         this.documentHash = documentHash;
         this.otpHash = otpHash; this.otpExpiresAt = otpExpiresAt;
-        this.otpSentAt = otpExpiresAt.minusSeconds(600);
+        this.otpSentAt = otpExpiresAt.minusSeconds(300);
     }
     public Long getId() { return id; }
     public String getFirstName() { return firstName; }
@@ -81,7 +81,7 @@ public class RegistrationApplication {
             throw new IllegalStateException("The resend limit has been reached. Submit a new registration application.");
         }
         otpHash = newOtpHash;
-        otpExpiresAt = now.plusSeconds(600);
+        otpExpiresAt = now.plusSeconds(300);
         otpSentAt = now;
         otpAttempts = 0;
         otpResends++;
