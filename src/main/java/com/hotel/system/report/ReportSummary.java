@@ -33,5 +33,6 @@ public record ReportSummary(
     Map<LocalDate, Long> bookingsByCheckInDate,
     Map<LocalDate, Long> bookingsByActualStayDate,
     Map<LocalDate, Long> bookingsByCreatedDate,
-    Map<LocalDate, BigDecimal> revenueByPaymentDate
+    Map<LocalDate, BigDecimal> revenueByPaymentDate,
+    Map<String, BigDecimal> roomRevenue
 ) {}
