@@ -89,7 +89,7 @@ public class PaymentService {
         }
 
         reservation.touchForPayment();
-        reservations.save(reservation);
+        reservations.saveAndFlush(reservation);
         String reference = "SIM-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, customer.getUsername(),
             type, amount, "SIMULATED", reference, PaymentStatus.PAID));
@@ -114,7 +114,7 @@ public class PaymentService {
         if (payments.sumPaidForReservation(reservationId, PaymentStatus.PAID).signum() > 0)
             throw new IllegalStateException("Payment has already been recorded for this walk-in reservation.");
         reservation.touchForPayment();
-        reservations.save(reservation);
+        reservations.saveAndFlush(reservation);
         String reference = "WALKIN-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, reservation.getCustomerUsername(),
             PaymentType.WALK_IN_FULL, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
