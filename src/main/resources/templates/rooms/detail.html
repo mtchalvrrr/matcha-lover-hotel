@@ -5,7 +5,27 @@
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
 <section class="portal-hero">
 <p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 th:text="${room.name}">Room name</h1>
-<section class="room-gallery" th:if="${!#lists.isEmpty(photos)}"><div class="detail-image" th:each="photo : ${photos}"><img th:src="${photo.publicPath}" th:alt="${room.name + ' photo'}"></div></section>
+<section class="room-gallery-viewer" id="roomGallery" th:if="${!#lists.isEmpty(photos)}" aria-label="Room photo gallery">
+<div class="gallery-main-row">
+<button type="button" class="gallery-arrow" id="galleryPrevious" aria-label="Previous photo">‹</button>
+<button type="button" class="gallery-active" id="galleryOpenLightbox" aria-label="Open photo zoom">
+<img id="galleryActiveImage" th:src="${photos[0].publicPath}" th:alt="${room.name + ' photo'}">
+<span class="gallery-zoom-hint">Click to enlarge</span>
+</button>
+<button type="button" class="gallery-arrow" id="galleryNext" aria-label="Next photo">›</button>
+</div>
+<div class="gallery-thumbnails" id="galleryThumbnails">
+<button type="button" class="gallery-thumbnail" th:each="photo,stat : ${photos}"
+ th:classappend="${stat.index == 0} ? ' is-active' : ''"
+ th:attr="data-photo-src=${photo.publicPath},aria-label='Show photo ' + ${stat.count}">
+<img th:src="${photo.publicPath}" th:alt="${room.name + ' thumbnail'}">
+</button>
+</div>
+</section>
+<dialog class="room-lightbox" id="roomLightbox" aria-label="Room photo enlarged">
+<button type="button" class="lightbox-close" id="galleryCloseLightbox" aria-label="Close enlarged photo">×</button>
+<img id="galleryLightboxImage" alt="Enlarged room photo">
+</dialog>
 <div class="room-image room-image-empty" th:if="${#lists.isEmpty(photos)}"><span>[ROOM PHOTOS]</span></div>
 <p class="intro" th:text="${room.description}">Room description</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
@@ -25,4 +45,5 @@
 </section>
 <div class="action-row" th:unless="${customerSignedIn}"><a class="primary-link" th:href="@{/customer/login}">Sign in to reserve</a><a class="secondary-link" th:href="@{/rooms}">Browse other rooms</a></div>
 </section><footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
+<script th:src="@{/js/room-gallery.js}" defer></script>
 </main></body></html>
