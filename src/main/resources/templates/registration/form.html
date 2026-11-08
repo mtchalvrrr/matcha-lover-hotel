@@ -16,5 +16,5 @@
 <p class="security-note">Your ID document is stored privately and is accessible only to authorized Super Admin reviewers.</p>
 <div th:if="${captchaEnabled}" class="g-recaptcha" th:attr="data-sitekey=${captchaSiteKey}"></div><script th:if="${captchaEnabled}" src="https://www.google.com/recaptcha/api.js" async defer></script>
 <button class="primary-button" type="submit">Submit registration</button>
-</form><p class="form-help">Already submitted an application? <a th:href="@{/register/status}">Check your registration status</a>.</p></main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</form><p class="form-help">Already submitted an application? <a th:href="@{/registration/status}">Check your registration status</a>.</p></main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body></html>
