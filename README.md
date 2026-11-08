@@ -24,7 +24,8 @@ The three portals are separate entry points within one coordinated backend, not 
 
 ## Implemented modules
 
-- Database-backed authentication, role checks, BCrypt password hashing, failed-login tracking, temporary lockout, browser security headers, and independent Customer/Admin/Super Admin sessions using separate portal cookies and logout endpoints. Automated integration coverage verifies simultaneous login and logout independence.\n- Room photos and private ID uploads validate file signatures and extension/MIME consistency; cleanup prevents stored-file path traversal and removes orphaned ID files when registration cannot complete.
+- Database-backed authentication, role checks, BCrypt password hashing, failed-login tracking, temporary lockout, browser security headers, and independent Customer/Admin/Super Admin sessions using separate portal cookies and logout endpoints. Automated integration coverage verifies simultaneous login and logout independence.
+- Room photos and private ID uploads validate file signatures and extension/MIME consistency; cleanup prevents stored-file path traversal and removes orphaned ID files when registration cannot complete.
 - Customer registration application with ID upload, exact-file duplicate fingerprint checks, email OTP verification with resend cooldown/limits and applicant-email matching for verification/resend, plus Super Admin manual ID review and approval/rejection.
 - Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
 - Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management. Admins can also update cleaning and maintenance status; only active, clean/ready, non-maintenance rooms can be newly booked. Readiness confirmation records the Admin and inspection time.
