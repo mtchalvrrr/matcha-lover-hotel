@@ -9,7 +9,7 @@
 <body>
 <main class="shell">
     <header class="topbar">
-        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
         <span class="top-note">Reservation and Management System</span>
     </header>
     <section class="hero">
@@ -37,7 +37,7 @@
             <span class="portal-link">Enter super admin program <span aria-hidden="true">↗</span></span>
         </a>
     </section>
-    <footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
+    <footer><span th:text="${hotelSettings.address}">[HOTEL ADDRESS]</span><span th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</span></footer>
 </main>
 <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
