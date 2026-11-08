@@ -13,6 +13,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findAllByOrderByCreatedAtDesc();
     List<Reservation> findByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc(ReservationStatus status, java.time.Instant cutoff);
     long countByStatus(ReservationStatus status);
+    long countByCheckInDateAndStatusIn(LocalDate checkInDate, Collection<ReservationStatus> statuses);
+    long countByCheckOutDateAndStatusIn(LocalDate checkOutDate, Collection<ReservationStatus> statuses);
     long countByCustomerUsernameAndStatus(String username, ReservationStatus status);
     long countByCustomerUsernameAndStatusIn(String username, Collection<ReservationStatus> statuses);
 
