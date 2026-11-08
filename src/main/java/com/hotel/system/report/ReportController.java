@@ -50,7 +50,25 @@ public class ReportController {
         model.addAttribute("summary", summary);
         model.addAttribute("dailyRequestTotal", summary.bookingsByCreatedDate().values().stream()
                 .mapToLong(Long::longValue).sum());
+        model.addAttribute("approvalRate", percentage(summary.approvedReservations(), summary.totalReservations()));
+        model.addAttribute("cancellationRate", percentage(summary.cancelledReservations(), summary.totalReservations()));
+        model.addAttribute("rejectionRate", percentage(summary.rejectedReservations(), summary.totalReservations()));
+        model.addAttribute("peakBookingDay", peakDay(summary.bookingsByCreatedDate()));
+        model.addAttribute("peakStayDay", peakDay(summary.bookingsByCheckInDate()));
         return "admin/reports/index";
+    }
+
+    private BigDecimal percentage(long count, long total) {
+        if (total == 0) return BigDecimal.ZERO;
+        return BigDecimal.valueOf(count).multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(total), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private String peakDay(Map<LocalDate, Long> values) {
+        return values.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(entry -> entry.getKey() + " (" + entry.getValue() + " bookings)")
+                .orElse("No activity");
     }
 
     @GetMapping("/admin/reports/export.csv")
