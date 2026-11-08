@@ -9,6 +9,7 @@ import com.hotel.system.payment.PaymentService;
 import com.hotel.system.room.RoomService;
 
 import java.time.LocalDate;
+import java.time.Clock;
 
 @Controller
 public class ReservationController {
@@ -16,13 +17,15 @@ public class ReservationController {
     private final PaymentService payments;
     private final WalkInBookingService walkInBookings;
     private final RoomService rooms;
+    private final Clock clock;
 
     public ReservationController(ReservationService reservations, PaymentService payments,
-                                 WalkInBookingService walkInBookings, RoomService rooms) {
+                                 WalkInBookingService walkInBookings, RoomService rooms, Clock clock) {
         this.reservations = reservations;
         this.payments = payments;
         this.walkInBookings = walkInBookings;
         this.rooms = rooms;
+        this.clock = clock;
     }
 
     @PostMapping("/customer/reservations")
@@ -53,7 +56,7 @@ public class ReservationController {
         try {
             model.addAttribute("reservation", reservations.customerReservationForModification(id, authentication.getName()));
             model.addAttribute("rooms", rooms.publicRooms());
-            model.addAttribute("minimumDate", LocalDate.now());
+            model.addAttribute("minimumDate", LocalDate.now(clock));
             return "customer/reservation-modify";
         } catch (IllegalArgumentException | IllegalStateException ex) {
             model.addAttribute("error", ex.getMessage());
