@@ -96,9 +96,19 @@ public class ReportController {
                 .append(escape(value)).append("\r\n");
     }
 
+    private boolean startsWithSpreadsheetFormula(String value) {
+        int index = 0;
+        while (index < value.length()
+                && (Character.isWhitespace(value.charAt(index))
+                    || Character.isISOControl(value.charAt(index)))) {
+            index++;
+        }
+        return index < value.length() && "=+-@".indexOf(value.charAt(index)) >= 0;
+    }
+
     private String escape(Object value) {
         String text = value == null ? "" : value.toString();
-        if (!text.isEmpty() && "=+-@".indexOf(text.charAt(0)) >= 0) {
+        if (startsWithSpreadsheetFormula(text)) {
             text = "'" + text;
         }
         return "\"" + text.replace("\"", "\"\"") + "\"";
