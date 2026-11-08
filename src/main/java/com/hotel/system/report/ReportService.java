@@ -69,9 +69,9 @@ public class ReportService {
                 payment -> payment.getCreatedAt().atZone(zone).toLocalDate(),
                 LinkedHashMap::new,
                 Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)));
-        BigDecimal refundedAmount = payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(
-                        start, end, PaymentStatus.REFUNDED)
-                .stream().map(Payment::getAmount)
+        BigDecimal refundedAmount = payments.findByRefundedAtBetweenOrderByRefundedAtAsc(start, end)
+                .stream().filter(payment -> payment.getStatus() == PaymentStatus.REFUNDED)
+                .map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal outstandingBalance = bookings.stream()
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED
