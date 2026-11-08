@@ -46,8 +46,7 @@ class ReportServiceTest {
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
                 .thenReturn(List.of(onlineBooking));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
-                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED)))
                 .thenReturn(List.of(overlappingStay));
         when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
@@ -79,8 +78,13 @@ class ReportServiceTest {
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
                 .thenReturn(List.of(checkedOut));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
-                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED)))
+                .thenReturn(List.of());
+        when(reservations.findActualStaysOverlapping(
+                List.of(ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT),
+                to.plusDays(1).atStartOfDay(ZoneId.of("Asia/Manila")).toInstant(),
+                from,
+                from.atStartOfDay(ZoneId.of("Asia/Manila")).toInstant()))
                 .thenReturn(List.of(checkedOut));
         when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
@@ -109,8 +113,7 @@ class ReportServiceTest {
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
                 .thenReturn(List.of(approved));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
-                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED)))
                 .thenReturn(List.of(approved));
         when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
@@ -135,8 +138,7 @@ class ReportServiceTest {
 
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to)).thenReturn(List.of());
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
-                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT))).thenReturn(List.of());
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED))).thenReturn(List.of());
         when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(),
                 eq(List.of(PaymentStatus.PAID, PaymentStatus.REFUNDED))))
                 .thenReturn(List.of(refunded));
