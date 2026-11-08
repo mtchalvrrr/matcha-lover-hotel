@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Customer Management | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/dashboard}">Admin dashboard</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / CUSTOMERS</p><h1>Customer<br><em>management.</em></h1><p class="intro">Review customer account details, check submitted identity documents, and manage account access. Registration approval remains a Super Admin responsibility.</p></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<h2>Customer accounts</h2>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Customer</th><th>Username</th><th>Email</th><th>Status</th><th>Created</th><th>Action</th></tr></thead><tbody>
+<tr th:each="customer : ${customers}"><td th:text="${(customer.firstName != null ? customer.firstName : '') + ' ' + (customer.lastName != null ? customer.lastName : '')}">Customer</td><td th:text="${customer.username}">username</td><td th:text="${customer.email}">email</td><td th:text="${customer.active ? 'Active' : 'Suspended'}">Active</td><td th:text="${customer.createdAt}">Date</td><td><form th:action="@{/admin/customers/{id}/status(id=${customer.id})}" method="post"><input type="hidden" name="active" th:value="${!customer.active}"><button class="text-button" type="submit" th:text="${customer.active ? 'Suspend' : 'Reactivate'}">Suspend</button></form></td></tr>
+</tbody></table></div><p class="notice" th:if="${#lists.isEmpty(customers)}">No customer accounts have been approved yet.</p>
+<h2>Approved registration documents</h2>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Application</th><th>Applicant</th><th>Email</th><th>Reviewed by</th><th>Document</th></tr></thead><tbody>
+<tr th:each="application : ${applications}"><td th:text="${application.id}">1</td><td th:text="${application.firstName + ' ' + application.lastName}">Name</td><td th:text="${application.email}">Email</td><td th:text="${application.reviewedBy}">Reviewer</td><td><a th:href="@{/admin/customers/applications/{id}/document(id=${application.id})}" target="_blank" rel="noopener">View ID document</a></td></tr>
+</tbody></table></div><p class="notice" th:if="${#lists.isEmpty(applications)}">No approved registration documents are available.</p>
+</main></body></html>
