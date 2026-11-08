@@ -194,7 +194,7 @@ public class PayMongoService {
             payment.markPaidFromProvider(sessionId, providerPaymentId);
             audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
                     "Verified PayMongo checkout payment; provider reference " + providerPaymentId);
-            notifications.notifyUser(payment.getCustomerUsername(), "Payment confirmed",
+            notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
                     "Your PayMongo payment of ₱" + payment.getAmount()
                             + " for reservation #" + payment.getReservationId() + " has been confirmed.", "PAYMENT");
             recordProcessedEvent(eventId, eventType);
@@ -239,7 +239,7 @@ public class PayMongoService {
                         payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
                         audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_CONFIRMED", "PAYMENT",
                                 payment.getId().toString(), "Payment confirmed by authenticated PayMongo checkout retrieval.");
-                        notifications.notifyUser(payment.getCustomerUsername(), "Payment confirmed",
+                        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
                                 "Your PayMongo payment for reservation #" + payment.getReservationId()
                                         + " has been confirmed.", "PAYMENT");
                         break;
@@ -250,7 +250,7 @@ public class PayMongoService {
                     payment.markFailedFromProvider(null);
                     audit.record("PAYMONGO_RECONCILIATION", "CHECKOUT_EXPIRED", "PAYMENT",
                             payment.getId().toString(), "PayMongo checkout session expired without a paid transaction.");
-                    notifications.notifyUser(payment.getCustomerUsername(), "Payment session expired",
+                    notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment session expired",
                             "Your payment session for reservation #" + payment.getReservationId()
                                     + " expired without payment. You can start a new payment from your reservations.", "PAYMENT");
                 }
@@ -323,7 +323,7 @@ public class PayMongoService {
         payment.markFailedFromProvider(providerPaymentId);
         audit.record("PAYMONGO_WEBHOOK", "PAYMENT_FAILED", "PAYMENT", payment.getId().toString(),
                 "PayMongo reported a failed checkout/payment attempt.");
-        notifications.notifyUser(payment.getCustomerUsername(), "Payment was not completed",
+        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment was not completed",
                 "Your payment attempt for reservation #" + payment.getReservationId()
                         + " was not completed. You can try again from your reservations page.", "PAYMENT");
     }
@@ -353,11 +353,11 @@ public class PayMongoService {
         audit.record("PAYMONGO_WEBHOOK", "PAYMONGO_REFUND_STATUS_" + status.toUpperCase(Locale.ROOT),
                 "PAYMENT", payment.getId().toString(), "Provider refund " + refundId + " status " + status);
         if ("succeeded".equals(status)) {
-            notifications.notifyUser(payment.getCustomerUsername(), "Refund completed",
+            notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Refund completed",
                     "Your refund for payment " + payment.getTransactionReference() + " has been processed by PayMongo.",
                     "PAYMENT");
         } else if ("failed".equals(status)) {
-            notifications.notifyUser(payment.getCustomerUsername(), "Refund failed",
+            notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Refund failed",
                     "The payment provider could not complete your refund. Please contact the hotel.",
                     "PAYMENT");
         }
