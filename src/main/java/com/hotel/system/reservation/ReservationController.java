@@ -5,15 +5,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.hotel.system.payment.PaymentService;
+import com.hotel.system.room.RoomService;
 
 import java.time.LocalDate;
 
 @Controller
 public class ReservationController {
     private final ReservationService reservations;
+    private final PaymentService payments;
+    private final RoomService rooms;
 
-    public ReservationController(ReservationService reservations) {
+    public ReservationController(ReservationService reservations, PaymentService payments, RoomService rooms) {
         this.reservations = reservations;
+        this.payments = payments;
+        this.rooms = rooms;
     }
 
     @PostMapping("/customer/reservations")
@@ -49,6 +55,52 @@ public class ReservationController {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
         return "redirect:/customer/reservations";
+    }
+
+
+    @GetMapping("/admin/reservations/walk-in")
+    public String walkInForm(Model model) {
+        model.addAttribute("rooms", rooms.publicRooms());
+        return "admin/reservations/walk-in";
+    }
+
+    @PostMapping("/admin/reservations/walk-in")
+    public String createWalkIn(@RequestParam String guestName, @RequestParam String guestEmail,
+        @RequestParam Long roomId, @RequestParam LocalDate checkIn, @RequestParam LocalDate checkOut,
+        @RequestParam Integer guests, @RequestParam String paymentMethod,
+        Authentication authentication, RedirectAttributes redirect) {
+        try {
+            Reservation reservation = reservations.createWalkIn(authentication.getName(), guestName,
+                guestEmail, roomId, checkIn, checkOut, guests);
+            var payment = payments.recordWalkInPayment(reservation.getId(), paymentMethod, authentication.getName());
+            redirect.addFlashAttribute("success", "Walk-in reservation #" + reservation.getId()
+                + " created and onsite payment recorded. Receipt reference: " + payment.getTransactionReference());
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/reservations/walk-in";
+        }
+        return "redirect:/admin/reservations";
+    }
+
+    @PostMapping("/admin/reservations/{id}/check-in")
+    public String checkIn(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
+        try { reservations.checkIn(id, authentication.getName()); redirect.addFlashAttribute("success", "Guest checked in."); }
+        catch (IllegalArgumentException | IllegalStateException ex) { redirect.addFlashAttribute("error", ex.getMessage()); }
+        return "redirect:/admin/reservations";
+    }
+
+    @PostMapping("/admin/reservations/{id}/check-out")
+    public String checkOut(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
+        try { reservations.checkOut(id, authentication.getName()); redirect.addFlashAttribute("success", "Guest checked out."); }
+        catch (IllegalArgumentException | IllegalStateException ex) { redirect.addFlashAttribute("error", ex.getMessage()); }
+        return "redirect:/admin/reservations";
+    }
+
+    @PostMapping("/admin/reservations/{id}/no-show")
+    public String noShow(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
+        try { reservations.markNoShow(id, authentication.getName()); redirect.addFlashAttribute("success", "Reservation marked as no-show."); }
+        catch (IllegalArgumentException | IllegalStateException ex) { redirect.addFlashAttribute("error", ex.getMessage()); }
+        return "redirect:/admin/reservations";
     }
 
     @GetMapping("/admin/reservations")
