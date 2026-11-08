@@ -3,6 +3,14 @@ package com.hotel.system.chat;
 import com.hotel.system.config.HotelStayTimePolicy;
 import com.hotel.system.settings.HotelSettings;
 import com.hotel.system.settings.HotelSettingsService;
+import com.hotel.system.room.Room;
+import com.hotel.system.room.RoomRepository;
+import com.hotel.system.room.RoomService;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -22,6 +30,8 @@ public class ChatAssistantService {
     private final String model;
     private final HotelSettingsService settings;
     private final HotelStayTimePolicy stayTimes;
+    private final RoomRepository rooms;
+    private final RoomService roomService;
 
     public ChatAssistantService(RestClient.Builder restClientBuilder,
             @Value("${ai.enabled:false}") boolean aiEnabled,
@@ -29,6 +39,17 @@ public class ChatAssistantService {
             @Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}") String apiUrl,
             @Value("${groq.api.model:llama-3.3-70b-versatile}") String model,
             HotelSettingsService settings, HotelStayTimePolicy stayTimes) {
+        this(restClientBuilder, aiEnabled, apiKey, apiUrl, model, settings, stayTimes, null, null);
+    }
+
+    @Autowired
+    public ChatAssistantService(RestClient.Builder restClientBuilder,
+            @Value("${ai.enabled:false}") boolean aiEnabled,
+            @Value("${groq.api.key:}") String apiKey,
+            @Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}") String apiUrl,
+            @Value("${groq.api.model:llama-3.3-70b-versatile}") String model,
+            HotelSettingsService settings, HotelStayTimePolicy stayTimes,
+            RoomRepository rooms, RoomService roomService) {
         this.restClient = restClientBuilder.build();
         this.aiEnabled = aiEnabled;
         this.apiKey = apiKey;
@@ -36,6 +57,8 @@ public class ChatAssistantService {
         this.model = model;
         this.settings = settings;
         this.stayTimes = stayTimes;
+        this.rooms = rooms;
+        this.roomService = roomService;
     }
 
     public ChatReply reply(String rawMessage, boolean signedIn) {
@@ -48,15 +71,27 @@ public class ChatAssistantService {
         if (containsSensitiveData(message)) {
             return new ChatReply("For your security, please do not send passwords, OTP codes, full payment-card numbers, or identity details in chat. Use the secure account pages for private information.", null);
         }
+        if (asksForAvailability(normalized)) {
+            ChatReply availability = availabilityReply(message, normalized);
+            if (availability != null) return availability;
+        }
+        if (asksForRoomRecommendation(normalized)) {
+            ChatReply recommendation = roomRecommendationReply(normalized);
+            if (recommendation != null) return recommendation;
+        }
+        if (asksForRoomDetails(normalized)) {
+            ChatReply details = roomDetailsReply();
+            if (details != null) return details;
+        }
         if (asksToBrowseRooms(normalized)) {
-            return new ChatReply("Here are the rooms you can browse. You can view room details and availability before signing in.", "/rooms");
+            return new ChatReply("Here are the rooms you can browse. You can view room details, photos, amenities, prices, and date-based availability before signing in.", "/rooms");
         }
         if (!signedIn && asksForPrivateAccountHelp(normalized)) {
             return new ChatReply("Please sign in to access your reservations, payment history, and account details. You can still browse public rooms without an account.", "/customer/login");
         }
         if (signedIn && asksForPrivateAccountHelp(normalized)) {
-            if (normalized.contains("payment")) {
-                return new ChatReply("I will take you to your payment history.", "/customer/payments");
+            if (normalized.contains("payment") || normalized.contains("pay")) {
+                return new ChatReply("I will take you to your payment history, where you can review payment records and available payment actions.", "/customer/payments");
             }
             if (normalized.contains("profile") || normalized.contains("account")) {
                 return new ChatReply("I will take you to your customer profile.", "/customer/profile");
@@ -143,6 +178,12 @@ public class ChatAssistantService {
         if (message.contains("contact") || message.contains("phone") || message.contains("address") || message.contains("location")) {
             return "Hotel address: " + safe(hotel.getAddress()) + ". Contact: " + safe(hotel.getContactInformation()) + ".";
         }
+        if (message.contains("wifi") || message.contains("wi-fi") || message.contains("internet")) {
+            return "Please check the current Wi-Fi details with the hotel reception because network names and passwords can change.";
+        }
+        if (message.contains("room") || message.contains("amenit") || message.contains("price") || message.contains("rate")) {
+            return "You can view current room descriptions, photos, capacity, amenities, and nightly rates on the room collection page.";
+        }
         if (message.contains("book") || message.contains("reserve") || message.contains("reservation")) {
             return "To make a reservation, browse the rooms, choose a room, select your stay dates and guest count, then sign in to submit a request. An administrator must approve the request before payment.";
         }
@@ -165,7 +206,88 @@ public class ChatAssistantService {
         return message.contains("my reservation") || message.contains("my booking")
                 || message.contains("my payment") || message.contains("payment history")
                 || message.contains("my account") || message.contains("my profile")
-                || message.contains("cancel my") || message.contains("change my reservation");
+                || message.contains("cancel my") || message.contains("change my reservation")
+                || message.contains("my notification") || message.contains("my history");
+    }
+
+    private boolean asksForAvailability(String message) {
+        return message.contains("availability") || message.contains("is there a room")
+                || message.contains("are there rooms") || message.contains("room available")
+                || message.contains("available room");
+    }
+
+    private boolean asksForRoomRecommendation(String message) {
+        return message.contains("recommend") || message.contains("best room")
+                || message.contains("cheapest room") || message.contains("affordable room")
+                || message.contains("room for ") || message.contains("rooms for ");
+    }
+
+    private boolean asksForRoomDetails(String message) {
+        return message.contains("room details") || message.contains("room information")
+                || message.contains("room amenities") || message.contains("room prices")
+                || message.contains("room types");
+    }
+
+    private ChatReply roomRecommendationReply(String message) {
+        if (rooms == null) return null;
+        Matcher matcher = Pattern.compile("\\\\b(\\\\d{1,2})\\\\s*(?:guests?|people|persons?)\\\\b").matcher(message);
+        Integer guests = matcher.find() ? Integer.parseInt(matcher.group(1)) : null;
+        List<Room> choices = rooms.findByActiveTrueOrderByRoomCodeAsc().stream()
+                .filter(Room::isBookable)
+                .filter(room -> guests == null || room.getCapacity() >= guests)
+                .sorted(Comparator.comparing(Room::getNightlyRate))
+                .limit(3).toList();
+        if (choices.isEmpty()) return new ChatReply("I could not find a currently bookable room matching that guest count. Please check the room collection or contact the hotel.", "/rooms");
+        StringBuilder reply = new StringBuilder("Here are some room options based on capacity and nightly price:\\n");
+        for (Room room : choices) {
+            reply.append("• ").append(room.getName()).append(" (").append(room.getRoomCode()).append(") — ")
+                    .append(room.getCapacity()).append(" guests, ₱").append(room.getNightlyRate())
+                    .append(" per night. ");
+            if (room.getAmenities() != null && !room.getAmenities().isBlank())
+                reply.append("Amenities: ").append(room.getAmenities()).append(". ");
+            reply.append("\\n");
+        }
+        reply.append("Check your exact dates on the room page before booking.");
+        return new ChatReply(reply.toString(), "/rooms");
+    }
+
+    private ChatReply roomDetailsReply() {
+        if (rooms == null) return null;
+        List<Room> choices = rooms.findByActiveTrueOrderByRoomCodeAsc().stream()
+                .filter(Room::isBookable).limit(8).toList();
+        if (choices.isEmpty()) return new ChatReply("There are no bookable rooms to display right now. Please contact the hotel.", "/rooms");
+        StringBuilder reply = new StringBuilder("Current room options:\\n");
+        for (Room room : choices) {
+            reply.append("• ").append(room.getName()).append(" — up to ").append(room.getCapacity())
+                    .append(" guests, ₱").append(room.getNightlyRate()).append(" per night.\\n");
+        }
+        return new ChatReply(reply.toString(), "/rooms");
+    }
+
+    private ChatReply availabilityReply(String rawMessage, String normalized) {
+        if (roomService == null) return new ChatReply("Choose your check-in and checkout dates on the room page to see live availability.", "/rooms");
+        Matcher dates = Pattern.compile("\\\\b(\\\\d{4}-\\\\d{2}-\\\\d{2})\\\\b").matcher(rawMessage);
+        if (!dates.find()) return new ChatReply("I can check room availability when you provide your check-in and checkout dates. Open the room page to select your dates.", "/rooms");
+        LocalDate checkIn;
+        LocalDate checkOut;
+        try {
+            checkIn = LocalDate.parse(dates.group(1));
+            if (!dates.find()) return new ChatReply("Please provide both dates in YYYY-MM-DD format, for example 2026-12-20 and 2026-12-22.", "/rooms");
+            checkOut = LocalDate.parse(dates.group(1));
+        } catch (RuntimeException ex) {
+            return new ChatReply("Please provide valid dates in YYYY-MM-DD format.", "/rooms");
+        }
+        Matcher guestMatcher = Pattern.compile("\\\\b(\\\\d{1,2})\\\\s*(?:guests?|people|persons?)\\\\b", Pattern.CASE_INSENSITIVE).matcher(normalized);
+        int guests = guestMatcher.find() ? Integer.parseInt(guestMatcher.group(1)) : 1;
+        try {
+            List<Room> available = roomService.searchAvailable(checkIn, checkOut, guests);
+            if (available.isEmpty()) return new ChatReply("I could not find a room for " + guests + " guest(s) from " + checkIn + " to " + checkOut + ". Try different dates or guest numbers.", "/rooms");
+            String names = available.stream().limit(5).map(room -> room.getName() + " (₱" + room.getNightlyRate() + "/night)")
+                    .reduce((a, b) -> a + "; " + b).orElse("");
+            return new ChatReply("Available options for " + guests + " guest(s), " + checkIn + " to " + checkOut + ": " + names + ".", "/rooms");
+        } catch (IllegalArgumentException ex) {
+            return new ChatReply(ex.getMessage(), "/rooms");
+        }
     }
 
     private String safe(String value) {
