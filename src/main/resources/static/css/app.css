@@ -157,3 +157,13 @@
 .trend-track{height:10px;background:#edf0e9;overflow:hidden}
 .trend-fill{height:100%;min-width:2px;background:var(--green)}
 @media print{.report-filter,.report-print,.topbar .back-link{display:none!important}.shell{max-width:none!important;padding:0!important}.metric-card,.table-wrap,.trend-chart{break-inside:avoid}}
+
+
+/* Date-based room availability search */
+.availability-search{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 14px;align-items:end;padding:18px;background:#f2f4ed;border:1px solid var(--line);margin:0 0 20px}
+.availability-search label{display:block;font-size:11px;font-weight:700;color:var(--muted)}
+.availability-search input{width:100%;min-width:0;padding:11px 12px;border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-size:13px}
+.availability-search .primary-button{margin:0;min-height:40px}
+.availability-tag{display:inline-block;margin-bottom:8px;padding:5px 8px;background:#edf3e9;color:#35583d;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+@media(max-width:760px){.availability-search{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.availability-search{grid-template-columns:1fr}}
