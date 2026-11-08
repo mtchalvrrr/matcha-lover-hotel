@@ -29,6 +29,11 @@ public class AccountManagementService {
         return users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.ADMIN, AccountRole.CUSTOMER));
     }
 
+    @Transactional(readOnly = true)
+    public List<SystemUser> customerAccounts() {
+        return users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.CUSTOMER));
+    }
+
     public SystemUser createAdmin(String actor, String username, String email, String password) {
         String cleanUsername = username == null ? "" : username.trim();
         String cleanEmail = email == null ? "" : email.trim().toLowerCase();
