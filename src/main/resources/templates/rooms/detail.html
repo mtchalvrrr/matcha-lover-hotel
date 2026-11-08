@@ -26,7 +26,7 @@
 <dialog class="room-lightbox" id="roomLightbox" aria-label="Room photo enlarged">
 <button type="button" class="lightbox-close" id="galleryCloseLightbox" aria-label="Close enlarged photo">×</button>
 <img id="galleryLightboxImage" alt="Enlarged room photo">
-</div>
+</dialog>
 
 <p class="intro" th:text="${room.description}">Room description</p>
 <p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
@@ -36,6 +36,19 @@
 <button type="button" class="availability-dialog-close" id="closeRoomAvailability" aria-label="Close">×</button>
 <section class="room-availability-panel" id="roomAvailability">
 <h2 id="roomAvailabilityTitle">Check room availability</h2>
+<div class="room-occupancy-list">
+<h3>Reserved dates for this room</h3>
+<p class="form-help">These dates are blocked and cannot be booked.</p>
+<p class="room-occupancy-empty" th:if="${#lists.isEmpty(roomOccupancy)}">No pending, approved, or checked-in reservations for this room.</p>
+<ul th:unless="${#lists.isEmpty(roomOccupancy)}">
+<li th:each="booking : ${roomOccupancy}">
+<span class="occupancy-status"
+ th:text="${booking.status == T(com.hotel.system.reservation.ReservationStatus).PENDING ? 'Pending reservation' : (booking.status == T(com.hotel.system.reservation.ReservationStatus).CHECKED_IN ? 'Currently checked in' : 'Approved reservation')}"
+ th:classappend="${' occupancy-' + #strings.toLowerCase(booking.status.name())}">Pending reservation</span>
+<strong th:text="${#temporals.format(booking.checkInDate, 'MMM d, yyyy') + ' – ' + #temporals.format(booking.checkOutDate, 'MMM d, yyyy')}">Nov 8 – Nov 10</strong>
+</li>
+</ul>
+</div>
 <form class="room-availability-form" method="get" th:action="@{/rooms/{id}(id=${room.id})}">
 <div><label for="browseCheckIn">Check-in date</label><input id="browseCheckIn" name="checkIn" type="date" th:value="${checkIn}" th:attr="min=${minimumDate}" required></div>
 <div><label for="browseCheckOut">Check-out date</label><input id="browseCheckOut" name="checkOut" type="date" th:value="${checkOut}" th:attr="min=${minimumDate}" required></div>
@@ -46,7 +59,7 @@
 <p class="notice" th:if="${availabilityChecked and availabilityAvailable}">This room is available for the selected dates. Sign in to continue with a reservation.</p>
 <p class="alert alert-error" th:if="${availabilityChecked and !availabilityAvailable}">This room is not available for those dates or does not have enough guest capacity. Try another date.</p>
 </section>
-</dialog>
+</div>
 
 <section class="room-customer-feedback">
 <h2>Customer feedback</h2>
