@@ -219,7 +219,7 @@
 }
 html{scroll-behavior:smooth}
 body{
- background:#eef1e7;
+ background:linear-gradient(135deg,rgba(245,247,237,.94),rgba(232,239,224,.86)),url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=2000&q=85") center/cover fixed;
  color:var(--ink);
  font-family:Inter,"Segoe UI",sans-serif;
 }
