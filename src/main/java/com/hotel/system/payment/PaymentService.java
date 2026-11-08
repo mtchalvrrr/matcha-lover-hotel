@@ -7,6 +7,7 @@ import com.hotel.system.reservation.Reservation;
 import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
 import com.hotel.system.reservation.ReservationSource;
+import com.hotel.system.notification.NotificationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,15 +25,17 @@ public class PaymentService {
     private final SystemUserRepository users;
     private final AuditService audit;
     private final String paymentMode;
+    private final NotificationService notifications;
 
     public PaymentService(PaymentRepository payments, ReservationRepository reservations,
                           SystemUserRepository users, AuditService audit,
-                          @Value("${payment.mode:SIMULATED}") String paymentMode) {
+                          @Value("${payment.mode:SIMULATED}") String paymentMode, NotificationService notifications) {
         this.payments = payments;
         this.reservations = reservations;
         this.users = users;
         this.audit = audit;
         this.paymentMode = paymentMode;
+        this.notifications = notifications;
     }
 
     public Payment payNextDue(Long reservationId, String username) {
@@ -71,6 +74,8 @@ public class PaymentService {
             type, amount, "SIMULATED", reference, PaymentStatus.PAID));
         audit.record(username, "SIMULATED_PAYMENT_RECORDED", "RESERVATION", reservationId.toString(),
             type + " payment of " + amount + " recorded using simulated mode; reference " + reference);
+        notifications.notifyUser(username, "Payment recorded", "A simulated " + type
+            + " payment of ₱" + amount + " was recorded for reservation #" + reservationId + ".", "PAYMENT");
         return payment;
     }
 
@@ -92,6 +97,8 @@ public class PaymentService {
             PaymentType.WALK_IN_FULL, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
         audit.record(adminUsername, "WALK_IN_PAYMENT_RECORDED", "RESERVATION", reservationId.toString(),
             "Recorded onsite " + paymentMethod + " payment of " + reservation.getTotalAmount() + "; reference " + reference);
+        notifications.notifyAdmins("Walk-in payment recorded", "Admin " + adminUsername
+            + " recorded onsite payment for reservation #" + reservationId + ".", "PAYMENT");
         return payment;
     }
 
