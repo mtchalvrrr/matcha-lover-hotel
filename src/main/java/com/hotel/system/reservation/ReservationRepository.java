@@ -15,6 +15,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     long countByStatus(ReservationStatus status);
     long countByCheckInDateAndStatusIn(LocalDate checkInDate, Collection<ReservationStatus> statuses);
     long countByCheckOutDateAndStatusIn(LocalDate checkOutDate, Collection<ReservationStatus> statuses);
+    long countByCheckedInAtBetween(java.time.Instant from, java.time.Instant to);
+    long countByCheckedOutAtBetween(java.time.Instant from, java.time.Instant to);
     long countByCustomerUsernameAndStatus(String username, ReservationStatus status);
     long countByCustomerUsernameAndStatusIn(String username, Collection<ReservationStatus> statuses);
 
