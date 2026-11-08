@@ -9,6 +9,7 @@ import com.hotel.system.reservation.ReservationStatus;
 import com.hotel.system.reservation.ReservationSource;
 import com.hotel.system.notification.NotificationService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +31,20 @@ public class PaymentService {
     private final String paymentMode;
     private final NotificationService notifications;
     private final Clock clock;
+    private final PayMongoService payMongo;
 
     public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
                           ReservationRepository reservations, SystemUserRepository users, AuditService audit,
                           @Value("${payment.mode:SIMULATED}") String paymentMode,
                           NotificationService notifications, Clock clock) {
+        this(payments, refundRequests, reservations, users, audit, paymentMode, notifications, clock, null);
+    }
+
+    @Autowired
+    public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
+                          ReservationRepository reservations, SystemUserRepository users, AuditService audit,
+                          @Value("${payment.mode:SIMULATED}") String paymentMode,
+                          NotificationService notifications, Clock clock, PayMongoService payMongo) {
         this.payments = payments;
         this.refundRequests = refundRequests;
         this.reservations = reservations;
@@ -43,6 +53,7 @@ public class PaymentService {
         this.paymentMode = paymentMode;
         this.notifications = notifications;
         this.clock = clock;
+        this.payMongo = payMongo;
     }
 
     public Payment payNextDue(Long reservationId, String username) {
@@ -155,7 +166,12 @@ public class PaymentService {
                 throw new IllegalStateException("The payment is no longer eligible for refund.");
             }
             touchReservation(payment.getReservationId());
-            payment.markRefunded(Instant.now(clock));
+            if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
+                if (payMongo == null) throw new IllegalStateException("PayMongo refund processing is unavailable.");
+                payMongo.refund(payment, request.getReason());
+            } else {
+                payment.markRefunded(Instant.now(clock));
+            }
         }
         request.review(approve, reviewer, reviewReason, Instant.now(clock));
         audit.record(reviewer, approve ? "PAYMENT_REFUND_AUTHORIZED" : "PAYMENT_REFUND_REJECTED",
@@ -165,9 +181,11 @@ public class PaymentService {
                         + (approve ? "; refund status recorded as REFUNDED (settlement must be completed through the original payment channel)."
                                    : "; review reason: " + (reviewReason == null ? "" : reviewReason.trim())));
         String message = approve
-                ? "Your payment " + payment.getTransactionReference()
-                    + " was approved for refund review and marked REFUNDED in the hotel system. "
-                    + "Contact the hotel for confirmation of settlement through the original payment channel."
+                ? (payment.getStatus() == PaymentStatus.REFUND_PENDING
+                    ? "Your refund for payment " + payment.getTransactionReference()
+                        + " was accepted by the hotel and is being processed by PayMongo. We will notify you when the provider confirms the result."
+                    : "Your refund for payment " + payment.getTransactionReference()
+                        + " has been confirmed by the payment provider.")
                 : "Your refund request for payment " + payment.getTransactionReference()
                     + " was rejected. Reason: " + (reviewReason == null ? "" : reviewReason.trim());
         if (payment.getCustomerUsername().startsWith("WALK-IN (")) {
