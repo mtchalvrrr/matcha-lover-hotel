@@ -98,7 +98,7 @@ public class RegistrationService {
         if (approve) {
             if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail()))
                 throw new IllegalStateException("A matching account already exists; resolve the duplicate before approval.");
-            users.save(new SystemUser(app.getUsername(), app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
+            users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(), app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
         }
         audit.record(reviewer, approve ? "CUSTOMER_REGISTRATION_APPROVED" : "CUSTOMER_REGISTRATION_REJECTED",
             "REGISTRATION", id.toString(), "Applicant " + app.getUsername() + ". " + clean(reason));
