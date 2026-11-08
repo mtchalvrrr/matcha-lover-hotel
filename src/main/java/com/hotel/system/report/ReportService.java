@@ -83,7 +83,10 @@ public class ReportService {
 
         Map<String, Long> byRoom = bookings.stream().collect(Collectors.groupingBy(
                 reservation -> reservation.getRoomCode() + " — " + reservation.getRoomName(),
-                LinkedHashMap::new, Collectors.counting()));
+                LinkedHashMap::new, Collectors.counting())).entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (first, second) -> first, LinkedHashMap::new));
         Map<LocalDate, Long> byCheckInDate = bookings.stream().collect(Collectors.groupingBy(
                 Reservation::getCheckInDate, LinkedHashMap::new, Collectors.counting()));
         List<Reservation> requestsCreated = reservations.findByCreatedAtBetweenOrderByCreatedAtAsc(start, end);
