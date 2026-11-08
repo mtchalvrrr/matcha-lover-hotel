@@ -72,7 +72,7 @@ public class SecurityConfiguration {
         http.securityMatcher("/customer/**")
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/customer/login").permitAll()
+                .requestMatchers("/customer", "/customer/login").permitAll()
                 .anyRequest().hasRole("CUSTOMER"))
             .formLogin(form -> form
                 .loginPage("/customer/login")
@@ -107,7 +107,7 @@ public class SecurityConfiguration {
         http.securityMatcher("/admin/**")
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/admin/login").permitAll()
+                .requestMatchers("/admin", "/admin/login").permitAll()
                 .anyRequest().hasRole("ADMIN"))
             .formLogin(form -> form
                 .loginPage("/admin/login")
@@ -142,7 +142,7 @@ public class SecurityConfiguration {
         http.securityMatcher("/super-admin/**")
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/super-admin/login").permitAll()
+                .requestMatchers("/super-admin", "/super-admin/login").permitAll()
                 .anyRequest().hasRole("SUPER_ADMIN"))
             .formLogin(form -> form
                 .loginPage("/super-admin/login")
