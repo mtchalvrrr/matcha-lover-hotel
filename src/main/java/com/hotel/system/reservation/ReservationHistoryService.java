@@ -24,9 +24,6 @@ public class ReservationHistoryService {
             "GUEST_CHECKED_IN",
             "GUEST_CHECKED_OUT",
             "RESERVATION_MARKED_NO_SHOW",
-            "RESERVATION_EXTENSION_REQUESTED",
-            "RESERVATION_EXTENSION_APPROVED",
-            "RESERVATION_EXTENSION_REJECTED"
     );
     private final ReservationRepository reservations;
     private final AuditLogRepository audit;
