@@ -3,6 +3,7 @@ package com.hotel.system.room;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.hotel.system.config.HotelStayTimePolicy;
 import org.springframework.security.core.GrantedAuthority;
 import java.time.Clock;
@@ -78,6 +79,7 @@ public class RoomController {
         return "rooms/detail";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @GetMapping("/admin/rooms")
     public String manageRooms(Model model) {
         model.addAttribute("rooms", rooms.allRooms());
@@ -86,6 +88,7 @@ public class RoomController {
         return "admin/rooms/list";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @GetMapping("/admin/rooms/new")
     public String newRoom(Model model) {
         model.addAttribute("room", new Room());
@@ -93,6 +96,7 @@ public class RoomController {
         return "admin/rooms/form";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @PostMapping("/admin/rooms")
     public String createRoom(@Valid @ModelAttribute("room") Room room,
                              BindingResult result, Model model, Authentication authentication,
@@ -112,6 +116,7 @@ public class RoomController {
         }
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @GetMapping("/admin/rooms/{id}/edit")
     public String editRoom(@PathVariable Long id, Model model) {
         model.addAttribute("room", rooms.getRoom(id));
@@ -119,6 +124,7 @@ public class RoomController {
         return "admin/rooms/form";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @PostMapping("/admin/rooms/{id}")
     public String updateRoom(@PathVariable Long id, @Valid @ModelAttribute("room") Room room,
                              BindingResult result, Model model, Authentication authentication, RedirectAttributes redirect) {
@@ -137,6 +143,7 @@ public class RoomController {
         }
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @PostMapping("/admin/rooms/{id}/operations")
     public String updateRoomOperations(@PathVariable Long id,
                                        @RequestParam CleaningStatus cleaningStatus,
@@ -152,6 +159,7 @@ public class RoomController {
         return "redirect:/admin/rooms";
     }
 
+    @PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
     @PostMapping("/admin/rooms/{id}/status")
     public String changeRoomStatus(@PathVariable Long id, @RequestParam boolean active,
                                    Authentication authentication, RedirectAttributes redirect) {
