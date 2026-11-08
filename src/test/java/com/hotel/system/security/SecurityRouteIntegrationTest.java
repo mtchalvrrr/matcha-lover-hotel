@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.mock.web.MockHttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.ServletContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
@@ -46,6 +47,9 @@ class SecurityRouteIntegrationTest {
     private HttpSessionEventPublisher sessionEventPublisher;
 
     @Autowired
+    private ServletContext servletContext;
+
+    @Autowired
     private RoomRepository rooms;
 
     @Autowired
@@ -61,7 +65,7 @@ class SecurityRouteIntegrationTest {
                 .password("not-used")
                 .roles("ADMIN")
                 .build();
-        MockHttpSession session = new MockHttpSession();
+        MockHttpSession session = new MockHttpSession(servletContext);
         sessionRegistry.registerNewSession(session.getId(), principal);
 
         assertEquals(1, sessionRegistry.getAllSessions(principal, false).size());
