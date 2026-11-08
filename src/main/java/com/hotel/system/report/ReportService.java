@@ -86,7 +86,8 @@ public class ReportService {
                 LinkedHashMap::new, Collectors.counting()));
         Map<LocalDate, Long> byCheckInDate = bookings.stream().collect(Collectors.groupingBy(
                 Reservation::getCheckInDate, LinkedHashMap::new, Collectors.counting()));
-        Map<LocalDate, Long> byCreatedDate = bookings.stream()
+        List<Reservation> requestsCreated = reservations.findByCreatedAtBetweenOrderByCreatedAtAsc(start, end);
+        Map<LocalDate, Long> byCreatedDate = requestsCreated.stream()
                 .filter(reservation -> reservation.getCreatedAt() != null)
                 .collect(Collectors.groupingBy(
                         reservation -> reservation.getCreatedAt().atZone(zone).toLocalDate(),
