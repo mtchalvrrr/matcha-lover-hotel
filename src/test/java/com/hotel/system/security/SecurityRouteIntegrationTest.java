@@ -112,6 +112,35 @@ class SecurityRouteIntegrationTest {
     }
 
     @Test
+    void publicAvailabilitySearchExcludesRoomsWithOverlappingReservations() throws Exception {
+        Room room = new Room();
+        room.setRoomCode("BUSY-01");
+        room.setName("Busy Room");
+        room.setRoomType("Standard");
+        room.setDescription("Room reserved for the requested dates.");
+        room.setCapacity(2);
+        room.setNightlyRate(new BigDecimal("1200.00"));
+        room.setAmenities("Wi-Fi");
+        Room saved = rooms.save(room);
+        reservations.save(new Reservation(null, "existing-guest", "existing@example.com", saved.getId(),
+                saved.getRoomCode(), saved.getName(), java.time.LocalDate.of(2026, 12, 10),
+                java.time.LocalDate.of(2026, 12, 12), 2, 2,
+                new BigDecimal("1200.00"), new BigDecimal("2400.00")));
+
+        mvc.perform(get("/rooms").param("checkIn", "2026-12-10")
+                        .param("checkOut", "2026-12-12").param("guests", "2"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "No rooms are available for the selected dates")));
+
+        mvc.perform(get("/rooms/{id}", saved.getId()).param("checkIn", "2026-12-10")
+                        .param("checkOut", "2026-12-12").param("guests", "2"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "This room is not available")));
+    }
+
+    @Test
     void publicHotelChatCanRedirectGuestsToRoomCatalog() throws Exception {
         mvc.perform(post("/api/chat")
                         .with(csrf())
