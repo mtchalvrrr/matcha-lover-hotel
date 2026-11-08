@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My Profile | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer/dashboard}">Customer dashboard</a></header>
+<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer/dashboard}">Customer dashboard</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / ACCOUNT</p><h1>My<br><em>profile.</em></h1><p class="intro">Keep your account information current and manage your password.</p></section>
 <p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
 <form class="auth-card wide-form" th:action="@{/customer/profile}" method="post"><h2>Personal information</h2>
