@@ -17,10 +17,11 @@ public class RoomRatingController {
 
     @PostMapping("/customer/reservations/{id}/rating")
     public String submitRating(@PathVariable Long id, @RequestParam int stars,
+                               @RequestParam(required = false) String reviewText,
                                Authentication authentication, RedirectAttributes redirect) {
         try {
-            ratings.rateCompletedStay(id, authentication.getName(), stars);
-            redirect.addFlashAttribute("success", "Thank you. Your room rating has been saved.");
+            ratings.rateCompletedStay(id, authentication.getName(), stars, reviewText);
+            redirect.addFlashAttribute("success", "Thank you. Your rating and feedback have been saved.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
