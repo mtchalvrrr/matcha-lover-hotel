@@ -35,7 +35,7 @@ class DashboardServiceTest {
         Clock clock = Clock.fixed(Instant.parse("2026-11-08T16:30:00Z"), ZoneId.of("Asia/Manila"));
 
         when(reservations.countByCheckInDateAndStatusIn(LocalDate.of(2026, 11, 9),
-                List.of(ReservationStatus.APPROVED))).thenReturn(3L);
+                List.of(ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN))).thenReturn(3L);
         when(reservations.countByCheckOutDateAndStatusIn(LocalDate.of(2026, 11, 9),
                 List.of(ReservationStatus.CHECKED_IN))).thenReturn(2L);
         when(payments.sumAmountByStatus(PaymentStatus.PAID)).thenReturn(BigDecimal.ZERO);
