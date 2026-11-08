@@ -66,6 +66,25 @@ public class RegistrationController {
         return "redirect:/register/verify";
     }
 
+
+    @GetMapping("/registration/status")
+    public String registrationStatusForm() {
+        return "registration/status-form";
+    }
+
+    @PostMapping("/registration/status")
+    public String registrationStatus(@RequestParam Long applicationId,
+                                     @RequestParam String email,
+                                     Model model) {
+        try {
+            model.addAttribute("application", registrations.findStatus(applicationId, email));
+            return "registration/status";
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("error", "No matching registration application was found. Check your reference and email.");
+            return "registration/status-form";
+        }
+    }
+
     @GetMapping("/super-admin/registrations")
     public String pendingApplications(Model model) {
         model.addAttribute("applications", registrations.pendingReview());
