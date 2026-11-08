@@ -362,7 +362,7 @@ public class PayMongoService {
     private BigDecimal expectedAmountBeforePayment(Reservation reservation, Payment paidPayment) {
         BigDecimal paidIncludingThis = paidAmountForReservation(reservation.getId());
         BigDecimal paidBefore = paidIncludingThis.subtract(paidPayment.getAmount()).max(BigDecimal.ZERO);
-        if (paidPayment.getType() == PaymentType.DOWN_PAYMENT && paidBefore.signum() == 0) {
+        if (paidPayment.getPaymentType() == PaymentType.DOWN_PAYMENT && paidBefore.signum() == 0) {
             return reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
                     .setScale(2, RoundingMode.HALF_UP);
         }
@@ -372,7 +372,7 @@ public class PayMongoService {
 
     private BigDecimal expectedCurrentDue(Reservation reservation, Payment pendingPayment) {
         BigDecimal paid = paidAmountForReservation(reservation.getId());
-        if (pendingPayment.getType() == PaymentType.DOWN_PAYMENT && paid.signum() == 0) {
+        if (pendingPayment.getPaymentType() == PaymentType.DOWN_PAYMENT && paid.signum() == 0) {
             return reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
                     .setScale(2, RoundingMode.HALF_UP);
         }
