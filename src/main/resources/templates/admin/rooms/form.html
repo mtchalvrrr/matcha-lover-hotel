@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${pageTitle + ' | [HOTEL NAME]'}">Room form</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/rooms}">Back to room list</a></header>
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/rooms}">Back to room list</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / ROOM MANAGEMENT</p><h1 th:text="${pageTitle}">Add room</h1></section>
 <form class="auth-card wide-form" th:object="${room}" th:action="${room.id == null ? '/admin/rooms' : '/admin/rooms/' + room.id}" method="post">
 <p class="alert alert-error" th:if="${formError}" th:text="${formError}"></p>
