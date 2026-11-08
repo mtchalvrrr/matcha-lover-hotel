@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,7 @@ public class ReportController {
         this.hotelName = hotelName;
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN') or @adminPermissionService.isEnabled('REPORT_VIEW')")
     @GetMapping({"/admin/reports", "/super-admin/reports"})
     public String reports(@RequestParam(required = false) LocalDate from,
                           @RequestParam(required = false) LocalDate to, Model model,
@@ -79,6 +81,7 @@ public class ReportController {
                 .orElse("No activity");
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN') or @adminPermissionService.isEnabled('REPORT_VIEW')")
     @GetMapping({"/admin/reports/export.csv", "/super-admin/reports/export.csv"})
     public ResponseEntity<byte[]> exportCsv(@RequestParam LocalDate from, @RequestParam LocalDate to) {
         ReportSummary summary;
@@ -116,6 +119,11 @@ public class ReportController {
         append(csv, "Summary", "Refunded amount PHP", summary.refundedAmount());
         append(csv, "Summary", "Outstanding balance PHP", summary.outstandingBalance());
         append(csv, "", "", "");
+        append(csv, "Actual collected revenue by room", "Room", "Collected revenue PHP");
+        for (Map.Entry<String, BigDecimal> entry : summary.roomRevenue().entrySet()) {
+            append(csv, "Actual collected revenue by room", entry.getKey(), entry.getValue());
+        }
+        append(csv, "", "", "");
         append(csv, "Reservations by room", "Room", "Reservations");
         for (Map.Entry<String, Long> entry : summary.bookingsByRoom().entrySet()) {
             append(csv, "Bookings by room", entry.getKey(), entry.getValue());
@@ -148,6 +156,7 @@ public class ReportController {
                 .body(csv.toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    @PreAuthorize("hasRole('SUPER_ADMIN') or @adminPermissionService.isEnabled('REPORT_VIEW')")
     @GetMapping({"/admin/reports/export.pdf", "/super-admin/reports/export.pdf"})
     public ResponseEntity<byte[]> exportPdf(@RequestParam LocalDate from,
                                             @RequestParam LocalDate to) throws IOException {
@@ -195,6 +204,9 @@ public class ReportController {
         lines.add("Gross payments received: " + summary.paidRevenue());
         lines.add("Refunded: " + summary.refundedAmount());
         lines.add("Outstanding balance: " + summary.outstandingBalance());
+        lines.add("");
+        lines.add("ACTUAL COLLECTED REVENUE BY ROOM (PHP)");
+        summary.roomRevenue().forEach((room, amount) -> lines.add(room + ": " + amount));
         lines.add("");
         lines.add("RESERVATIONS BY ROOM");
         summary.bookingsByRoom().forEach((room, count) -> lines.add(room + ": " + count));
