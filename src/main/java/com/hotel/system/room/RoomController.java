@@ -2,6 +2,10 @@ package com.hotel.system.room;
 
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import java.time.Clock;
+import java.time.LocalDate;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -10,9 +14,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class RoomController {
     private final RoomService rooms;
+    private final Clock clock;
 
-    public RoomController(RoomService rooms) {
+    public RoomController(RoomService rooms, Clock clock) {
         this.rooms = rooms;
+        this.clock = clock;
     }
 
     @GetMapping("/rooms")
@@ -22,8 +28,12 @@ public class RoomController {
     }
 
     @GetMapping("/rooms/{id}")
-    public String roomDetails(@PathVariable Long id, Model model) {
+    public String roomDetails(@PathVariable Long id, Model model, Authentication authentication) {
         model.addAttribute("room", rooms.getPublicRoom(id));
+        boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
+        model.addAttribute("customerSignedIn", customerSignedIn);
+        model.addAttribute("minimumDate", LocalDate.now(clock).plusDays(1));
         return "rooms/detail";
     }
 
