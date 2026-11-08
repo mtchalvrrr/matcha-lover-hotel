@@ -32,6 +32,13 @@ public class Payment {
     private Instant createdAt = Instant.now();
     @Column(name = "refunded_at")
     private Instant refundedAt;
+    @Column(name = "provider_checkout_session_id", unique = true, length = 100)
+    private String providerCheckoutSessionId;
+    @Column(name = "checkout_url", length = 1000)
+    private String checkoutUrl;
+    @Column(name = "provider_payment_id", length = 100)
+    private String providerPaymentId;
+
     @Version
     @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
     private long version;
@@ -58,6 +65,29 @@ public class Payment {
     public PaymentStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getRefundedAt() { return refundedAt; }
+    public String getProviderCheckoutSessionId() { return providerCheckoutSessionId; }
+    public String getCheckoutUrl() { return checkoutUrl; }
+    public String getProviderPaymentId() { return providerPaymentId; }
+
+    public void attachCheckoutSession(String sessionId, String url) {
+        if (status != PaymentStatus.PENDING || sessionId == null || sessionId.isBlank()
+                || url == null || !url.startsWith("https://")) {
+            throw new IllegalStateException("A valid pending checkout session is required.");
+        }
+        this.providerCheckoutSessionId = sessionId;
+        this.checkoutUrl = url;
+    }
+
+    public void markPaidFromProvider(String sessionId, String providerPaymentId) {
+        if (status == PaymentStatus.PAID) return;
+        if (status != PaymentStatus.PENDING
+                || providerCheckoutSessionId == null
+                || !providerCheckoutSessionId.equals(sessionId)) {
+            throw new IllegalStateException("The payment does not match an active provider checkout.");
+        }
+        status = PaymentStatus.PAID;
+        this.providerPaymentId = providerPaymentId;
+    }
 
     public void markRefunded(Instant refundedAt) {
         if (status != PaymentStatus.PAID) {
