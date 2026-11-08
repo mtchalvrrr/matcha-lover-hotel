@@ -26,9 +26,9 @@ The three portals are separate entry points within one coordinated backend, not 
 
 - Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, and temporary lockout.
 - Customer registration application with ID upload, email OTP verification, and Super Admin approval/rejection.
-- Customer profile updates, password changes, and expiring password-reset tokens.
+- Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
 - Public room catalog, room details, filters, sorting, photo galleries, and admin room/photo management.
-- Online reservation requests, shared room-date conflict checks, Admin approval/rejection, walk-in bookings, check-in, checkout, and no-show processing.
+- Online reservation requests and modification with shared room-date conflict checks, Admin approval/rejection, walk-in bookings, check-in, checkout, and no-show processing.
 - Configurable hotel check-in/check-out times, including same-day time validation.
 - 50% down payment and balance tracking. The default payment mode is simulated; it does not collect real money.
 - Audited payment refund/void status workflows.
@@ -92,7 +92,7 @@ Do not add:
 
 ## Remaining completion and release work
 
-The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including reservation modification/history policies, customer account deactivation requests, advanced payment reconciliation and real gateway integration (if enabled), printable receipts and report exports, complete operational dashboards, full email delivery verification, and comprehensive end-to-end/security testing.
+The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including fuller reservation history policies, advanced payment reconciliation and real gateway integration (if enabled), printable receipts and report exports, complete operational dashboards, full email delivery verification, and comprehensive end-to-end/security testing.
 
 ## Verification policy
 
