@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
-    private static final List<ReservationStatus> OCCUPANCY_STATUSES =
-            List.of(ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT);
+    private static final List<ReservationStatus> SCHEDULED_OCCUPANCY_STATUSES =
+            List.of(ReservationStatus.APPROVED);
+    private static final List<ReservationStatus> ACTUAL_STAY_STATUSES =
+            List.of(ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT);
 
     private final ReservationRepository reservations;
     private final PaymentRepository payments;
@@ -54,13 +57,14 @@ public class ReportService {
         }
 
         List<Reservation> bookings = reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to);
-        List<Reservation> overlappingStays =
-                reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                        to.plusDays(1), from, OCCUPANCY_STATUSES);
-
         ZoneId zone = clock.getZone();
         Instant start = from.atStartOfDay(zone).toInstant();
         Instant end = to.plusDays(1).atStartOfDay(zone).toInstant();
+        List<Reservation> overlappingStays = new ArrayList<>(
+                reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+                        to.plusDays(1), from, SCHEDULED_OCCUPANCY_STATUSES));
+        overlappingStays.addAll(reservations.findActualStaysOverlapping(
+                ACTUAL_STAY_STATUSES, end, from, start));
         // Preserve the original receipt in payment-date reports even if it is refunded later.
         // Refunds are reported separately using refundedAt.
         List<Payment> paidPayments = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
