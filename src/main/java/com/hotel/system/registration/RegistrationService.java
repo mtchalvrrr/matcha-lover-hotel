@@ -150,6 +150,14 @@ public class RegistrationService {
 
     }
 
+    public RegistrationApplication findStatus(Long applicationId, String email) {
+        if (applicationId == null || email == null || email.isBlank() || email.length() > 254) {
+            throw new IllegalArgumentException("No matching registration application was found.");
+        }
+        return applications.findByIdAndEmailIgnoreCase(applicationId, email.trim().toLowerCase())
+                .orElseThrow(() -> new IllegalArgumentException("No matching registration application was found."));
+    }
+
     public RegistrationApplication get(Long id) {
         return applications.findById(id).orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
     }
