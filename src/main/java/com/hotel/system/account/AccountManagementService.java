@@ -2,6 +2,8 @@ package com.hotel.system.account;
 
 import com.hotel.system.audit.AuditService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -12,11 +14,14 @@ public class AccountManagementService {
     private final SystemUserRepository users;
     private final PasswordEncoder encoder;
     private final AuditService audit;
+    private final SessionRegistry sessionRegistry;
 
-    public AccountManagementService(SystemUserRepository users, PasswordEncoder encoder, AuditService audit) {
+    public AccountManagementService(SystemUserRepository users, PasswordEncoder encoder, AuditService audit,
+                                    SessionRegistry sessionRegistry) {
         this.users = users;
         this.encoder = encoder;
         this.audit = audit;
+        this.sessionRegistry = sessionRegistry;
     }
 
     @Transactional(readOnly = true)
@@ -46,8 +51,17 @@ public class AccountManagementService {
         }
         if (target.isActive() == active) return;
         target.setActive(active);
+        if (!active) expireSessions(target.getUsername());
         audit.record(actor, active ? "ACCOUNT_REACTIVATED" : "ACCOUNT_SUSPENDED",
             "SYSTEM_USER", id.toString(), "Changed " + target.getRole() + " account " + target.getUsername());
+    }
+
+    private void expireSessions(String username) {
+        sessionRegistry.getAllPrincipals().stream()
+                .filter(principal -> principal instanceof UserDetails details
+                        && details.getUsername().equalsIgnoreCase(username))
+                .forEach(principal -> sessionRegistry.getAllSessions(principal, false)
+                        .forEach(session -> session.expireNow()));
     }
 
     private void validateCredentials(String username, String email, String password) {
