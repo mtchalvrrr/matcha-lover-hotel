@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Admin Dashboard | [HOTEL NAME]</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="shell narrow">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form>
+    </header>
+    <section class="portal-hero">
+        <p class="eyebrow">SUPER ADMIN PORTAL</p>
+        <h1>System control</h1>
+        <p class="intro">Your SUPER_ADMIN account is signed in. Account approvals, administrator management, and audit tools will be added next.</p>
+    </section>
+    <p class="notice">Authentication is active. This dashboard is a protected placeholder; operational features are not implemented yet.</p>
+</main>
+</body>
+</html>
