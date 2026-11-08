@@ -145,95 +145,100 @@ public class PayMongoService {
     public void handleWebhook(byte[] rawBody, String signatureHeader) {
         requireTestConfiguration();
         verifySignature(rawBody, signatureHeader);
+
+        JsonNode root;
         try {
-            JsonNode root = mapper.readTree(rawBody);
-            JsonNode event = root.path("data");
-            JsonNode eventAttributes = event.path("attributes");
-            String eventId = event.path("id").asText("");
-            if (!eventId.isBlank() && processedEvents.existsByEventId(eventId)) return;
-            boolean liveMode = eventAttributes.path("livemode").asBoolean(
-                    event.path("livemode").asBoolean(false));
-            if (liveMode) {
-                throw new IllegalArgumentException("Live-mode PayMongo events are not accepted by this test integration.");
-            }
-            String eventType = eventAttributes.path("type").asText(event.path("type").asText(""));
-            if ("payment.refund.updated".equals(eventType) || "payment.refunded".equals(eventType)) {
-                processRefundWebhook(eventAttributes.path("data"));
-                recordProcessedEvent(eventId, eventType);
-                return;
-            }
-            if ("payment.failed".equals(eventType) || "checkout_session.payment.failed".equals(eventType)) {
-                processFailedPaymentWebhook(eventAttributes.path("data"));
-                recordProcessedEvent(eventId, eventType);
-                return;
-            }
-            if ("payment.paid".equals(eventType)) {
-                processDirectPaymentPaidWebhook(eventAttributes.path("data"));
-                recordProcessedEvent(eventId, eventType);
-                return;
-            }
-            if (!"checkout_session.payment.paid".equals(eventType)) return;
-            JsonNode session = eventAttributes.path("data");
-            if (session.isMissingNode() || session.isNull()) session = event.path("data");
-            String sessionId = session.path("id").asText("");
-            JsonNode attributes = session.path("attributes");
-            String reference = attributes.path("reference_number").asText("");
-            JsonNode paidEntries = attributes.path("payments");
-            JsonNode paidEntry = null;
-            if (paidEntries.isArray()) {
-                for (JsonNode candidate : paidEntries) {
-                    if ("paid".equalsIgnoreCase(candidate.path("attributes").path("status").asText())) {
-                        paidEntry = candidate;
-                        break;
-                    }
+            root = mapper.readTree(rawBody);
+        } catch (java.io.IOException ex) {
+            throw new IllegalArgumentException("The PayMongo webhook payload is not valid JSON.", ex);
+        }
+
+        JsonNode event = root.path("data");
+        JsonNode eventAttributes = event.path("attributes");
+        String eventId = event.path("id").asText("");
+        if (!eventId.isBlank() && processedEvents.existsByEventId(eventId)) return;
+
+        boolean liveMode = eventAttributes.path("livemode").asBoolean(
+                event.path("livemode").asBoolean(false));
+        if (liveMode) {
+            throw new IllegalArgumentException("Live-mode PayMongo events are not accepted by this test integration.");
+        }
+        String eventType = eventAttributes.path("type").asText(event.path("type").asText(""));
+
+        if ("payment.refund.updated".equals(eventType) || "payment.refunded".equals(eventType)) {
+            processRefundWebhook(eventAttributes.path("data"));
+            recordProcessedEvent(eventId, eventType);
+            return;
+        }
+        if ("payment.failed".equals(eventType) || "checkout_session.payment.failed".equals(eventType)) {
+            processFailedPaymentWebhook(eventAttributes.path("data"));
+            recordProcessedEvent(eventId, eventType);
+            return;
+        }
+        if ("payment.paid".equals(eventType)) {
+            processDirectPaymentPaidWebhook(eventAttributes.path("data"));
+            recordProcessedEvent(eventId, eventType);
+            return;
+        }
+        if (!"checkout_session.payment.paid".equals(eventType)) return;
+
+        JsonNode session = eventAttributes.path("data");
+        if (session.isMissingNode() || session.isNull()) session = event.path("data");
+        String sessionId = session.path("id").asText("");
+        JsonNode attributes = session.path("attributes");
+        String reference = attributes.path("reference_number").asText("");
+        JsonNode paidEntries = attributes.path("payments");
+        JsonNode paidEntry = null;
+        if (paidEntries.isArray()) {
+            for (JsonNode candidate : paidEntries) {
+                if ("paid".equalsIgnoreCase(candidate.path("attributes").path("status").asText())) {
+                    paidEntry = candidate;
+                    break;
                 }
             }
-            if (reference.isBlank() || sessionId.isBlank() || paidEntry == null)
-                throw new IllegalArgumentException("The paid checkout webhook is incomplete.");
-            JsonNode paidAttributes = paidEntry.path("attributes");
-            if (!"PHP".equalsIgnoreCase(paidAttributes.path("currency").asText()))
-                throw new IllegalArgumentException("The webhook currency does not match PHP.");
-            Payment payment = payments.findByTransactionReference(reference)
-                    .orElseThrow(() -> new IllegalArgumentException("No matching hotel payment was found."));
-            long providerAmount = paidAttributes.path("amount").asLong(-1);
-            long expectedAmount = payment.getAmount().movePointRight(2).longValueExact();
-            if (providerAmount != expectedAmount)
-                throw new IllegalArgumentException("The provider payment amount does not match the hotel payment.");
-            if (payment.getStatus() == PaymentStatus.PAID) {
-                recordProcessedEvent(eventId, eventType);
-                return;
-            }
-            if (!Objects.equals(payment.getProviderCheckoutSessionId(), sessionId))
-                throw new IllegalArgumentException("The checkout session does not match the pending hotel payment.");
-            String providerPaymentId = paidEntry.path("id").asText("");
-            payment.markPaidFromProvider(sessionId, providerPaymentId);
-            audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
-                    "Verified PayMongo checkout payment; provider reference " + providerPaymentId);
-            notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
-                    "Your PayMongo payment of ₱" + payment.getAmount()
-                            + " for reservation #" + payment.getReservationId() + " has been confirmed.", "PAYMENT");
-            Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
-            if (linkedReservation == null
-                    || (linkedReservation.getStatus() != ReservationStatus.APPROVED
-                        && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
-                notifications.notifyAdmins("Payment received for inactive reservation",
-                        "PayMongo confirmed payment #" + payment.getId()
-                                + " for a reservation that is no longer active. Review and refund if required.", "PAYMENT");
-            } else if (!expectedAmountBeforePayment(linkedReservation, payment)
-                    .equals(payment.getAmount())) {
-                audit.record("PAYMONGO_WEBHOOK", "PAYMENT_AMOUNT_STALE", "PAYMENT", payment.getId().toString(),
-                        "The payment was successful but the reservation amount changed after checkout creation.");
-                notifications.notifyAdmins("Payment needs reservation reconciliation",
-                        "PayMongo confirmed payment #" + payment.getId()
-                                + " but the reservation total changed after checkout creation. Review the outstanding balance or refund.",
-                        "PAYMENT");
-            }
-            recordProcessedEvent(eventId, eventType);
-        } catch (IllegalArgumentException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("The PayMongo webhook payload could not be processed.", ex);
         }
+        if (reference.isBlank() || sessionId.isBlank() || paidEntry == null)
+            throw new IllegalArgumentException("The paid checkout webhook is incomplete.");
+        JsonNode paidAttributes = paidEntry.path("attributes");
+        if (!"PHP".equalsIgnoreCase(paidAttributes.path("currency").asText()))
+            throw new IllegalArgumentException("The webhook currency does not match PHP.");
+        Payment payment = payments.findByTransactionReference(reference)
+                .orElseThrow(() -> new IllegalArgumentException("No matching hotel payment was found."));
+        long providerAmount = paidAttributes.path("amount").asLong(-1);
+        long expectedAmount = payment.getAmount().movePointRight(2).longValueExact();
+        if (providerAmount != expectedAmount)
+            throw new IllegalArgumentException("The provider payment amount does not match the hotel payment.");
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            recordProcessedEvent(eventId, eventType);
+            return;
+        }
+        if (!Objects.equals(payment.getProviderCheckoutSessionId(), sessionId))
+            throw new IllegalArgumentException("The checkout session does not match the pending hotel payment.");
+
+        String providerPaymentId = paidEntry.path("id").asText("");
+        payment.markPaidFromProvider(sessionId, providerPaymentId);
+        audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
+                "Verified PayMongo checkout payment; provider reference " + providerPaymentId);
+        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
+                "Your PayMongo payment of ₱" + payment.getAmount()
+                        + " for reservation #" + payment.getReservationId() + " has been confirmed.", "PAYMENT");
+        Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
+        if (linkedReservation == null
+                || (linkedReservation.getStatus() != ReservationStatus.APPROVED
+                    && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
+            notifications.notifyAdminsInAppOnly("Payment received for inactive reservation",
+                    "PayMongo confirmed payment #" + payment.getId()
+                            + " for a reservation that is no longer active. Review and refund if required.",
+                    "PAYMENT", "PAYMONGO-INACTIVE-RESERVATION-" + payment.getId());
+        } else if (!expectedAmountBeforePayment(linkedReservation, payment).equals(payment.getAmount())) {
+            audit.record("PAYMONGO_WEBHOOK", "PAYMENT_AMOUNT_STALE", "PAYMENT", payment.getId().toString(),
+                    "The payment was successful but the reservation amount changed after checkout creation.");
+            notifications.notifyAdminsInAppOnly("Payment needs reservation reconciliation",
+                    "PayMongo confirmed payment #" + payment.getId()
+                            + " but the reservation total changed after checkout creation. Review the outstanding balance or refund.",
+                    "PAYMENT", "PAYMONGO-STALE-AMOUNT-" + payment.getId());
+        }
+        recordProcessedEvent(eventId, eventType);
     }
 
     private BigDecimal paidAmountForReservation(Long reservationId) {
