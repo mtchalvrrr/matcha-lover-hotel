@@ -11,7 +11,7 @@
 <div class="gallery-main-row">
 <button type="button" class="gallery-arrow" id="galleryPrevious" aria-label="Previous photo">‹</button>
 <button type="button" class="gallery-active" id="galleryOpenLightbox" aria-label="Open photo zoom">
-<img id="galleryActiveImage" th:src="${photos[0].publicPath}" th:alt="${room.name + ' photo'}">
+<img id="galleryActiveImage" th:alt="${room.name + ' photo'}" alt="Room photo">
 <span class="gallery-zoom-hint">Click to enlarge</span>
 </button>
 <button type="button" class="gallery-arrow" id="galleryNext" aria-label="Next photo">›</button>
