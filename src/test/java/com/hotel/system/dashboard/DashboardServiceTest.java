@@ -35,9 +35,11 @@ class DashboardServiceTest {
         Clock clock = Clock.fixed(Instant.parse("2026-11-08T16:30:00Z"), ZoneId.of("Asia/Manila"));
 
         when(reservations.countByCheckInDateAndStatusIn(LocalDate.of(2026, 11, 9),
-                List.of(ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN))).thenReturn(3L);
+                List.of(ReservationStatus.APPROVED))).thenReturn(3L);
         when(reservations.countByCheckOutDateAndStatusIn(LocalDate.of(2026, 11, 9),
                 List.of(ReservationStatus.CHECKED_IN))).thenReturn(2L);
+        when(reservations.countByCheckedInAtBetween(any(), any())).thenReturn(0L);
+        when(reservations.countByCheckedOutAtBetween(any(), any())).thenReturn(0L);
         when(payments.sumAmountByStatus(PaymentStatus.PAID)).thenReturn(BigDecimal.ZERO);
         when(audit.findTop5ByOrderByCreatedAtDesc()).thenReturn(List.of());
 
@@ -51,5 +53,7 @@ class DashboardServiceTest {
                 List.of(ReservationStatus.APPROVED));
         verify(reservations).countByCheckOutDateAndStatusIn(LocalDate.of(2026, 11, 9),
                 List.of(ReservationStatus.CHECKED_IN));
+        verify(reservations).countByCheckedInAtBetween(any(), any());
+        verify(reservations).countByCheckedOutAtBetween(any(), any());
     }
 }
