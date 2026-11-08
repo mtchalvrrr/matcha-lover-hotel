@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -26,12 +28,13 @@ public class DashboardService {
     private final RegistrationRepository registrations;
     private final AccountDeactivationRequestRepository deactivations;
     private final AuditLogRepository audit;
+    private final Clock clock;
 
     public DashboardService(ReservationRepository reservations, RoomRepository rooms,
                             PaymentRepository payments, SystemUserRepository users,
                             RegistrationRepository registrations,
                             AccountDeactivationRequestRepository deactivations,
-                            AuditLogRepository audit) {
+                            AuditLogRepository audit, Clock clock) {
         this.reservations = reservations;
         this.rooms = rooms;
         this.payments = payments;
@@ -39,6 +42,7 @@ public class DashboardService {
         this.registrations = registrations;
         this.deactivations = deactivations;
         this.audit = audit;
+        this.clock = clock;
     }
 
     public AdminSummary adminSummary() {
@@ -48,6 +52,10 @@ public class DashboardService {
                 reservations.countByStatus(ReservationStatus.APPROVED),
                 reservations.countByStatus(ReservationStatus.CHECKED_IN),
                 reservations.countByStatus(ReservationStatus.CHECKED_OUT),
+                reservations.countByCheckInDateAndStatusIn(LocalDate.now(clock),
+                        List.of(ReservationStatus.APPROVED)),
+                reservations.countByCheckOutDateAndStatusIn(LocalDate.now(clock),
+                        List.of(ReservationStatus.CHECKED_IN)),
                 rooms.countByActiveTrue(),
                 payments.sumAmountByStatus(PaymentStatus.PAID),
                 audit.findTop5ByOrderByCreatedAtDesc()
@@ -77,7 +85,7 @@ public class DashboardService {
 
     public record AdminSummary(long totalReservations, long pendingReservations,
                                long approvedReservations, long checkedInReservations,
-                               long checkedOutReservations, long activeRooms,
+                               long checkedOutReservations, long arrivalsToday, long departuresToday, long activeRooms,
                                BigDecimal paidRevenue, List<AuditLog> recentActivity) { }
 
     public record CustomerSummary(long pendingReservations, long approvedReservations,
