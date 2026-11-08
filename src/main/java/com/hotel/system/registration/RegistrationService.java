@@ -7,6 +7,8 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import java.util.List;
 @Service
 @Transactional
 public class RegistrationService {
+    private static final Logger log = LoggerFactory.getLogger(RegistrationService.class);
     private static final List<RegistrationStatus> ACTIVE_APPLICATIONS =
         List.of(RegistrationStatus.PENDING_OTP, RegistrationStatus.PENDING_REVIEW);
     private static final List<RegistrationStatus> DOCUMENT_HASH_BLOCKING_STATUSES =
@@ -167,6 +170,18 @@ public class RegistrationService {
             users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(), app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
             notifications.notifyUser(app.getUsername(), "Customer account approved",
                 "Your customer account has been approved. You can now sign in.", "ACCOUNT");
+        } else if (fromAddress != null && !fromAddress.isBlank()) {
+            try {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom(fromAddress);
+                message.setTo(app.getEmail());
+                message.setSubject("[HOTEL NAME] — Registration application update");
+                message.setText("Your customer registration application was not approved. Reason: "
+                        + reviewReason + ". You may contact the hotel if you need clarification.");
+                mail.send(message);
+            } catch (RuntimeException ex) {
+                log.warn("Registration rejection email could not be delivered for application {}", id);
+            }
         }
         audit.record(reviewer, approve ? "CUSTOMER_REGISTRATION_APPROVED" : "CUSTOMER_REGISTRATION_REJECTED",
             "REGISTRATION", id.toString(), "Applicant " + app.getUsername() + ". " + reviewReason);
