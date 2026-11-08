@@ -71,4 +71,4 @@ public class PasswordRecoveryController {
                     "HOTEL_PUBLIC_BASE_URL must be a valid absolute HTTP(S) URL without credentials, query, or fragment.", ex);
         }
     }
-}}
+}
