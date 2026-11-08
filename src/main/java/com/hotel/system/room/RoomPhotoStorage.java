@@ -78,9 +78,11 @@ public class RoomPhotoStorage {
     }
 
     public void delete(String name) {
-        if (name == null || name.contains("/") || name.contains("\\")) return;
+        if (name == null || !name.matches("[A-Za-z0-9-]+\\.(jpg|jpeg|png|webp)")) return;
+        Path target = root.resolve(name).normalize();
+        if (!target.startsWith(root)) return;
         try {
-            Files.deleteIfExists(root.resolve(name).normalize());
+            Files.deleteIfExists(target);
         } catch (IOException ex) {
             throw new IllegalStateException("Unable to delete room photo.", ex);
         }
