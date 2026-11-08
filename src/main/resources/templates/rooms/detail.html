@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
+<section class="portal-hero">
+<p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 th:text="${room.name}">Room name</h1>
+<div class="detail-image" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><img th:src="@{\${room.coverImagePath}}" th:alt="${room.name}"></div>
+<p class="intro" th:text="${room.description}">Room description</p>
+<div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
+<h2>Amenities</h2><p th:text="${room.amenities != null and !#strings.isEmpty(room.amenities) ? room.amenities : 'Please contact the hotel for amenity details.'}">Amenities</p>
+<div class="action-row"><a class="primary-link" th:href="@{/customer/login}">Sign in to reserve</a><a class="secondary-link" th:href="@{/rooms}">Browse other rooms</a></div>
+</section><footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
+</main></body></html>
