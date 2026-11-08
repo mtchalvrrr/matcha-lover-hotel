@@ -419,3 +419,16 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 .room-availability-form input{min-height:43px;padding:0 11px;border:1px solid #d6e1d0;border-radius:11px;background:#fffef9;color:#304c39}
 .room-availability-form .primary-button{min-height:43px;white-space:nowrap}
 @media(max-width:760px){.room-availability-form{grid-template-columns:1fr 1fr}.room-availability-form .primary-button{grid-column:1/-1}}
+
+
+/* Verified customer room ratings */
+.room-rating-display{display:flex;align-items:center;gap:6px;margin:0 0 13px;color:#9a742b;font-size:11px;line-height:1.4}
+.room-rating-display strong{color:#72551f;font-size:12px}
+.room-rating-display span:last-child{color:#7a8778;font-size:10px}
+.room-rating-empty{color:#879382}
+.room-detail-rating{margin:18px 0}
+.customer-room-rating-form{display:grid;min-width:150px;gap:7px}
+.customer-room-rating-form label{color:#526b55;font-size:10px;font-weight:750}
+.customer-room-rating-form select{min-height:36px;padding:0 8px;border:1px solid #d6e1d0;border-radius:9px;background:#fffef9;color:#304c39;font-size:11px}
+.customer-room-rating-form .text-button{padding:7px 10px;font-size:10px}
+@media(max-width:760px){.customer-room-rating-form{min-width:125px}}
