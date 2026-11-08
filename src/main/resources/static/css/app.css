@@ -167,3 +167,10 @@
 .availability-tag{display:inline-block;margin-bottom:8px;padding:5px 8px;background:#edf3e9;color:#35583d;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 @media(max-width:760px){.availability-search{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.availability-search{grid-template-columns:1fr}}
+
+
+/* Live portal dashboard summaries */
+.dashboard-metrics{margin:0 0 28px}
+.dashboard-recent{margin:24px 0 32px}
+.dashboard-recent h2{font-family:Georgia,serif;font-weight:400;font-size:25px;margin:0 0 14px}
+.dashboard-recent .table-wrap{background:#fff}
