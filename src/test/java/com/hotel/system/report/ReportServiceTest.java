@@ -64,6 +64,32 @@ class ReportServiceTest {
     }
 
     @Test
+    void calculatesOutstandingBalanceForApprovedReservations() {
+        LocalDate from = LocalDate.of(2026, 11, 10);
+        LocalDate to = LocalDate.of(2026, 11, 10);
+        Reservation approved = new Reservation(9L, "guest", "guest@example.com", 1L,
+                "A-01", "Garden Room", from, from.plusDays(2), 2, 2,
+                new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        approved.changeStatus(ReservationStatus.APPROVED);
+        when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
+                .thenReturn(List.of(approved));
+        when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
+                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                .thenReturn(List.of(approved));
+        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
+                .thenReturn(List.of());
+        when(payments.sumPaidForReservation(9L, com.hotel.system.payment.PaymentStatus.PAID))
+                .thenReturn(new BigDecimal("500.00"));
+        when(rooms.countByActiveTrue()).thenReturn(1L);
+
+        ReportSummary summary = service.summarize(from, to);
+
+        assertEquals(new BigDecimal("1500.00"), summary.outstandingBalance());
+        assertEquals(BigDecimal.ZERO, summary.refundedAmount());
+    }
+
+    @Test
     void rejectsInvalidAndOverlongDateRanges() {
         assertThrows(IllegalArgumentException.class,
                 () -> service.summarize(LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 10)));
