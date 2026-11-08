@@ -507,9 +507,10 @@ public class PayMongoService {
                     != payment.getAmount().movePointRight(2).longValueExact()) {
             audit.record("PAYMONGO_WEBHOOK", "PAYMENT_RESOURCE_MISMATCH", "PAYMENT",
                     payment.getId().toString(), "PayMongo payment.paid event did not match the pending hotel payment amount, currency, or status.");
-            notifications.notifyAdmins("PayMongo payment needs reconciliation",
+            notifications.notifyAdminsInAppOnly("PayMongo payment needs reconciliation",
                     "A payment.paid event did not match the pending hotel payment record #" + payment.getId()
-                            + ". Check the provider dashboard.", "PAYMENT");
+                            + ". Check the provider dashboard.", "PAYMENT",
+                    "PAYMONGO-PAYMENT-MISMATCH-" + payment.getId());
             return;
         }
         payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
@@ -563,9 +564,10 @@ public class PayMongoService {
         if (refundAmount >= 0 && refundAmount != expectedRefundAmount) {
             audit.record("PAYMONGO_WEBHOOK", "UNSUPPORTED_PARTIAL_REFUND", "PAYMENT",
                     payment.getId().toString(), "Provider refund amount did not match the full hotel payment amount; manual reconciliation is required.");
-            notifications.notifyAdmins("Manual refund reconciliation required",
+            notifications.notifyAdminsInAppOnly("Manual refund reconciliation required",
                     "A partial or unexpected PayMongo refund was reported for payment #" + payment.getId()
-                            + ". The hotel payment status was not changed.", "PAYMENT");
+                            + ". The hotel payment status was not changed.", "PAYMENT",
+                    "PAYMONGO-PARTIAL-REFUND-" + payment.getId());
             return;
         }
         if ("succeeded".equals(status)) {
