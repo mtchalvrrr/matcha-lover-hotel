@@ -59,10 +59,14 @@ public class ReportService {
         ZoneId zone = clock.getZone();
         Instant start = from.atStartOfDay(zone).toInstant();
         Instant end = to.plusDays(1).atStartOfDay(zone).toInstant();
-        BigDecimal revenue = payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(
-                        start, end, PaymentStatus.PAID)
-                .stream().map(Payment::getAmount)
+        List<Payment> paidPayments = payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(
+                start, end, PaymentStatus.PAID);
+        BigDecimal revenue = paidPayments.stream().map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map<LocalDate, BigDecimal> revenueByPaymentDate = paidPayments.stream().collect(Collectors.groupingBy(
+                payment -> payment.getCreatedAt().atZone(zone).toLocalDate(),
+                LinkedHashMap::new,
+                Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)));
         BigDecimal refundedAmount = payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(
                         start, end, PaymentStatus.REFUNDED)
                 .stream().map(Payment::getAmount)
@@ -108,7 +112,8 @@ public class ReportService {
                 refundedAmount,
                 outstandingBalance,
                 byRoom,
-                byCheckInDate
+                byCheckInDate,
+                revenueByPaymentDate
         );
     }
 
