@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    List<Reservation> findByRoomIdAndStatusInOrderByCheckInDateAsc(Long roomId, Collection<ReservationStatus> statuses);
     List<Reservation> findByCustomerIdIn(Collection<Long> customerIds);
     List<Reservation> findAllByOrderByCreatedAtDesc();
     List<Reservation> findByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc(ReservationStatus status, java.time.Instant cutoff);
