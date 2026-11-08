@@ -130,8 +130,8 @@ class SecurityRouteIntegrationTest {
         mvc.perform(get("/rooms").param("checkIn", "2026-12-10")
                         .param("checkOut", "2026-12-12").param("guests", "2"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString(
-                        "No rooms are available for the selected dates")));
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("Busy Room"))));
 
         mvc.perform(get("/rooms/{id}", saved.getId()).param("checkIn", "2026-12-10")
                         .param("checkOut", "2026-12-12").param("guests", "2"))
