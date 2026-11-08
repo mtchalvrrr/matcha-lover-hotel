@@ -192,6 +192,16 @@ public class SecurityConfiguration {
                     ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
             .cacheControl(Customizer.withDefaults())
             .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
-                    "camera=(), microphone=(), geolocation=()")));
+                    "camera=(), microphone=(), geolocation=()"))
+            .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy",
+                    "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; "
+                    + "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
+                    + "font-src 'self' data:; connect-src 'self' https://api.groq.com https://www.google.com/recaptcha/ "
+                    + "https://www.gstatic.com/recaptcha/; frame-src https://www.google.com/recaptcha/ "
+                    + "https://recaptcha.google.com/recaptcha/; object-src 'none'; base-uri 'self'; "
+                    + "form-action 'self'; frame-ancestors 'none'"))
+            .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000)));
     }
 }
