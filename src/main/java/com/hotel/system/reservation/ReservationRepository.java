@@ -10,6 +10,9 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
     List<Reservation> findAllByOrderByCreatedAtDesc();
+    long countByStatus(ReservationStatus status);
+    long countByCustomerUsernameAndStatus(String username, ReservationStatus status);
+    long countByCustomerUsernameAndStatusIn(String username, Collection<ReservationStatus> statuses);
 
     @Query("select r from Reservation r where " +
            "(:query is null or lower(r.guestName) like lower(concat('%', :query, '%')) " +
