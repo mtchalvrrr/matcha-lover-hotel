@@ -36,7 +36,7 @@ The three portals are separate entry points within one coordinated backend, not 
 - In-app notifications, optional SMTP email notifications, and duplicate-safe scheduled check-in/check-out reminders.
 - Live Customer, Admin, and Super Admin dashboard metrics with recent activity and today's arrivals/departures, plus daily SQLite backups, 14-copy retention, and Super Admin backup downloads; Admin reports for reservation status (including no-shows, check-ins, and checkouts), online versus walk-in bookings, unique/new/returning customers, gross payments by payment date, refunds by refund date, outstanding balances, room popularity ranked from most to least reserved, daily reservation creation and check-in-date trends, scheduled booked room-night capacity, separately calculated actual occupied room nights and actual occupancy, peak booking/stay dates, print/PDF, and CSV export.
 - Hotel profile, contact, stay-time, and cancellation-policy settings.
-- Super Admin account management, customer application review and status tracking, searchable audit/security log with sign-in events and filtered CSV export, and database backup downloads.
+- Super Admin account management, customer application review and status tracking, searchable audit/security log with sign-in events, filtered CSV export, and hash-chain integrity verification (set `AUDIT_HMAC_KEY` for keyed HMAC protection), and database backup downloads.
 - Customer-facing hotel FAQ assistant with optional Groq AI integration, public room-page redirection, and per-session request limiting.
 
 ## Configuration
@@ -58,7 +58,7 @@ SMTP email:
 - `MAIL_PASSWORD`
 
 Optional Groq assistant:
-- `PAYMENT_MODE=PAYMONGO_TEST` (switches customer checkout to PayMongo test mode; do not use live keys in this integration)\n- `PAYMONGO_SECRET_KEY` (PayMongo test secret key beginning `sk_test_`)\n- `PAYMONGO_WEBHOOK_SECRET` (signing secret from the PayMongo webhook endpoint; separate from the API key)\n- Register `https://YOUR_PUBLIC_HOST/webhooks/paymongo` in PayMongo Developers → Webhooks and subscribe to `checkout_session.payment.paid`. Localhost is not reachable by PayMongo; use a public HTTPS tunnel for local webhook testing.\n\nCAPTCHA configuration:\n- `CAPTCHA_ENABLED=true`\n- `RECAPTCHA_SITE_KEY`\n- `RECAPTCHA_SECRET_KEY`\n\n- `AI_ENABLED=true`
+- `PAYMENT_MODE=PAYMONGO_TEST` (switches customer checkout to PayMongo test mode; do not use live keys in this integration)\n- `PAYMONGO_SECRET_KEY` (PayMongo test secret key beginning `sk_test_`)\n- `PAYMONGO_WEBHOOK_SECRET` (signing secret from the PayMongo webhook endpoint; separate from the API key)\n- Register `https://YOUR_PUBLIC_HOST/webhooks/paymongo` in PayMongo Developers → Webhooks and subscribe to `checkout_session.payment.paid`. Localhost is not reachable by PayMongo; use a public HTTPS tunnel for local webhook testing.\n\nCAPTCHA configuration:\n- `AUDIT_HMAC_KEY` (random secret of at least 32 bytes; enables keyed HMAC-SHA256 audit-chain protection)\n- `CAPTCHA_ENABLED=true`\n- `RECAPTCHA_SITE_KEY`\n- `RECAPTCHA_SECRET_KEY`\n\n- `AI_ENABLED=true`
 - `GROQ_API_KEY`
 - `GROQ_API_URL` (defaults to the Groq chat completions endpoint)
 - `GROQ_MODEL` (defaults to `llama-3.3-70b-versatile`)
