@@ -28,7 +28,10 @@ public class ReportController {
                           @RequestParam(required = false) LocalDate to, Model model) {
         LocalDate end = to == null ? LocalDate.now(clock) : to;
         LocalDate start = from == null ? end.minusDays(29) : from;
-        model.addAttribute("summary", reports.summarize(start, end));
+        ReportSummary summary = reports.summarize(start, end);
+        model.addAttribute("summary", summary);
+        model.addAttribute("dailyRequestTotal", summary.bookingsByCreatedDate().values().stream()
+                .mapToLong(Long::longValue).sum());
         return "admin/reports/index";
     }
 
