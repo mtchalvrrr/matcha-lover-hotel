@@ -207,6 +207,22 @@ public class PayMongoService {
             notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
                     "Your PayMongo payment of ₱" + payment.getAmount()
                             + " for reservation #" + payment.getReservationId() + " has been confirmed.", "PAYMENT");
+            Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
+            if (linkedReservation == null
+                    || (linkedReservation.getStatus() != ReservationStatus.APPROVED
+                        && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
+                notifications.notifyAdmins("Payment received for inactive reservation",
+                        "PayMongo confirmed payment #" + payment.getId()
+                                + " for a reservation that is no longer active. Review and refund if required.", "PAYMENT");
+            } else if (!expectedAmountBeforePayment(linkedReservation, payment)
+                    .equals(payment.getAmount())) {
+                audit.record("PAYMONGO_WEBHOOK", "PAYMENT_AMOUNT_STALE", "PAYMENT", payment.getId().toString(),
+                        "The payment was successful but the reservation amount changed after checkout creation.");
+                notifications.notifyAdmins("Payment needs reservation reconciliation",
+                        "PayMongo confirmed payment #" + payment.getId()
+                                + " but the reservation total changed after checkout creation. Review the outstanding balance or refund.",
+                        "PAYMENT");
+            }
             recordProcessedEvent(eventId, eventType);
         } catch (IllegalArgumentException ex) {
             throw ex;
@@ -293,6 +309,15 @@ public class PayMongoService {
                                     "PayMongo confirmed payment #" + payment.getId()
                                             + " for a reservation that is no longer active. Review and refund if required.",
                                     "PAYMENT");
+                        } else if (!expectedAmountBeforePayment(linkedReservation, payment)
+                                .equals(payment.getAmount())) {
+                            audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_AMOUNT_STALE", "PAYMENT",
+                                    payment.getId().toString(),
+                                    "The provider payment succeeded but the reservation amount changed after checkout creation.");
+                            notifications.notifyAdmins("Payment needs reservation reconciliation",
+                                    "PayMongo confirmed payment #" + payment.getId()
+                                            + " but the reservation total changed after checkout creation. Review the outstanding balance or refund.",
+                                    "PAYMENT");
                         }
                         break;
                     }
@@ -322,6 +347,17 @@ public class PayMongoService {
                 // Temporary provider/API failures leave the local payment pending for the next reconciliation.
             }
         }
+    }
+
+    private BigDecimal expectedAmountBeforePayment(Reservation reservation, Payment paidPayment) {
+        BigDecimal paidIncludingThis = paidAmountForReservation(reservation.getId());
+        BigDecimal paidBefore = paidIncludingThis.subtract(paidPayment.getAmount()).max(BigDecimal.ZERO);
+        if (paidPayment.getType() == PaymentType.DOWN_PAYMENT && paidBefore.signum() == 0) {
+            return reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+        return reservation.getTotalAmount().subtract(paidBefore).max(BigDecimal.ZERO)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal expectedCurrentDue(Reservation reservation, Payment pendingPayment) {
