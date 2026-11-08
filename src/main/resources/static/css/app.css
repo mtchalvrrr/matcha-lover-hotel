@@ -209,3 +209,92 @@
 .status-pill.is-enabled{background:#e5efe8;color:#2d6344}
 .status-pill.is-disabled{background:#f2e9e7;color:#8c4439}
 @media(max-width:760px){.visual-photo img{height:210px}.visual-photo-short img{height:160px}.visual-form{padding:20px}.section-heading{align-items:flex-start;flex-direction:column}}
+
+
+/* MATCHA LOVER HOTEL VISUAL IDENTITY — warm, botanical, photo-led */
+:root{
+ --ink:#24352b;--muted:#69796c;--paper:#f4f5ec;--line:#dce4d5;
+ --green:#466b50;--sage:#dce8d5;--white:#fffdf7;
+ --matcha:#78936d;--deep-matcha:#304c39;--cream:#f8f6ed;
+}
+html{scroll-behavior:smooth}
+body{
+ background:#eef1e7;
+ color:var(--ink);
+ font-family:Inter,"Segoe UI",sans-serif;
+}
+body:before{
+ content:"";position:fixed;inset:0;z-index:-2;
+ background:
+ linear-gradient(115deg,rgba(245,247,237,.94),rgba(240,244,232,.84) 48%,rgba(226,235,218,.72)),
+ url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=2000&q=85") center/cover;
+}
+body:after{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse at 12% 8%,rgba(166,190,145,.19),transparent 38%),
+ radial-gradient(ellipse at 90% 85%,rgba(111,145,105,.13),transparent 34%);
+}
+.shell{max-width:1240px;padding:28px 38px 24px;position:relative}
+.topbar{border-bottom:1px solid rgba(76,105,76,.2);padding-bottom:18px}
+.brand{letter-spacing:.12em;color:var(--deep-matcha)}
+.brand-mark{width:40px;height:40px;border:0;border-radius:14px;background:var(--deep-matcha);color:#f5f4e9;font-family:Georgia,serif;box-shadow:0 7px 18px rgba(48,76,57,.18)}
+.top-note,.back-link{color:#687c69}
+.hero,.portal-hero{position:relative;isolation:isolate;overflow:hidden;border-radius:30px;padding:clamp(58px,8vw,100px) clamp(28px,5vw,64px);margin:34px 0 28px;min-height:300px;background:linear-gradient(90deg,rgba(30,54,39,.84),rgba(42,67,47,.52) 58%,rgba(42,67,47,.18)),url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1800&q=85") center 55%/cover;box-shadow:0 24px 65px rgba(39,61,43,.16)}
+.hero .eyebrow,.portal-hero .eyebrow{color:#dce9d4}
+.hero h1,.portal-hero h1{color:#fffdf4;text-shadow:0 2px 18px rgba(0,0,0,.16)}
+.hero h1 em,.portal-hero h1 em{color:#d5e6c8}
+.hero .intro,.portal-hero .intro{color:rgba(255,255,245,.88);max-width:560px}
+.portal-grid{gap:18px;margin:24px 0 70px}
+.portal-card{
+ position:relative;isolation:isolate;overflow:hidden;min-height:250px;
+ border:1px solid rgba(255,255,255,.76);border-radius:22px;
+ background:rgba(255,253,247,.88);backdrop-filter:blur(12px);
+ padding:27px;box-shadow:0 12px 34px rgba(46,70,48,.08);
+ transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.portal-card:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.15;background-size:cover;background-position:center;transition:opacity .25s,transform .4s}
+.portal-card:nth-child(1):before{background-image:url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80")}
+.portal-card:nth-child(2):before{background-image:url("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80")}
+.portal-card:nth-child(3):before{background-image:url("https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=900&q=80")}
+.portal-card:hover{transform:translateY(-6px);border-color:#a9c09f;box-shadow:0 22px 45px rgba(46,70,48,.15)}
+.portal-card:hover:before{opacity:.23;transform:scale(1.04)}
+.portal-card h2,.room-card-body h2{color:var(--deep-matcha)}
+.portal-number{color:#78936d}
+.portal-link{color:var(--green)}
+.primary-link,.primary-button{background:var(--deep-matcha);border-radius:999px;box-shadow:0 7px 18px rgba(48,76,57,.15)}
+.primary-link{padding:13px 20px}
+.primary-button{padding:14px 22px}
+.primary-link:hover,.primary-button:hover{background:#243c2c}
+.secondary-link,.secondary-button,.text-button{border-radius:999px}
+.secondary-link,.secondary-button{border:1px solid #cbd8c5;background:rgba(255,253,247,.9);color:var(--deep-matcha)}
+.auth-card,.metric-card,.table-wrap,.report-filter,.backup-action{
+ border:1px solid rgba(211,224,204,.9);border-radius:20px;background:rgba(255,253,247,.93);
+ box-shadow:0 14px 38px rgba(44,68,46,.08);backdrop-filter:blur(10px)
+}
+.auth-card{border-radius:24px}
+.auth-card input,.auth-card select,.auth-card textarea,.wide-form textarea,.report-filter input{
+ border:1px solid #d6e1d0;border-radius:12px;background:#fffef9
+}
+.auth-card input:focus{border-color:#78936d;box-shadow:0 0 0 4px rgba(120,147,109,.15)}
+.metric-card{padding:23px;border-radius:18px}
+.metric-card strong{color:var(--deep-matcha)}
+.room-grid{gap:22px}
+.room-card{overflow:hidden;border:1px solid #dce5d6;border-radius:22px;background:rgba(255,253,247,.96);box-shadow:0 14px 36px rgba(44,68,46,.09);transition:transform .22s,box-shadow .22s}
+.room-card:hover{transform:translateY(-5px);box-shadow:0 22px 45px rgba(44,68,46,.15)}
+.room-image,.detail-image{height:255px;background:#dce6d5}
+.room-image-empty{background:linear-gradient(135deg,#dce8d5,#f2f1e4);color:#55745a}
+.room-card-body{padding:26px}
+.room-meta strong{color:var(--deep-matcha)}
+.data-table th{background:#edf2e8;color:#536b55}
+.data-table th,.data-table td{border-bottom:1px solid #e3e9dd}
+.notice{border-radius:12px;background:#e7efe1;border-left:3px solid #78936d;color:#425b46}
+.alert{border-radius:10px}
+footer{border-color:rgba(76,105,76,.2);color:#687c69}
+.dashboard-links{gap:18px}
+.dashboard-links .portal-card{min-height:205px}
+.availability-search,.room-filters{border:1px solid #dce5d6;border-radius:18px;background:rgba(255,253,247,.9);box-shadow:0 10px 28px rgba(44,68,46,.06)}
+@media(max-width:760px){
+ .shell{padding:16px}
+ .hero,.portal-hero{border-radius:22px;margin:22px 0;padding:55px 24px;min-height:260px}
+ .portal-card{border-radius:18px}
+}
