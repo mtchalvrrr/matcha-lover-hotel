@@ -31,20 +31,20 @@ class SecurityRouteIntegrationTest {
     void customerPrivateRoutesRequireCustomerAuthentication() throws Exception {
         mvc.perform(get("/customer/reservations"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/customer/login"));
+                .andExpect(redirectedUrl("http://localhost/customer/login"));
     }
 
     @Test
     void adminPrivateRoutesRequireAdminAuthentication() throws Exception {
         mvc.perform(get("/admin/reservations"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/login"));
+                .andExpect(redirectedUrl("http://localhost/admin/login"));
     }
 
     @Test
     void superAdminPrivateRoutesRequireSuperAdminAuthentication() throws Exception {
         mvc.perform(get("/super-admin/audit"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/super-admin/login"));
+                .andExpect(redirectedUrl("http://localhost/super-admin/login"));
     }
 }
