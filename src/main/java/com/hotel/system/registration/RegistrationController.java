@@ -53,6 +53,19 @@ public class RegistrationController {
         }
     }
 
+    @PostMapping("/register/verify/resend")
+    public String resendOtp(@RequestParam Long applicationId, RedirectAttributes redirect) {
+        try {
+            registrations.resendOtp(applicationId);
+            redirect.addFlashAttribute("applicationId", applicationId);
+            redirect.addFlashAttribute("success", "A new verification code was sent. It expires in 10 minutes.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("applicationId", applicationId);
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/register/verify";
+    }
+
     @GetMapping("/super-admin/registrations")
     public String pendingApplications(Model model) {
         model.addAttribute("applications", registrations.pendingReview());
