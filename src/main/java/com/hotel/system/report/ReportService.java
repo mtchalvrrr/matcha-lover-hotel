@@ -103,9 +103,9 @@ public class ReportService {
                 .filter(reservation -> reservation.getCustomerId() != null)
                 .filter(reservation -> reservation.getCheckInDate() != null
                         && reservation.getCheckInDate().isBefore(from))
-                .filter(reservation -> reservation.getStatus() != ReservationStatus.CANCELLED
-                        && reservation.getStatus() != ReservationStatus.REJECTED
-                        && reservation.getStatus() != ReservationStatus.NO_SHOW)
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED
+                        || reservation.getStatus() == ReservationStatus.CHECKED_IN
+                        || reservation.getStatus() == ReservationStatus.CHECKED_OUT)
                 .map(Reservation::getCustomerId)
                 .collect(Collectors.toSet());
         long uniqueCustomers = customerIds.size();
