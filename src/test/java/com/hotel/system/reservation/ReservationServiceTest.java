@@ -74,6 +74,33 @@ class ReservationServiceTest {
     }
 
     @Test
+    void adminCanCancelUnpaidApprovedReservationWithReason() {
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 1L,
+                "A-01", "Room", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        reservation.changeStatus(ReservationStatus.APPROVED);
+        when(reservations.findById(88L)).thenReturn(Optional.of(reservation));
+        when(payments.sumPaidForReservation(88L, PaymentStatus.PAID)).thenReturn(BigDecimal.ZERO);
+
+        service().cancelByAdmin(88L, "admin", "Room unavailable");
+
+        assertEquals(ReservationStatus.CANCELLED, reservation.getStatus());
+        verify(notifications).notifyUser(eq("guest"), eq("Reservation cancelled"), contains("Room unavailable"), eq("RESERVATION"));
+    }
+
+    @Test
+    void adminCannotCancelReservationUntilRecordedPaymentsAreRefunded() {
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 1L,
+                "A-01", "Room", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        when(reservations.findById(88L)).thenReturn(Optional.of(reservation));
+        when(payments.sumPaidForReservation(88L, PaymentStatus.PAID)).thenReturn(new BigDecimal("1000.00"));
+
+        assertThrows(IllegalStateException.class, () -> service().cancelByAdmin(88L, "admin", "Guest request"));
+        assertEquals(ReservationStatus.PENDING, reservation.getStatus());
+    }
+
+    @Test
     void customerCannotModifyReservationAfterPaymentHasBeenRecorded() {
         Reservation reservation = new Reservation(null, "guest", "guest@example.com", 1L,
                 "A-01", "Old Room", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14),
