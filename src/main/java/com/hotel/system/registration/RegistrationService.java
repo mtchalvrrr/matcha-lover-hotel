@@ -150,9 +150,12 @@ public class RegistrationService {
     public void review(Long id, boolean approve, String reviewer, String reason) {
         RegistrationApplication app = applications.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
-        if (!approve && (reason == null || reason.isBlank()))
+        String reviewReason = clean(reason);
+        if (!approve && reviewReason.isBlank())
             throw new IllegalArgumentException("A reason is required when rejecting an application.");
-        app.review(approve, reviewer, reason);
+        if (reviewReason.length() > 1000)
+            throw new IllegalArgumentException("The review reason must be 1,000 characters or fewer.");
+        app.review(approve, reviewer, reviewReason);
         if (approve) {
             if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail()))
                 throw new IllegalStateException("A matching account already exists; resolve the duplicate before approval.");
@@ -161,7 +164,7 @@ public class RegistrationService {
                 "Your customer account has been approved. You can now sign in.", "ACCOUNT");
         }
         audit.record(reviewer, approve ? "CUSTOMER_REGISTRATION_APPROVED" : "CUSTOMER_REGISTRATION_REJECTED",
-            "REGISTRATION", id.toString(), "Applicant " + app.getUsername() + ". " + clean(reason));
+            "REGISTRATION", id.toString(), "Applicant " + app.getUsername() + ". " + reviewReason);
 
     }
 
