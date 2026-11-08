@@ -94,6 +94,17 @@ class SecurityRouteIntegrationTest {
 
     @Test
     @WithMockUser(username = "booking-admin", roles = "ADMIN")
+    void adminReportCanBeExportedAsCsv() throws Exception {
+        mvc.perform(get("/admin/reports/export.csv")
+                        .param("from", "2026-12-01")
+                        .param("to", "2026-12-02"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Bookings by room")));
+    }
+
+    @Test
+    @WithMockUser(username = "booking-admin", roles = "ADMIN")
     void adminHotelSettingsPageRenders() throws Exception {
         mvc.perform(get("/admin/settings"))
                 .andExpect(status().isOk())
