@@ -53,3 +53,10 @@
 .field-error{color:#9b3d31;font-size:11px;margin-top:5px}
 .dashboard-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:50px}
 @media(max-width:760px){.room-grid,.dashboard-links{grid-template-columns:1fr}.room-meta{align-items:flex-start;flex-direction:column}.data-table{min-width:700px}}
+
+.room-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0}
+.room-gallery .detail-image{height:260px}
+.review-actions{display:grid;gap:8px;min-width:180px}
+.review-actions form{display:grid;gap:6px}
+.review-actions input{padding:8px;border:1px solid var(--line);font:inherit;font-size:12px;min-width:0}
+@media(max-width:760px){.room-gallery{grid-template-columns:1fr}.room-gallery .detail-image{height:220px}}
