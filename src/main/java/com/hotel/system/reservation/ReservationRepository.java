@@ -6,10 +6,28 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
     List<Reservation> findAllByOrderByCreatedAtDesc();
+
+    @Query("select r from Reservation r where " +
+           "(:query is null or lower(r.guestName) like lower(concat('%', :query, '%')) " +
+           "or lower(r.customerUsername) like lower(concat('%', :query, '%')) " +
+           "or lower(r.customerEmail) like lower(concat('%', :query, '%')) " +
+           "or lower(r.roomCode) like lower(concat('%', :query, '%')) " +
+           "or cast(r.id as string) like concat('%', :query, '%')) " +
+           "and (:status is null or r.status = :status) " +
+           "and (:source is null or r.source = :source) " +
+           "and (:fromDate is null or r.checkInDate >= :fromDate) " +
+           "and (:toDate is null or r.checkInDate <= :toDate) " +
+           "order by r.createdAt desc")
+    List<Reservation> searchReservations(@Param("query") String query,
+            @Param("status") ReservationStatus status,
+            @Param("source") ReservationSource source,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate);
     List<Reservation> findByCheckInDateBetweenOrderByCheckInDateAsc(LocalDate from, LocalDate to);
     List<Reservation> findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
         LocalDate checkOutExclusive, LocalDate checkInExclusive, Collection<ReservationStatus> statuses);
