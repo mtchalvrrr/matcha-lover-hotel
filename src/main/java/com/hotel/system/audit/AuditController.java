@@ -4,6 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,26 @@ public class AuditController {
 
     public AuditController(AuditService audit) {
         this.audit = audit;
+    }
+
+    @PreAuthorize("@adminPermissionService.isEnabled('AUDIT_VIEW')")
+    @GetMapping("/admin/audit")
+    public String adminAuditLog(@RequestParam(required = false) String actor,
+                                @RequestParam(required = false) String action,
+                                @RequestParam(required = false) LocalDate from,
+                                @RequestParam(required = false) LocalDate to, Model model,
+                                RedirectAttributes redirect) {
+        try {
+            model.addAttribute("events", audit.searchEvents(actor, action, from, to));
+            model.addAttribute("actor", actor);
+            model.addAttribute("action", action);
+            model.addAttribute("from", from);
+            model.addAttribute("to", to);
+            return "admin/audit";
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/audit";
+        }
     }
 
     @GetMapping("/super-admin/audit")
