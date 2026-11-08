@@ -6,10 +6,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 @Configuration
 public class SecurityConfiguration {
+    @Bean
+    SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -18,7 +25,8 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain applicationSecurity(HttpSecurity http,
                                              PortalAuthenticationSuccessHandler successHandler,
-                                             PortalAuthenticationFailureHandler failureHandler) throws Exception {
+                                             PortalAuthenticationFailureHandler failureHandler,
+                                             SessionRegistry sessionRegistry) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
@@ -59,7 +67,7 @@ public class SecurityConfiguration {
             )
             .sessionManagement(session -> session
                 .sessionFixation(fixation -> fixation.migrateSession())
-                .maximumSessions(1)
+                .maximumSessions(1).sessionRegistry(sessionRegistry)
             );
 
         return http.build();
