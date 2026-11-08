@@ -37,8 +37,13 @@ public class SuperAdminBootstrap implements ApplicationRunner {
         if (!configured) {
             return;
         }
-        if (password.length() < 12) {
-            throw new IllegalStateException("HOTEL_SUPER_ADMIN_PASSWORD must contain at least 12 characters.");
+        if (password.length() < 12
+                || !password.matches(".*[A-Z].*")
+                || !password.matches(".*[a-z].*")
+                || !password.matches(".*\\d.*")
+                || !password.matches(".*[^A-Za-z0-9].*")) {
+            throw new IllegalStateException(
+                    "HOTEL_SUPER_ADMIN_PASSWORD must be at least 12 characters and include uppercase, lowercase, a number, and a special character.");
         }
         if (!users.existsByUsernameIgnoreCase(username) && !users.existsByEmailIgnoreCase(email)) {
             users.save(new SystemUser(username.trim(), email.trim().toLowerCase(),
