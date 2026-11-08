@@ -7,5 +7,5 @@ public interface RegistrationRepository extends JpaRepository<RegistrationApplic
     List<RegistrationApplication> findByStatusOrderBySubmittedAtAsc(RegistrationStatus status);
     boolean existsByEmailIgnoreCaseAndStatusIn(String email, List<RegistrationStatus> statuses);
     boolean existsByUsernameIgnoreCaseAndStatusIn(String username, List<RegistrationStatus> statuses);
-    boolean existsByDocumentHash(String documentHash);
+    boolean existsByDocumentHashAndStatusIn(String documentHash, List<RegistrationStatus> statuses);
 }
