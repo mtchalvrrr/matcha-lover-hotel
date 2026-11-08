@@ -82,8 +82,7 @@ public class PayMongoService {
         if (existing.isPresent() && existing.get().getCheckoutUrl() != null)
             return existing.get().getCheckoutUrl();
 
-        BigDecimal paid = payments.sumPaidOrRefundPendingForReservation(reservationId,
-                List.of(PaymentStatus.PAID, PaymentStatus.REFUND_PENDING));
+        BigDecimal paid = paidAmountForReservation(reservationId);
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
         PaymentType type = paid.signum() == 0 ? PaymentType.DOWN_PAYMENT : PaymentType.BALANCE;
@@ -203,6 +202,13 @@ public class PayMongoService {
         } catch (Exception ex) {
             throw new IllegalArgumentException("The PayMongo webhook payload could not be processed.", ex);
         }
+    }
+
+    private BigDecimal paidAmountForReservation(Long reservationId) {
+        BigDecimal paid = payments.sumPaidForReservation(reservationId, PaymentStatus.PAID);
+        BigDecimal refundPending = payments.sumPaidForReservation(reservationId, PaymentStatus.REFUND_PENDING);
+        return (paid == null ? BigDecimal.ZERO : paid)
+                .add(refundPending == null ? BigDecimal.ZERO : refundPending);
     }
 
     public boolean isConfigured() {
