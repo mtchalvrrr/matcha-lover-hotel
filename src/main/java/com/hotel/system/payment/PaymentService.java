@@ -72,7 +72,8 @@ public class PaymentService {
             throw new IllegalStateException("A verified payment gateway is not configured. No payment was taken.");
         }
 
-        BigDecimal paid = payments.sumPaidForReservation(reservationId, PaymentStatus.PAID);
+        BigDecimal paid = payments.sumPaidOrRefundPendingForReservation(reservationId,
+                List.of(PaymentStatus.PAID, PaymentStatus.REFUND_PENDING));
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
 
@@ -178,7 +179,7 @@ public class PaymentService {
                 "PAYMENT", payment.getId().toString(),
                 "Refund request #" + requestId + " submitted by " + request.getRequestedBy()
                         + "; reason: " + request.getReason()
-                        + (approve ? "; refund status recorded as REFUNDED (settlement must be completed through the original payment channel)."
+                        + (approve ? "; provider refund status: " + payment.getStatus() + "."
                                    : "; review reason: " + (reviewReason == null ? "" : reviewReason.trim())));
         String message = approve
                 ? (payment.getStatus() == PaymentStatus.REFUND_PENDING
