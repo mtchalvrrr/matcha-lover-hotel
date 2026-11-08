@@ -61,8 +61,10 @@ public class ReportService {
         ZoneId zone = clock.getZone();
         Instant start = from.atStartOfDay(zone).toInstant();
         Instant end = to.plusDays(1).atStartOfDay(zone).toInstant();
-        List<Payment> paidPayments = payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(
-                start, end, PaymentStatus.PAID);
+        // Preserve the original receipt in payment-date reports even if it is refunded later.
+        // Refunds are reported separately using refundedAt.
+        List<Payment> paidPayments = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
+                start, end, List.of(PaymentStatus.PAID, PaymentStatus.REFUNDED));
         BigDecimal revenue = paidPayments.stream().map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         Map<LocalDate, BigDecimal> revenueByPaymentDate = paidPayments.stream().collect(Collectors.groupingBy(
