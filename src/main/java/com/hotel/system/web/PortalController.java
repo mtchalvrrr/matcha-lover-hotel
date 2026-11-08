@@ -1,57 +1,55 @@
 package com.hotel.system.web;
 
+import com.hotel.system.dashboard.DashboardService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class PortalController {
-    @GetMapping("/")
-    public String home() {
-        return "index";
+    private final DashboardService dashboards;
+
+    public PortalController(DashboardService dashboards) {
+        this.dashboards = dashboards;
     }
+
+    @GetMapping("/")
+    public String home() { return "index"; }
 
     @GetMapping("/customer")
-    public String customerProgram() {
-        return "customer-program";
-    }
+    public String customerProgram() { return "customer-program"; }
 
     @GetMapping("/admin")
-    public String adminProgram() {
-        return "admin-program";
-    }
+    public String adminProgram() { return "admin-program"; }
 
     @GetMapping("/super-admin")
-    public String superAdminProgram() {
-        return "super-admin-program";
-    }
+    public String superAdminProgram() { return "super-admin-program"; }
 
     @GetMapping("/customer/login")
-    public String customerLogin() {
-        return "auth/customer-login";
-    }
+    public String customerLogin() { return "auth/customer-login"; }
 
     @GetMapping("/admin/login")
-    public String adminLogin() {
-        return "auth/admin-login";
-    }
+    public String adminLogin() { return "auth/admin-login"; }
 
     @GetMapping("/super-admin/login")
-    public String superAdminLogin() {
-        return "auth/super-admin-login";
-    }
+    public String superAdminLogin() { return "auth/super-admin-login"; }
 
     @GetMapping("/customer/dashboard")
-    public String customerDashboard() {
+    public String customerDashboard(Authentication authentication, Model model) {
+        model.addAttribute("summary", dashboards.customerSummary(authentication.getName()));
         return "dashboards/customer-dashboard";
     }
 
     @GetMapping("/admin/dashboard")
-    public String adminDashboard() {
+    public String adminDashboard(Model model) {
+        model.addAttribute("summary", dashboards.adminSummary());
         return "dashboards/admin-dashboard";
     }
 
     @GetMapping("/super-admin/dashboard")
-    public String superAdminDashboard() {
+    public String superAdminDashboard(Model model) {
+        model.addAttribute("summary", dashboards.superAdminSummary());
         return "dashboards/super-admin-dashboard";
     }
 }
