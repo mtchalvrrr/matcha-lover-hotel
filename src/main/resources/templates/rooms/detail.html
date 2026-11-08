@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow">
+<body><main class="shell room-detail-shell">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
-<section class="portal-hero room-detail-hero">
+<section class="room-detail-heading">
 <p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 class="room-detail-title" th:text="${room.name}">Room name</h1>
 <a class="room-availability-cta" href="#roomAvailability">Check available dates &amp; times <span aria-hidden="true">→</span></a>
+</section>
 <section class="room-gallery-viewer room-gallery-large" id="roomGallery" th:if="${!#lists.isEmpty(photos)}" aria-label="Room photo gallery">
 <div class="gallery-main-row">
 <button type="button" class="gallery-arrow" id="galleryPrevious" aria-label="Previous photo">‹</button>
@@ -27,7 +28,7 @@
 <button type="button" class="lightbox-close" id="galleryCloseLightbox" aria-label="Close enlarged photo">×</button>
 <img id="galleryLightboxImage" alt="Enlarged room photo">
 </dialog>
-<div class="room-image room-image-empty" th:if="${#lists.isEmpty(photos)}"><span>[ROOM PHOTOS]</span></div>
+<div class="room-image room-image-empty room-detail-photo-empty" th:if="${#lists.isEmpty(photos)}"><span>Room photos will appear here</span></div>
 <p class="intro" th:text="${room.description}">Room description</p>
 <p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
 <p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
