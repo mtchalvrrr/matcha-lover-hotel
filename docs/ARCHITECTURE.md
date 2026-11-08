@@ -1,7 +1,7 @@
 # Architecture
 
-## Isolation from the existing application
-This project is a fresh implementation in the repository's `hotel-reservation-system/` directory. The existing `hotel-clean-repo/` application is reference material only and must not be edited, renamed, or deleted.
+## Project isolation
+This branch contains a fresh implementation at the repository root. The previous application's files are not part of this branch's working tree. The repository's `main` branch remains unchanged.
 
 ## Runtime model
 Three separately launchable programs:
