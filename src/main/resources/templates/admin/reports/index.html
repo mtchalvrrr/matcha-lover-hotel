@@ -5,7 +5,7 @@
 <section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / REPORTS</p><h1>Hotel<br><em>performance.</em></h1><p class="intro">Reservation requests are grouped by creation date, stays by check-in date, and revenue by payment transaction date.</p><div class="action-row report-print"><button class="secondary-button" type="button" onclick="window.print()">Print / Save as PDF</button></div></section>
 <form class="report-filter" th:action="@{/admin/reports}" method="get"><label for="from">From</label><input id="from" name="from" type="date" th:value="${summary.fromDate}" required><label for="to">To</label><input id="to" name="to" type="date" th:value="${summary.toDate}" required><button class="primary-button" type="submit">Apply dates</button><a class="secondary-link" th:href="@{/admin/reports/export.csv(from=${summary.fromDate},to=${summary.toDate})}">Export CSV</a></form>
 <section class="metric-grid">
-<article class="metric-card"><span>Total reservations</span><strong th:text="${summary.totalReservations}">0</strong><small>Check-ins in selected period</small></article>
+<article class="metric-card"><span>Total reservations</span><strong th:text="${summary.totalReservations}">0</strong><small>Reservations with check-in dates in selected period</small></article>
 <article class="metric-card"><span>Pending</span><strong th:text="${summary.pendingReservations}">0</strong></article>
 <article class="metric-card"><span>Approved</span><strong th:text="${summary.approvedReservations}">0</strong></article>
 <article class="metric-card"><span>Rejected</span><strong th:text="${summary.rejectedReservations}">0</strong></article>
@@ -27,7 +27,7 @@
 <section class="report-section"><h2>Daily reservation requests</h2><div class="trend-chart">
 <div class="trend-row" th:each="entry : ${summary.bookingsByCreatedDate}">
 <span th:text="${entry.key}">Date</span>
-<div class="trend-track"><div class="trend-fill" th:style="|width: ${summary.totalReservations > 0 ? (entry.value * 100.0 / summary.totalReservations) : 0}%|"></div></div>
+<div class="trend-track"><div class="trend-fill" th:style="|width: ${dailyRequestTotal > 0 ? (entry.value * 100.0 / dailyRequestTotal) : 0}%|"></div></div>
 <strong th:text="${entry.value}">0</strong>
 </div>
 </div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByCreatedDate)}">No reservation requests were created in this date range.</p></section>
