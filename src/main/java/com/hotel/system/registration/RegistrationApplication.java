@@ -24,7 +24,7 @@ public class RegistrationApplication {
     private String passwordHash;
     @Column(name = "id_document_path", nullable = false, length = 500)
     private String idDocumentPath;
-    @Column(name = "document_hash", length = 64, unique = true)
+    @Column(name = "document_hash", length = 64)
     private String documentHash;
     @Column(name = "otp_hash", nullable = false, length = 100)
     private String otpHash;
