@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -25,13 +27,14 @@ public class PasswordRecoveryService{
     private final PasswordEncoder encoder;
     private final Clock clock;
     private final AuditService audit;
+    private final SessionRegistry sessionRegistry;
     private final String fromAddress;
     private final SecureRandom random=new SecureRandom();
     public PasswordRecoveryService(SystemUserRepository users,PasswordResetTokenRepository tokens,
         JavaMailSender mail,PasswordEncoder encoder,Clock clock,AuditService audit,
-        @Value("${spring.mail.username:}") String fromAddress){
+        SessionRegistry sessionRegistry, @Value("${spring.mail.username:}") String fromAddress){
         this.users=users;this.tokens=tokens;this.mail=mail;this.encoder=encoder;this.clock=clock;
-        this.audit=audit;this.fromAddress=fromAddress;
+        this.audit=audit;this.sessionRegistry=sessionRegistry;this.fromAddress=fromAddress;
     }
     public void request(String email,String baseUrl){
         if(email==null||email.isBlank())return;
@@ -63,8 +66,17 @@ public class PasswordRecoveryService{
         SystemUser user=users.findById(record.getUserId()).orElseThrow(()->new IllegalArgumentException("Account not found."));
         user.setPasswordHash(encoder.encode(newPassword));
         record.markUsed(now);
+        expireSessions(user.getUsername());
         audit.record(user.getUsername(),"PASSWORD_RESET_COMPLETED","SYSTEM_USER",user.getId().toString(),"Password reset completed.");
     }
+    private void expireSessions(String username) {
+        sessionRegistry.getAllPrincipals().stream()
+                .filter(principal -> principal instanceof UserDetails details
+                        && details.getUsername().equalsIgnoreCase(username))
+                .forEach(principal -> sessionRegistry.getAllSessions(principal, false)
+                        .forEach(session -> session.expireNow()));
+    }
+
     private String hash(String value){
         try{return Base64.getUrlEncoder().withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}
         catch(Exception ex){throw new IllegalStateException("Secure token hashing is unavailable.",ex);}
