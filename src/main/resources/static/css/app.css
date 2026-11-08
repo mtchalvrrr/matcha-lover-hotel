@@ -15,3 +15,14 @@
 .security-note{margin:18px 0 0}
 .text-button{border:1px solid var(--line);background:white;color:var(--ink);padding:10px 15px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 @media(max-width:760px){.auth-layout{grid-template-columns:1fr;gap:28px;padding:58px 0}.auth-card{padding:24px}}
+
+
+.launcher-shell{min-height:100vh}
+.launcher-content{width:min(100%,760px);margin:auto 0;padding:clamp(70px,12vh,130px) 0}
+.launcher-content h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(54px,9vw,96px);font-weight:400;line-height:.98;letter-spacing:-.055em;margin:18px 0}
+.launcher-content h1 em{color:#71836f;font-weight:400}
+.launcher-button{display:inline-flex;align-items:center;gap:18px;margin-top:26px;padding:16px 22px}
+.launcher-help{max-width:540px;margin:18px 0 0;color:var(--muted);font-size:12px;line-height:1.7}
+.launcher-fallback{display:flex;flex-wrap:wrap;gap:18px;margin-top:28px}
+.launcher-fallback a{color:var(--green);font-size:12px;font-weight:700;text-decoration:none;border-bottom:1px solid #aab7a6;padding-bottom:4px}
+.launcher-fallback a:hover{border-color:var(--green)}
