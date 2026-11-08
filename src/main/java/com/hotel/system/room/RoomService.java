@@ -97,6 +97,13 @@ public class RoomService {
         if (rooms.existsByRoomCodeIgnoreCaseAndIdNot(form.getRoomCode().trim(), id)) {
             throw new IllegalArgumentException("A room with this room code already exists.");
         }
+        if (form.getCapacity() == null || form.getCapacity() < 1) {
+            throw new IllegalArgumentException("Room capacity must be at least one guest.");
+        }
+        if (reservations.existsReservationExceedingCapacity(id, BLOCKING_STATUSES, form.getCapacity())) {
+            throw new IllegalStateException(
+                    "Room capacity cannot be reduced below the guest count of a pending, approved, or checked-in reservation.");
+        }
         room.updateFrom(form);
         audit.record(actor, "ROOM_UPDATED", "ROOM", id.toString(), "Updated room " + room.getRoomCode());
         return room;
