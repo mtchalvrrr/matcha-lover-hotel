@@ -46,6 +46,8 @@ class ReservationCheckInOutTest {
         assertEquals(ReservationStatus.CHECKED_IN, reservation.getStatus());
         assertEquals(Instant.now(clock), reservation.getCheckedInAt());
         assertNull(reservation.getCheckedOutAt());
+        verify(notifications).notifyUser("guest", "Check-in completed",
+                "Your check-in for reservation #91 has been recorded.", "RESERVATION");
     }
 
     @Test
