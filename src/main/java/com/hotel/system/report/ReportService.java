@@ -69,7 +69,7 @@ public class ReportService {
         // Preserve the original receipt in payment-date reports even if it is refunded later.
         // Refunds are reported separately using refundedAt.
         List<Payment> paymentReceipts = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
-                start, end, List.of(PaymentStatus.PAID, PaymentStatus.REFUND_PENDING, PaymentStatus.REFUNDED));
+                start, end, List.of(PaymentStatus.PAID, PaymentStatus.REFUNDED));
         BigDecimal revenue = paymentReceipts.stream().map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         Map<LocalDate, BigDecimal> revenueByPaymentDate = paymentReceipts.stream().collect(Collectors.groupingBy(
@@ -84,8 +84,7 @@ public class ReportService {
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED
                         || reservation.getStatus() == ReservationStatus.CHECKED_IN)
                 .map(reservation -> reservation.getTotalAmount()
-                        .subtract(payments.sumPaidOrRefundPendingForReservation(reservation.getId(),
-                                List.of(PaymentStatus.PAID, PaymentStatus.REFUND_PENDING)))
+                        .subtract(paidAmountForReservation(reservation.getId()))
                         .max(BigDecimal.ZERO))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -179,6 +178,13 @@ public class ReportService {
                 byCreatedDate,
                 revenueByPaymentDate
         );
+    }
+
+    private BigDecimal paidAmountForReservation(Long reservationId) {
+        BigDecimal paid = payments.sumPaidForReservation(reservationId, PaymentStatus.PAID);
+        BigDecimal refundPending = payments.sumPaidForReservation(reservationId, PaymentStatus.REFUND_PENDING);
+        return (paid == null ? BigDecimal.ZERO : paid)
+                .add(refundPending == null ? BigDecimal.ZERO : refundPending);
     }
 
     private long countStatus(List<Reservation> bookings, ReservationStatus status) {
