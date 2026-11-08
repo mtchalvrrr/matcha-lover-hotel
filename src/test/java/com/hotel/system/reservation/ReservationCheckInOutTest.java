@@ -78,6 +78,21 @@ class ReservationCheckInOutTest {
         assertNull(reservation.getCheckedOutAt());
     }
 
+    @Test
+    void sameDayWalkInCanCheckInBeforeStandardHotelCheckInTime() {
+        Reservation walkIn = new Reservation(1L, "Walk-in Guest", "walkin@example.com", "admin",
+                "W-01", "Walk-in Room", LocalDate.of(2026, 11, 8),
+                LocalDate.of(2026, 11, 9), 1, 1,
+                new BigDecimal("1000.00"), new BigDecimal("1000.00"));
+        when(reservations.findById(94L)).thenReturn(Optional.of(walkIn));
+        when(payments.sumPaidForReservation(94L, PaymentStatus.PAID)).thenReturn(new BigDecimal("1000.00"));
+
+        service().checkIn(94L, "admin");
+
+        assertEquals(ReservationStatus.CHECKED_IN, walkIn.getStatus());
+        assertEquals(Instant.now(clock), walkIn.getCheckedInAt());
+    }
+
     private Reservation reservation() {
         return new Reservation(1L, "guest", "guest@example.com", 1L, "A-01", "Room",
                 LocalDate.of(2026, 11, 8), LocalDate.of(2026, 11, 10),
