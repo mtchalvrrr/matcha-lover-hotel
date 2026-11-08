@@ -5,6 +5,7 @@ import com.hotel.system.account.SystemUserRepository;
 import com.hotel.system.audit.AuditService;
 import com.hotel.system.payment.PaymentRepository;
 import com.hotel.system.payment.PaymentStatus;
+import com.hotel.system.notification.NotificationService;
 import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomNotFoundException;
 import com.hotel.system.room.RoomRepository;
@@ -29,15 +30,17 @@ public class ReservationService {
     private final Clock clock;
     private final AuditService audit;
     private final PaymentRepository payments;
+    private final NotificationService notifications;
 
     public ReservationService(ReservationRepository reservations, RoomRepository rooms,
-                              SystemUserRepository users, Clock clock, AuditService audit, PaymentRepository payments) {
+                              SystemUserRepository users, Clock clock, AuditService audit, PaymentRepository payments, NotificationService notifications) {
         this.reservations = reservations;
         this.rooms = rooms;
         this.users = users;
         this.clock = clock;
         this.audit = audit;
         this.payments = payments;
+        this.notifications = notifications;
     }
 
     public Reservation request(String username, Long roomId, LocalDate checkIn,
@@ -60,6 +63,8 @@ public class ReservationService {
             checkIn, checkOut, guests, nights, room.getNightlyRate(), total));
         audit.record(username, "RESERVATION_REQUESTED", "RESERVATION", saved.getId().toString(),
             "Room " + room.getRoomCode() + ", stay " + checkIn + " to " + checkOut);
+        notifications.notifyAdmins("New reservation request", "Reservation #" + saved.getId()
+            + " from " + customer.getUsername() + " requires review.", "RESERVATION");
         return saved;
     }
 
@@ -89,10 +94,14 @@ public class ReservationService {
             reservation.changeStatus(ReservationStatus.APPROVED);
             audit.record(adminUsername, "RESERVATION_APPROVED", "RESERVATION", id.toString(),
                 "Approved reservation for " + reservation.getCustomerUsername());
+            notifications.notifyUser(reservation.getCustomerUsername(), "Reservation approved",
+                "Your reservation #" + id + " has been approved.", "RESERVATION");
         } else {
             reservation.changeStatus(ReservationStatus.REJECTED);
             audit.record(adminUsername, "RESERVATION_REJECTED", "RESERVATION", id.toString(),
                 "Rejected reservation for " + reservation.getCustomerUsername());
+            notifications.notifyUser(reservation.getCustomerUsername(), "Reservation rejected",
+                "Your reservation #" + id + " was rejected. Contact the hotel for details.", "RESERVATION");
         }
     }
 
@@ -114,6 +123,8 @@ public class ReservationService {
         reservation.changeStatus(ReservationStatus.CANCELLED);
         audit.record(username, "RESERVATION_CANCELLED", "RESERVATION", id.toString(),
             "Customer cancelled reservation.");
+        notifications.notifyAdmins("Reservation cancelled", "Customer " + username
+            + " cancelled reservation #" + id + ".", "RESERVATION");
     }
 
 
