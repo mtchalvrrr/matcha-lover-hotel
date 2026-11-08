@@ -63,12 +63,16 @@ public class AccountDeactivationService {
     public void review(Long requestId, boolean approve, String reviewer, String reason) {
         AccountDeactivationRequest request = requests.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("Deactivation request not found."));
-        if (!approve && (reason == null || reason.isBlank())) {
+        String reviewReason = reason == null ? "" : reason.trim();
+        if (!approve && reviewReason.isBlank()) {
             throw new IllegalArgumentException("A reason is required when rejecting a deactivation request.");
+        }
+        if (reviewReason.length() > 1000) {
+            throw new IllegalArgumentException("The review reason must be 1,000 characters or fewer.");
         }
         SystemUser user = users.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalStateException("The customer account no longer exists."));
-        request.review(approve, reviewer, reason);
+        request.review(approve, reviewer, reviewReason);
         if (approve) {
             user.setActive(false);
             expireSessions(user.getUsername());
@@ -78,9 +82,9 @@ public class AccountDeactivationService {
                     "Your account deactivation request was approved. You can no longer sign in.", "ACCOUNT");
         } else {
             audit.record(reviewer, "CUSTOMER_DEACTIVATION_REJECTED", "SYSTEM_USER", user.getId().toString(),
-                    "Rejected deactivation request #" + requestId + ". " + reason.trim());
+                    "Rejected deactivation request #" + requestId + ". " + reviewReason);
             notifications.notifyUser(user.getUsername(), "Deactivation request declined",
-                    "Your account deactivation request was declined. Reason: " + reason.trim(), "ACCOUNT");
+                    "Your account deactivation request was declined. Reason: " + reviewReason, "ACCOUNT");
         }
     }
 
