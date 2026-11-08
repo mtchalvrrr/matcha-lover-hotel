@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Walk-in Booking | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/reservations}">Back to reservations</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / WALK-IN BOOKING</p><h1>New walk-in<br><em>reservation.</em></h1><p class="intro">Enter the guest details, select an active room and stay dates, then record the full onsite payment.</p></section>
+<p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<form class="auth-card wide-form" th:action="@{/admin/reservations/walk-in}" method="post">
+<label for="guestName">Guest full name</label><input id="guestName" name="guestName" maxlength="160" required>
+<label for="guestEmail">Guest email</label><input id="guestEmail" name="guestEmail" type="email" maxlength="254" required>
+<label for="roomId">Room</label><select id="roomId" name="roomId" required><option value="">Select an active room</option><option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.roomCode + ' — ' + room.name + ' (₱' + room.nightlyRate + '/night; capacity ' + room.capacity + ')'}"></option></select>
+<label for="checkIn">Check-in date</label><input id="checkIn" name="checkIn" type="date" required>
+<label for="checkOut">Check-out date</label><input id="checkOut" name="checkOut" type="date" required>
+<label for="guests">Number of guests</label><input id="guests" name="guests" type="number" min="1" value="1" required>
+<label for="paymentMethod">Onsite payment method</label><select id="paymentMethod" name="paymentMethod" required><option value="CASH">Cash</option><option value="CARD">Card terminal</option><option value="GCASH">GCash</option><option value="BANK_TRANSFER">Bank transfer</option></select>
+<p class="form-help">The system records the full reservation amount as paid using the selected onsite method. Verify the actual payment before submitting.</p>
+<div class="action-row"><button class="primary-button" type="submit">Create booking and record payment</button><a class="secondary-link" th:href="@{/admin/reservations}">Cancel</a></div>
+</form></main></body></html>
