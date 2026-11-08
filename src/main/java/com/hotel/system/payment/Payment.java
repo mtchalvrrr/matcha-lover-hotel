@@ -95,6 +95,13 @@ public class Payment {
         this.providerPaymentId = providerPaymentId;
     }
 
+    public void markFailedFromProvider(String providerPaymentId) {
+        if (status != PaymentStatus.PENDING) return;
+        status = PaymentStatus.FAILED;
+        if (providerPaymentId != null && !providerPaymentId.isBlank())
+            this.providerPaymentId = providerPaymentId;
+    }
+
     public void markRefundPending(String refundId, String providerStatus) {
         if (status != PaymentStatus.PAID && status != PaymentStatus.REFUND_PENDING)
             throw new IllegalStateException("Only paid transactions can enter refund processing.");
