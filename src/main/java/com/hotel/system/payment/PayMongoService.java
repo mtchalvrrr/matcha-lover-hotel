@@ -82,7 +82,8 @@ public class PayMongoService {
         if (existing.isPresent() && existing.get().getCheckoutUrl() != null)
             return existing.get().getCheckoutUrl();
 
-        BigDecimal paid = payments.sumPaidForReservation(reservationId, PaymentStatus.PAID);
+        BigDecimal paid = payments.sumPaidOrRefundPendingForReservation(reservationId,
+                List.of(PaymentStatus.PAID, PaymentStatus.REFUND_PENDING));
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
         PaymentType type = paid.signum() == 0 ? PaymentType.DOWN_PAYMENT : PaymentType.BALANCE;
