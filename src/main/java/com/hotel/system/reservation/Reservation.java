@@ -124,6 +124,14 @@ public class Reservation {
                 .withZone(ZoneId.of("Asia/Manila")).format(checkedOutAt);
     }
 
+    public void expire(Instant at) {
+        if (status != ReservationStatus.PENDING) {
+            throw new IllegalStateException("Only pending reservations can expire.");
+        }
+        this.status = ReservationStatus.EXPIRED;
+        this.updatedAt = at;
+    }
+
     public void recordCheckIn(Instant at) {
         this.checkedInAt = at;
         this.status = ReservationStatus.CHECKED_IN;
