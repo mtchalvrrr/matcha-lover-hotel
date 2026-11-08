@@ -71,6 +71,8 @@ class RoomServiceTest {
 
         assertEquals(CleaningStatus.INSPECTION_REQUIRED, room.getCleaningStatus());
         assertFalse(room.isBookable());
+        assertEquals("admin", room.getLastInspectedBy());
+        assertNotNull(room.getLastInspectedAt());
         verify(audit).record(eq("admin"), eq("ROOM_OPERATIONAL_STATUS_UPDATED"), eq("ROOM"),
                 eq("12"), contains("Previous: cleaning=READY"));
     }
