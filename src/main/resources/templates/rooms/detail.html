@@ -16,8 +16,8 @@
 </div>
 <div class="gallery-thumbnails" id="galleryThumbnails">
 <button type="button" class="gallery-thumbnail" th:each="photo,stat : ${photos}"
- th:classappend="${stat.index == 0} ? ' is-active' : ''"
- th:attr="data-photo-src=${photo.publicPath},aria-label='Show photo ' + ${stat.count}">
+ th:classappend="${stat.index == 0 ? 'is-active' : ''}"
+ th:attr="data-photo-src=${photo.publicPath},aria-label=${'Show photo ' + stat.count}">
 <img th:src="${photo.publicPath}" th:alt="${room.name + ' thumbnail'}">
 </button>
 </div>
