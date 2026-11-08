@@ -38,6 +38,10 @@ public class Payment {
     private String checkoutUrl;
     @Column(name = "provider_payment_id", length = 100)
     private String providerPaymentId;
+    @Column(name = "provider_refund_id", length = 100)
+    private String providerRefundId;
+    @Column(name = "provider_refund_status", length = 24)
+    private String providerRefundStatus;
 
     @Version
     @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
@@ -68,6 +72,8 @@ public class Payment {
     public String getProviderCheckoutSessionId() { return providerCheckoutSessionId; }
     public String getCheckoutUrl() { return checkoutUrl; }
     public String getProviderPaymentId() { return providerPaymentId; }
+    public String getProviderRefundId() { return providerRefundId; }
+    public String getProviderRefundStatus() { return providerRefundStatus; }
 
     public void attachCheckoutSession(String sessionId, String url) {
         if (status != PaymentStatus.PENDING || sessionId == null || sessionId.isBlank()
@@ -89,15 +95,28 @@ public class Payment {
         this.providerPaymentId = providerPaymentId;
     }
 
+    public void markRefundPending(String refundId, String providerStatus) {
+        if (status != PaymentStatus.PAID && status != PaymentStatus.REFUND_PENDING)
+            throw new IllegalStateException("Only paid transactions can enter refund processing.");
+        this.providerRefundId = refundId;
+        this.providerRefundStatus = providerStatus;
+        this.status = PaymentStatus.REFUND_PENDING;
+    }
+
     public void markRefunded(Instant refundedAt) {
-        if (status != PaymentStatus.PAID) {
-            throw new IllegalStateException("Only paid transactions can be refunded.");
+        if (status != PaymentStatus.PAID && status != PaymentStatus.REFUND_PENDING) {
+            throw new IllegalStateException("Only paid or refund-pending transactions can be refunded.");
         }
-        if (refundedAt == null) {
-            throw new IllegalArgumentException("A refund timestamp is required.");
-        }
+        if (refundedAt == null) throw new IllegalArgumentException("A refund timestamp is required.");
         status = PaymentStatus.REFUNDED;
+        this.providerRefundStatus = "succeeded";
         this.refundedAt = refundedAt;
+    }
+
+    public void markRefundFailed(String refundId) {
+        if (refundId != null) this.providerRefundId = refundId;
+        this.providerRefundStatus = "failed";
+        if (status == PaymentStatus.REFUND_PENDING) status = PaymentStatus.PAID;
     }
 
     public void markVoided() {
