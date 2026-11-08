@@ -124,6 +124,25 @@ public class Reservation {
         this.status = ReservationStatus.APPROVED;
     }
 
+    public void modifyStay(Long roomId, String roomCode, String roomName,
+                           LocalDate checkInDate, LocalDate checkOutDate,
+                           Integer guests, Integer nights, BigDecimal nightlyRate,
+                           BigDecimal totalAmount, LocalTime checkInTime, LocalTime checkOutTime) {
+        this.roomId = roomId;
+        this.roomCode = roomCode;
+        this.roomName = roomName;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+        this.guests = guests;
+        this.nights = nights;
+        this.nightlyRate = nightlyRate;
+        this.totalAmount = totalAmount;
+        this.checkInTime = checkInTime;
+        this.checkOutTime = checkOutTime;
+        this.status = ReservationStatus.PENDING;
+        this.updatedAt = Instant.now();
+    }
+
     public void changeStatus(ReservationStatus status) {
         this.status = status;
         this.updatedAt = Instant.now();
