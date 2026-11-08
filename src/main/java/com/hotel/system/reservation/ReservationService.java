@@ -63,6 +63,7 @@ public class ReservationService {
         }
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
+        room.touchAvailability();
         Reservation reservation = new Reservation(customer.getId(), customer.getUsername(),
             customer.getEmail(), room.getId(), room.getRoomCode(), room.getName(),
             checkIn, checkOut, guests, nights, room.getNightlyRate(), total);
@@ -116,6 +117,10 @@ public class ReservationService {
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
         ReservationStatus previousStatus = reservation.getStatus();
+        if (!java.util.Objects.equals(reservation.getRoomId(), room.getId())) {
+            rooms.findById(reservation.getRoomId()).ifPresent(Room::touchAvailability);
+        }
+        room.touchAvailability();
         reservation.modifyStay(room.getId(), room.getRoomCode(), room.getName(), checkIn, checkOut,
                 guests, nights, room.getNightlyRate(), total,
                 stayTimes.checkInTime(), stayTimes.checkOutTime());
@@ -258,6 +263,7 @@ public class ReservationService {
             throw new IllegalArgumentException("This room is already reserved for some or all of those dates.");
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
+        room.touchAvailability();
         Reservation reservation = new Reservation(room.getId(), name, email, adminUsername,
             room.getRoomCode(), room.getName(), checkIn, checkOut, guests, nights, room.getNightlyRate(), total);
         reservation.setStayTimes(stayTimes.checkInTime(), stayTimes.checkOutTime());
