@@ -142,6 +142,10 @@ public class PayMongoService {
                 processRefundWebhook(eventAttributes.path("data"));
                 return;
             }
+            if ("payment.failed".equals(eventType) || "checkout_session.payment.failed".equals(eventType)) {
+                processFailedPaymentWebhook(eventAttributes.path("data"));
+                return;
+            }
             if (!"checkout_session.payment.paid".equals(eventType)) return;
             JsonNode session = eventAttributes.path("data");
             if (session.isMissingNode() || session.isNull()) session = event.path("data");
@@ -225,6 +229,28 @@ public class PayMongoService {
         audit.record("PAYMONGO", "PAYMONGO_REFUND_" + status.toUpperCase(Locale.ROOT),
                 "PAYMENT", payment.getId().toString(), "Provider refund " + refundId + " status " + status);
         return status;
+    }
+
+    private void processFailedPaymentWebhook(JsonNode resource) {
+        JsonNode attributes = resource.path("attributes");
+        String reference = attributes.path("reference_number").asText("");
+        String providerPaymentId = resource.path("id").asText("");
+        Payment payment = reference.isBlank() ? null
+                : payments.findByTransactionReference(reference).orElse(null);
+        if (payment == null) {
+            String paymentId = attributes.path("metadata").path("hotel_payment_id").asText("");
+            if (!paymentId.isBlank()) {
+                try { payment = payments.findById(Long.parseLong(paymentId)).orElse(null); }
+                catch (NumberFormatException ignored) { return; }
+            }
+        }
+        if (payment == null || payment.getStatus() != PaymentStatus.PENDING) return;
+        payment.markFailedFromProvider(providerPaymentId);
+        audit.record("PAYMONGO_WEBHOOK", "PAYMENT_FAILED", "PAYMENT", payment.getId().toString(),
+                "PayMongo reported a failed checkout/payment attempt.");
+        notifications.notifyUser(payment.getCustomerUsername(), "Payment was not completed",
+                "Your payment attempt for reservation #" + payment.getReservationId()
+                        + " was not completed. You can try again from your reservations page.", "PAYMENT");
     }
 
     private void processRefundWebhook(JsonNode resource) {
