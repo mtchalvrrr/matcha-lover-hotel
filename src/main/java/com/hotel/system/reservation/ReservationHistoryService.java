@@ -16,6 +16,9 @@ public class ReservationHistoryService {
     private static final Set<String> CUSTOMER_VISIBLE_ACTIONS = Set.of(
             "RESERVATION_REQUESTED",
             "RESERVATION_MODIFIED",
+            "RESERVATION_EXTENSION_REQUESTED",
+            "RESERVATION_EXTENSION_APPROVED",
+            "RESERVATION_EXTENSION_REJECTED",
             "RESERVATION_APPROVED",
             "RESERVATION_REJECTED",
             "RESERVATION_CANCELLED",
