@@ -117,6 +117,9 @@ public class ReservationService {
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
         ReservationStatus previousStatus = reservation.getStatus();
+        String previousStay = reservation.getRoomCode() + " " + reservation.getCheckInDate()
+                + " to " + reservation.getCheckOutDate() + ", guests=" + reservation.getGuests();
+        String updatedStay = room.getRoomCode() + " " + checkIn + " to " + checkOut + ", guests=" + guests;
         if (!java.util.Objects.equals(reservation.getRoomId(), room.getId())) {
             rooms.findById(reservation.getRoomId()).ifPresent(Room::touchAvailability);
         }
@@ -125,8 +128,8 @@ public class ReservationService {
                 guests, nights, room.getNightlyRate(), total,
                 stayTimes.checkInTime(), stayTimes.checkOutTime());
         audit.record(username, "RESERVATION_MODIFIED", "RESERVATION", reservationId.toString(),
-                "Customer changed room/stay details. Previous status: " + previousStatus
-                        + "; updated request now requires approval.");
+                "Previous: " + previousStay + ". Updated: " + updatedStay
+                        + ". Previous status: " + previousStatus + "; updated request requires approval.");
         notifications.notifyAdmins("Reservation changed",
                 "Customer " + username + " modified reservation #" + reservationId + ". Review the updated request.",
                 "RESERVATION");
