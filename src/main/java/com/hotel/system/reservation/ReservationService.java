@@ -105,12 +105,8 @@ public class ReservationService {
     }
 
     private boolean isUnavailable(Long roomId, LocalDate checkIn, LocalDate checkOut, Long excludeId) {
-        List<Reservation> candidates = reservations.findAll();
-        return candidates.stream().anyMatch(r -> !r.getId().equals(excludeId)
-            && r.getRoomId().equals(roomId)
-            && BLOCKING_STATUSES.contains(r.getStatus())
-            && r.getCheckInDate().isBefore(checkOut)
-            && r.getCheckOutDate().isAfter(checkIn));
+        return reservations.existsOverlappingReservation(
+            roomId, BLOCKING_STATUSES, checkIn, checkOut, excludeId);
     }
 
     private void validateDates(LocalDate checkIn, LocalDate checkOut) {
