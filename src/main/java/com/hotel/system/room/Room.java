@@ -56,6 +56,10 @@ public class Room {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
+    private long version;
+
     public Room() {}
 
     public Long getId() { return id; }
@@ -70,6 +74,8 @@ public class Room {
     public boolean isActive() { return active; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public long getVersion() { return version; }
+    public void touchAvailability() { this.updatedAt = Instant.now(); }
 
     public void setRoomCode(String roomCode) { this.roomCode = roomCode; }
     public void setName(String name) { this.name = name; }
