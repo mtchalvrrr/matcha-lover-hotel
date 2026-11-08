@@ -69,6 +69,12 @@ public class NotificationService {
         users.findByUsernameIgnoreCase(username).ifPresent(user -> sendEmailIfConfigured(user, title, message));
     }
 
+    public void notifyAdminsInAppOnly(String title, String message, String category, String eventKey) {
+        users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.ADMIN))
+                .forEach(admin -> notifyUserOnceInAppOnly(admin.getUsername(), title, message, category,
+                        eventKey + ":" + admin.getUsername().toLowerCase(java.util.Locale.ROOT)));
+    }
+
     public void notifyAdmins(String title, String message, String category) {
         users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.ADMIN))
                 .forEach(admin -> notifyUser(admin.getUsername(), title, message, category));
