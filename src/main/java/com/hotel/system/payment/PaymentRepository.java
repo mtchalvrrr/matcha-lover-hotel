@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.Instant;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findAllByOrderByCreatedAtDesc();
+    List<Payment> findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(Instant from, Instant to, PaymentStatus status);
     List<Payment> findByCustomerUsernameOrderByCreatedAtDesc(String username);
     List<Payment> findByReservationIdOrderByCreatedAtAsc(Long reservationId);
 
