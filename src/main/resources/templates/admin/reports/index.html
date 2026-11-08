@@ -31,7 +31,7 @@
 <strong th:text="${entry.value}">0</strong>
 </div>
 </div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByCreatedDate)}">No reservation requests were created in this date range.</p></section>
-<section class="report-section"><h2>Daily check-in trend</h2><div class="trend-chart">
+<section class="report-section"><h2>Reservations by check-in date</h2><div class="trend-chart">
 <div class="trend-row" th:each="entry : ${summary.bookingsByCheckInDate}">
 <span th:text="${entry.key}">Date</span>
 <div class="trend-track"><div class="trend-fill" th:style="|width: ${summary.totalReservations > 0 ? (entry.value * 100.0 / summary.totalReservations) : 0}%|"></div></div>
@@ -45,5 +45,5 @@
 <strong th:text="${'₱' + #numbers.formatDecimal(entry.value,1,'COMMA',2,'POINT')}">₱0.00</strong>
 </div>
 </div><p class="notice" th:if="${#maps.isEmpty(summary.revenueByPaymentDate)}">No paid transactions were recorded in this date range.</p></section>
-<section class="report-section"><h2>Bookings by room</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Room</th><th>Reservations</th></tr></thead><tbody><tr th:each="entry : ${summary.bookingsByRoom}"><td th:text="${entry.key}">Room</td><td th:text="${entry.value}">0</td></tr></tbody></table></div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByRoom)}">No check-ins were recorded in this date range.</p></section>
+<section class="report-section"><h2>Reservations by room</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Room</th><th>Reservations</th></tr></thead><tbody><tr th:each="entry : ${summary.bookingsByRoom}"><td th:text="${entry.key}">Room</td><td th:text="${entry.value}">0</td></tr></tbody></table></div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByRoom)}">No check-ins were recorded in this date range.</p></section>
 </main></body></html>
