@@ -16,13 +16,13 @@ public class HotelSettingsController {
         this.settings = settings;
     }
 
-    @GetMapping("/admin/settings")
+    @GetMapping("/super-admin/settings")
     public String settings(Model model) {
         model.addAttribute("settings", settings.current());
         return "admin/settings";
     }
 
-    @PostMapping("/admin/settings")
+    @PostMapping("/super-admin/settings")
     public String update(@RequestParam String hotelName,
                          @RequestParam(required = false) String address,
                          @RequestParam(required = false) String contactInformation,
@@ -38,6 +38,6 @@ public class HotelSettingsController {
         } catch (IllegalArgumentException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
-        return "redirect:/admin/settings";
+        return "redirect:/super-admin/settings";
     }
 }
