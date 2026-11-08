@@ -89,7 +89,7 @@ public class RegistrationApplication {
 
     public boolean verifyOtp(String candidate, PasswordEncoder encoder, Instant now) {
         if (status != RegistrationStatus.PENDING_OTP) throw new IllegalStateException("This OTP is no longer active.");
-        if (otpExpiresAt.isBefore(now)) throw new IllegalStateException("OTP expired. Submit a new registration request.");
+        if (!otpExpiresAt.isAfter(now)) throw new IllegalStateException("OTP expired. Submit a new registration request.");
         if (otpAttempts >= 5) throw new IllegalStateException("OTP attempt limit reached.");
         otpAttempts++;
         if (!encoder.matches(candidate, otpHash)) return false;
