@@ -67,6 +67,8 @@ public class ReportService {
         Map<String, Long> byRoom = bookings.stream().collect(Collectors.groupingBy(
                 reservation -> reservation.getRoomCode() + " — " + reservation.getRoomName(),
                 LinkedHashMap::new, Collectors.counting()));
+        Map<LocalDate, Long> byCheckInDate = bookings.stream().collect(Collectors.groupingBy(
+                Reservation::getCheckInDate, LinkedHashMap::new, Collectors.counting()));
 
         long reservedRoomNights = overlappingStays.stream()
                 .mapToLong(reservation -> occupiedNightsWithin(reservation, from, to))
@@ -92,7 +94,8 @@ public class ReportService {
                 availableRoomNights,
                 bookedCapacityRate,
                 revenue,
-                byRoom
+                byRoom,
+                byCheckInDate
         );
     }
 
