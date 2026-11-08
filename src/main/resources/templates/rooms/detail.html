@@ -30,6 +30,8 @@
 <p class="intro" th:text="${room.description}">Room description</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
 <p class="form-help" th:text="${'Standard check-in: ' + checkInTime + ' · Standard check-out: ' + checkOutTime}">Standard check-in: 14:00 · Standard check-out: 12:00</p>
+<p class="notice" th:if="${availabilityChecked and availabilityAvailable}">This room is available for the selected dates and guest count.</p>
+<p class="alert alert-error" th:if="${availabilityChecked and !availabilityAvailable}">This room is not available for the selected dates or does not have enough capacity. Please choose another stay.</p>
 <h2>Amenities</h2><p th:text="${room.amenities != null and !#strings.isEmpty(room.amenities) ? room.amenities : 'Please contact the hotel for amenity details.'}">Amenities</p>
 <p class="notice" th:if="${success}" th:text="${success}"></p>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
@@ -37,10 +39,10 @@
 <h2>Request this room</h2>
 <form class="auth-card wide-form" th:action="@{/customer/reservations}" method="post">
 <input type="hidden" name="roomId" th:value="${room.id}">
-<label for="checkIn">Check-in date</label><input id="checkIn" type="date" name="checkIn" th:attr="min=${minimumDate}" required>
-<label for="checkOut">Check-out date</label><input id="checkOut" type="date" name="checkOut" th:attr="min=${minimumDate}" required>
-<label for="guests">Number of guests</label><input id="guests" type="number" name="guests" min="1" th:attr="max=${room.capacity}" value="1" required>
-<button class="primary-button" type="submit">Submit reservation request</button>
+<label for="checkIn">Check-in date</label><input id="checkIn" type="date" name="checkIn" th:attr="min=${minimumDate}" th:value="${checkIn}" required>
+<label for="checkOut">Check-out date</label><input id="checkOut" type="date" name="checkOut" th:attr="min=${minimumDate}" th:value="${checkOut}" required>
+<label for="guests">Number of guests</label><input id="guests" type="number" name="guests" min="1" th:attr="max=${room.capacity}" th:value="${guestCount}" required>
+<button class="primary-button" type="submit" th:disabled="${availabilityChecked and !availabilityAvailable}">Submit reservation request</button>
 <p class="form-help">Your request will be pending until reviewed by an administrator. The final amount is based on the room's saved nightly rate and the number of nights.</p>
 </form>
 </section>
