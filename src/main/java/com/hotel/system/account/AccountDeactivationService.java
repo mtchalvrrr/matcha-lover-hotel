@@ -3,6 +3,8 @@ package com.hotel.system.account;
 import com.hotel.system.audit.AuditService;
 import com.hotel.system.notification.NotificationService;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,14 +16,16 @@ public class AccountDeactivationService {
     private final SystemUserRepository users;
     private final AuditService audit;
     private final NotificationService notifications;
+    private final SessionRegistry sessionRegistry;
 
     public AccountDeactivationService(AccountDeactivationRequestRepository requests,
                                       SystemUserRepository users, AuditService audit,
-                                      NotificationService notifications) {
+                                      NotificationService notifications, SessionRegistry sessionRegistry) {
         this.requests = requests;
         this.users = users;
         this.audit = audit;
         this.notifications = notifications;
+        this.sessionRegistry = sessionRegistry;
     }
 
     public AccountDeactivationRequest request(String username, String reason) {
@@ -67,6 +71,7 @@ public class AccountDeactivationService {
         request.review(approve, reviewer, reason);
         if (approve) {
             user.setActive(false);
+            expireSessions(user.getUsername());
             audit.record(reviewer, "CUSTOMER_ACCOUNT_DEACTIVATED", "SYSTEM_USER", user.getId().toString(),
                     "Approved deactivation request #" + requestId + " for " + user.getUsername());
             notifications.notifyUser(user.getUsername(), "Account deactivated",
@@ -77,5 +82,13 @@ public class AccountDeactivationService {
             notifications.notifyUser(user.getUsername(), "Deactivation request declined",
                     "Your account deactivation request was declined. Reason: " + reason.trim(), "ACCOUNT");
         }
+    }
+
+    private void expireSessions(String username) {
+        sessionRegistry.getAllPrincipals().stream()
+                .filter(principal -> principal instanceof UserDetails details
+                        && details.getUsername().equalsIgnoreCase(username))
+                .forEach(principal -> sessionRegistry.getAllSessions(principal, false)
+                        .forEach(session -> session.expireNow()));
     }
 }
