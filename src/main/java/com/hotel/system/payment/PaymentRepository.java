@@ -21,6 +21,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByPaymentMethodAndStatusAndProviderCheckoutSessionIdIsNotNull(
             String paymentMethod, PaymentStatus status);
 
+    @Query("select coalesce(sum(p.amount), 0) from Payment p where p.reservationId = :reservationId and p.status in :statuses")
+    BigDecimal sumPaidOrRefundPendingForReservation(@Param("reservationId") Long reservationId,
+            @Param("statuses") java.util.Collection<PaymentStatus> statuses);
+
     @Query("select coalesce(sum(p.amount), 0) from Payment p where p.reservationId = :reservationId and p.status = :status")
     BigDecimal sumPaidForReservation(@Param("reservationId") Long reservationId, @Param("status") PaymentStatus status);
 
