@@ -6,6 +6,7 @@ import com.hotel.system.audit.AuditService;
 import com.hotel.system.reservation.Reservation;
 import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
+import com.hotel.system.reservation.ReservationSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,27 @@ public class PaymentService {
             type, amount, "SIMULATED", reference, PaymentStatus.PAID));
         audit.record(username, "SIMULATED_PAYMENT_RECORDED", "RESERVATION", reservationId.toString(),
             type + " payment of " + amount + " recorded using simulated mode; reference " + reference);
+        return payment;
+    }
+
+
+    public Payment recordWalkInPayment(Long reservationId, String method, String adminUsername) {
+        Reservation reservation = reservations.findById(reservationId)
+            .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (reservation.getSource() != ReservationSource.WALK_IN)
+            throw new IllegalArgumentException("This is not a walk-in reservation.");
+        if (reservation.getStatus() != ReservationStatus.APPROVED)
+            throw new IllegalStateException("Only approved walk-in reservations can receive onsite payment.");
+        String paymentMethod = method == null ? "" : method.trim().toUpperCase();
+        if (!List.of("CASH", "CARD", "GCASH", "BANK_TRANSFER").contains(paymentMethod))
+            throw new IllegalArgumentException("Choose a valid onsite payment method.");
+        if (payments.sumPaidForReservation(reservationId).signum() > 0)
+            throw new IllegalStateException("Payment has already been recorded for this walk-in reservation.");
+        String reference = "WALKIN-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
+        Payment payment = payments.save(new Payment(reservationId, reservation.getCustomerUsername(),
+            PaymentType.WALK_IN_FULL, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
+        audit.record(adminUsername, "WALK_IN_PAYMENT_RECORDED", "RESERVATION", reservationId.toString(),
+            "Recorded onsite " + paymentMethod + " payment of " + reservation.getTotalAmount() + "; reference " + reference);
         return payment;
     }
 
