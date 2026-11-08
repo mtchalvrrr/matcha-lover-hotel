@@ -147,3 +147,13 @@
 .receipt-total strong{font-family:Georgia,serif;font-size:30px;font-weight:400;color:var(--green)}
 .receipt-actions{margin-top:24px}
 @media print{body{background:#fff!important}.receipt-shell{max-width:none!important;padding:0!important}.receipt-card{max-width:none;margin:0;border:0;box-shadow:none;padding:20px}.receipt-actions,.topbar .back-link{display:none!important}}
+
+
+/* Report trend bars and print layout */
+.trend-chart{display:grid;gap:10px;background:#fff;border:1px solid var(--line);padding:18px;margin:0 0 30px}
+.trend-row{display:grid;grid-template-columns:110px minmax(0,1fr) 28px;gap:12px;align-items:center;font-size:12px}
+.trend-row>span{color:var(--muted)}
+.trend-row strong{text-align:right}
+.trend-track{height:10px;background:#edf0e9;overflow:hidden}
+.trend-fill{height:100%;min-width:2px;background:var(--green)}
+@media print{.report-filter,.report-print,.topbar .back-link{display:none!important}.shell{max-width:none!important;padding:0!important}.metric-card,.table-wrap,.trend-chart{break-inside:avoid}}
