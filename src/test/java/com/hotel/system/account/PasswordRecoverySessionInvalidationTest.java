@@ -32,7 +32,9 @@ class PasswordRecoverySessionInvalidationTest {
         AuditService audit = mock(AuditService.class);
         SessionRegistry sessions = mock(SessionRegistry.class);
 
-        SystemUser account = new SystemUser("guest", "guest@example.com", "old-hash", AccountRole.CUSTOMER);
+        SystemUser account = mock(SystemUser.class);
+        when(account.getId()).thenReturn(7L);
+        when(account.getUsername()).thenReturn("guest");
         PasswordResetToken token = new PasswordResetToken(7L, hash("raw-reset-token"), now.plusSeconds(600));
         var principal = User.withUsername("guest").password("old-hash").roles("CUSTOMER").build();
         SessionInformation activeSession = mock(SessionInformation.class);
@@ -48,10 +50,10 @@ class PasswordRecoverySessionInvalidationTest {
 
         service.reset("raw-reset-token", "New-Strong-Password-123!");
 
-        assertEquals("new-hash", account.getPasswordHash());
+        verify(account).setPasswordHash("new-hash");
         assertEquals(now, token.getUsedAt());
         verify(activeSession).expireNow();
-        verify(audit).record("guest", "PASSWORD_RESET_COMPLETED", "SYSTEM_USER", nullSafeId(account),
+        verify(audit).record("guest", "PASSWORD_RESET_COMPLETED", "SYSTEM_USER", "7",
                 "Password reset completed.");
     }
 
@@ -60,7 +62,4 @@ class PasswordRecoverySessionInvalidationTest {
                 MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private static String nullSafeId(SystemUser account) {
-        return account.getId() == null ? "null" : account.getId().toString();
-    }
 }
