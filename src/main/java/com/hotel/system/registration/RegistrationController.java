@@ -31,7 +31,7 @@ public class RegistrationController {
     @PostMapping("/register")
     public String submit(@RequestParam String firstName, @RequestParam String lastName,
         @RequestParam String email, @RequestParam String username, @RequestParam String password,
-        @RequestParam MultipartFile idDocument, RedirectAttributes redirect) {
+        @RequestParam(required = false) MultipartFile idDocument, RedirectAttributes redirect) {
         try {
             if (captcha != null && captcha.isEnabled()) {
                 var attributes = RequestContextHolder.getRequestAttributes();
@@ -44,7 +44,7 @@ public class RegistrationController {
             RegistrationApplication app = registrations.submit(firstName, lastName, email, username, password, idDocument);
             redirect.addFlashAttribute("applicationId", app.getId());
             redirect.addFlashAttribute("email", app.getEmail());
-            redirect.addFlashAttribute("success", "Verification code sent to your email. Enter it to submit your application for review.");
+            redirect.addFlashAttribute("success", "Verification code sent to your email. Verify it to activate your customer account.");
             return "redirect:/register/verify";
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
@@ -65,7 +65,7 @@ public class RegistrationController {
                 redirect.addFlashAttribute("error", "Verification code is incorrect.");
                 return "redirect:/register/verify";
             }
-            redirect.addFlashAttribute("success", "Email verified. Your application is now waiting for Super Admin review.");
+            redirect.addFlashAttribute("success", "Email verified. Your customer account is now active. You can sign in.");
             return "redirect:/customer/login?registration=pending";
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("applicationId", applicationId);
@@ -82,7 +82,7 @@ public class RegistrationController {
             registrations.resendOtp(applicationId, email);
             redirect.addFlashAttribute("applicationId", applicationId);
             redirect.addFlashAttribute("email", email);
-            redirect.addFlashAttribute("success", "A new verification code was sent. It expires in 10 minutes.");
+            redirect.addFlashAttribute("success", "A new verification code was sent. It expires in 5 minutes.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("applicationId", applicationId);
             redirect.addFlashAttribute("email", email);
