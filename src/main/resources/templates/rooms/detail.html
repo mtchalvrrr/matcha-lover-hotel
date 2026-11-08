@@ -33,11 +33,10 @@
 <p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
 <div class="room-availability-dialog" id="roomAvailabilityDialog" role="dialog" aria-modal="true" aria-labelledby="roomAvailabilityTitle" tabindex="-1">
-<a class="availability-dialog-close" href="#" aria-label="Close">×</a>
 <section class="room-availability-panel" id="roomAvailability">
-<h2 id="roomAvailabilityTitle">Check room availability</h2>
+<a class="availability-dialog-close" href="#" aria-label="Close">×</a>
+<h2 id="roomAvailabilityTitle">Reserved dates for this room</h2>
 <div class="room-occupancy-list">
-<h3>Reserved dates for this room</h3>
 <p class="form-help">These dates are blocked and cannot be booked.</p>
 <p class="room-occupancy-empty" th:if="${#lists.isEmpty(roomOccupancy)}">No pending, approved, or checked-in reservations for this room.</p>
 <ul th:unless="${#lists.isEmpty(roomOccupancy)}">
@@ -49,13 +48,6 @@
 </li>
 </ul>
 </div>
-<form class="room-availability-form" method="get" th:action="@{/rooms/{id}(id=${room.id})}">
-<div><label for="browseCheckIn">Check-in date</label><input id="browseCheckIn" name="checkIn" type="date" th:value="${checkIn}" th:attr="min=${minimumDate}" required></div>
-<div><label for="browseCheckOut">Check-out date</label><input id="browseCheckOut" name="checkOut" type="date" th:value="${checkOut}" th:attr="min=${minimumDate}" required></div>
-<div><label for="browseGuests">Guests</label><input id="browseGuests" name="guests" type="number" min="1" th:attr="max=${room.capacity}" th:value="${guestCount}" required></div>
-<button class="primary-button" type="submit">Check dates</button>
-</form>
-<p class="form-help" th:text="${'Daily check-in: ' + checkInTime + ' · Daily check-out: ' + checkOutTime}">Daily check-in: 14:00 · Daily check-out: 12:00</p>
 <p class="notice" th:if="${availabilityChecked and availabilityAvailable}">This room is available for the selected dates. Sign in to continue with a reservation.</p>
 <p class="alert alert-error" th:if="${availabilityChecked and !availabilityAvailable}">This room is not available for those dates or does not have enough guest capacity. Try another date.</p>
 </section>
