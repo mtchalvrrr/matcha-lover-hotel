@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Application Status | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/registration/status}">Check another application</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / APPLICATION TRACKING</p><h1>Application<br><em>status.</em></h1><p class="intro">Reference <strong th:text="${'#' + application.id}">#1</strong> · <span th:text="${application.email}">email</span></p></section>
+<div class="auth-card wide-form">
+<p><strong>Status:</strong> <span th:text="${application.status}">PENDING_REVIEW</span></p>
+<p><strong>Applicant:</strong> <span th:text="${application.firstName + ' ' + application.lastName}">Applicant</span></p>
+<p><strong>Submitted:</strong> <span th:text="${application.submittedAt}">Date</span></p>
+<div th:switch="${application.status.name()}">
+<p th:case="'PENDING_OTP'" class="notice">Email verification is not complete. Use the verification code sent to your registered email.</p>
+<p th:case="'PENDING_REVIEW'" class="notice">Your email is verified. Your application is waiting for Super Admin review.</p>
+<p th:case="'APPROVED'" class="notice">Your application has been approved. You can now sign in using your registered username and password.</p>
+<div th:case="'REJECTED'">
+<p class="alert alert-error">Your application was not approved.</p>
+<p><strong>Review reason:</strong> <span th:text="${application.reviewReason}">Reason</span></p>
+</div>
+</div>
+<p th:if="${application.reviewedAt != null}"><strong>Reviewed:</strong> <span th:text="${application.reviewedAt}">Date</span></p>
+<a class="primary-link" th:if="${application.status.name() == 'APPROVED'}" th:href="@{/customer/login}">Go to customer sign in</a>
+</div>
+</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body></html>
