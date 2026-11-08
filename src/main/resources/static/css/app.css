@@ -550,3 +550,25 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 .room-availability-dialog[open],.room-availability-dialog.is-open{display:block!important;position:fixed!important;inset:0!important;margin:auto!important}
 .room-availability-dialog::backdrop{background:rgba(20,35,25,.62)!important}
 @media(max-width:600px){.room-gallery-large .gallery-active{height:68vw!important;min-height:250px!important}}
+
+
+/* Availability overlay now uses a regular div, not the native dialog element. */
+.room-availability-dialog[hidden]{display:none!important}
+.room-availability-dialog.is-open{
+  display:grid!important;place-items:center;position:fixed!important;inset:0!important;
+  z-index:999999!important;width:100%!important;height:100%!important;max-width:none!important;
+  max-height:none!important;margin:0!important;padding:24px!important;border:0!important;
+  border-radius:0!important;background:rgba(20,35,25,.68)!important;box-shadow:none!important;
+  overflow-y:auto!important;
+}
+.room-availability-dialog.is-open .room-availability-panel{
+  position:relative;width:min(680px,100%);max-width:680px;margin:auto!important;
+  padding:34px 24px 24px!important;border:1px solid #dce5d6!important;border-radius:22px!important;
+  background:#fffdf7!important;box-shadow:0 28px 90px rgba(22,39,27,.28)!important;
+}
+body.availability-modal-open{overflow:hidden}
+@media(max-width:600px){
+  .room-availability-dialog.is-open{padding:14px!important}
+  .room-availability-dialog.is-open .room-availability-panel{padding:38px 18px 20px!important;border-radius:17px!important}
+  .room-availability-dialog.is-open .room-availability-form{grid-template-columns:1fr!important}
+}
