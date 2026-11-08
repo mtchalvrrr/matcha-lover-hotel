@@ -20,9 +20,9 @@
   ];
 
   let thumbnails = Array.from(thumbnailStrip.querySelectorAll(".gallery-thumbnail"));
-  const usingSamples = thumbnails.length === 0;
+  const usingSamples = thumbnails.length < 5;
   if (usingSamples) {
-    samplePhotos.forEach((photo, index) => {
+    samplePhotos.slice(0, 5 - thumbnails.length).forEach((photo, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "gallery-thumbnail";
