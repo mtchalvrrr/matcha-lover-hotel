@@ -29,6 +29,9 @@ public class RoomRating {
     @Column(nullable = false)
     private int stars;
 
+    @Column(name = "review_text", length = 1000)
+    private String reviewText;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -52,8 +55,16 @@ public class RoomRating {
     public Long getCustomerId() { return customerId; }
     public String getCustomerUsername() { return customerUsername; }
     public int getStars() { return stars; }
+    public String getReviewText() { return reviewText; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public void setReviewText(String reviewText) {
+        String cleaned = reviewText == null ? "" : reviewText.trim();
+        if (cleaned.length() > 1000) throw new IllegalArgumentException("Feedback must be 1,000 characters or fewer.");
+        this.reviewText = cleaned.isEmpty() ? null : cleaned;
+        this.updatedAt = Instant.now();
+    }
 
     public void setStars(int stars) {
         if (stars < 1 || stars > 5) {
