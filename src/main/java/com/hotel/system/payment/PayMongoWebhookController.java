@@ -15,7 +15,7 @@ public class PayMongoWebhookController {
     }
 
     @PostMapping(value = "/webhooks/paymongo", consumes = "application/json")
-    public ResponseEntity<Map<String, String>> receive(@RequestBody String rawBody,
+    public ResponseEntity<Map<String, String>> receive(@RequestBody byte[] rawBody,
             @RequestHeader(name = "Paymongo-Signature", required = false) String signature) {
         try {
             payMongo.handleWebhook(rawBody, signature);
