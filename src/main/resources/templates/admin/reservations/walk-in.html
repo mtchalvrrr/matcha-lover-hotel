@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Walk-in Booking | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/reservations}">Back to reservations</a></header>
+<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/reservations}">Back to reservations</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / WALK-IN BOOKING</p><h1>New walk-in<br><em>reservation.</em></h1><p class="intro">Enter the guest details, select an active room and stay dates, then record the full onsite payment.</p></section>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
 <form class="auth-card wide-form" th:action="@{/admin/reservations/walk-in}" method="post">
