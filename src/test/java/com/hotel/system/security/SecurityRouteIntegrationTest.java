@@ -99,7 +99,10 @@ class SecurityRouteIntegrationTest {
                 new BigDecimal("1000.00"), new BigDecimal("1000.00")));
         mvc.perform(get("/admin/reports").param("from", "2026-12-01").param("to", "2026-12-02"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/reports/index"));
+                .andExpect(view().name("admin/reports/index"))
+                .andExpect(model().attributeExists("dailyRequestTotal"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "Reservations with check-in dates in selected period")));
     }
 
     @Test
