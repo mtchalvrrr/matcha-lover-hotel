@@ -291,6 +291,10 @@ public class ReservationService {
         reservation.recordCheckIn(java.time.Instant.now(clock));
         audit.record(adminUsername, "GUEST_CHECKED_IN", "RESERVATION", id.toString(),
             "Checked in guest " + reservation.getGuestName() + " at " + reservation.getCheckedInAt());
+        if (reservation.getSource() == ReservationSource.ONLINE) {
+            notifications.notifyUser(reservation.getCustomerUsername(), "Check-in completed",
+                    "Your check-in for reservation #" + id + " has been recorded.", "RESERVATION");
+        }
     }
 
     public void checkOut(Long id, String adminUsername) {
@@ -321,6 +325,11 @@ public class ReservationService {
         reservation.changeStatus(ReservationStatus.NO_SHOW);
         audit.record(adminUsername, "RESERVATION_MARKED_NO_SHOW", "RESERVATION", id.toString(),
             "Marked guest " + reservation.getGuestName() + " as no-show.");
+        if (reservation.getSource() == ReservationSource.ONLINE) {
+            notifications.notifyUser(reservation.getCustomerUsername(), "Reservation marked no-show",
+                    "Reservation #" + id + " was marked as a no-show. Contact the hotel if you believe this is incorrect.",
+                    "RESERVATION");
+        }
     }
 
     private void validateWalkInDates(LocalDate checkIn, LocalDate checkOut) {
