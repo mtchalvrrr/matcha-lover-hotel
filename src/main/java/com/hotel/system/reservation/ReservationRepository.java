@@ -49,6 +49,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
         LocalDate checkOutExclusive, LocalDate checkInExclusive, Collection<ReservationStatus> statuses);
 
+    @Query("select r from Reservation r where r.status in :statuses and r.checkedInAt is not null " +
+           "and r.checkedInAt < :endInstant " +
+           "and ((r.checkedOutAt is null and r.checkOutDate > :fromDate) or r.checkedOutAt > :startInstant) " +
+           "order by r.checkedInAt asc")
+    List<Reservation> findActualStaysOverlapping(@Param("statuses") Collection<ReservationStatus> statuses,
+            @Param("endInstant") java.time.Instant endInstant,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("startInstant") java.time.Instant startInstant);
+
     @Query("select case when count(r) > 0 then true else false end from Reservation r " +
            "where r.roomId = :roomId and r.status in :statuses " +
            "and r.checkInDate < :checkOut and r.checkOutDate > :checkIn " +
