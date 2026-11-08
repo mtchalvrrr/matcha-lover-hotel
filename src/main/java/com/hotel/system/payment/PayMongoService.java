@@ -142,7 +142,7 @@ public class PayMongoService {
         return checkoutUrl;
     }
 
-    public void handleWebhook(String rawBody, String signatureHeader) {
+    public void handleWebhook(byte[] rawBody, String signatureHeader) {
         requireTestConfiguration();
         verifySignature(rawBody, signatureHeader);
         try {
@@ -444,7 +444,7 @@ public class PayMongoService {
         Map<String, Object> attributes = Map.of(
                 "amount", payment.getAmount().movePointRight(2).longValueExact(),
                 "payment_id", payment.getProviderPaymentId(),
-                "reason", "requested_by_customer",
+                "reason", "others",
                 "notes", notes);
         Map<String, Object> body = Map.of("data", Map.of("attributes", attributes));
         Map<?, ?> response = client.post().uri("/v1/refunds")
@@ -550,28 +550,16 @@ public class PayMongoService {
         }
     }
 
-    private void verifySignature(String rawBody, String header) {
-        if (rawBody == null || header == null || webhookSecret.isBlank())
+    private void verifySignature(byte[] rawBody, String signatureHeader) {
+        if (rawBody == null || signatureHeader == null || webhookSecret.isBlank())
             throw new IllegalArgumentException("PayMongo webhook verification is not configured.");
-        Map<String, String> parts = new HashMap<>();
-        for (String item : header.split(",")) {
-            String[] pair = item.trim().split("=", 2);
-            if (pair.length == 2) parts.put(pair[0].trim(), pair[1].trim());
-        }
-        String timestamp = parts.get("t");
-        String supplied = parts.get("te");
-        if (timestamp == null || supplied == null || supplied.isBlank())
+        String supplied = signatureHeader.trim();
+        if (supplied.isBlank() || supplied.length() > 256)
             throw new IllegalArgumentException("PayMongo webhook signature is invalid.");
-        long epoch;
-        try { epoch = Long.parseLong(timestamp); }
-        catch (NumberFormatException ex) { throw new IllegalArgumentException("PayMongo webhook timestamp is invalid."); }
-        if (Math.abs(Instant.now(clock).getEpochSecond() - epoch) > 300)
-            throw new IllegalArgumentException("PayMongo webhook timestamp is outside the allowed time window.");
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            byte[] digest = mac.doFinal((timestamp + "." + rawBody).getBytes(StandardCharsets.UTF_8));
-            String expected = HexFormat.of().formatHex(digest);
+            String expected = HexFormat.of().formatHex(mac.doFinal(rawBody));
             if (!MessageDigest.isEqual(expected.getBytes(StandardCharsets.US_ASCII),
                     supplied.getBytes(StandardCharsets.US_ASCII)))
                 throw new IllegalArgumentException("PayMongo webhook signature verification failed.");
