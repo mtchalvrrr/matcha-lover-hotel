@@ -370,3 +370,42 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
  .customer-home-footer{align-items:flex-start;flex-direction:column;padding-bottom:20px}
  .customer-footer-info{width:100%;flex-direction:column;gap:14px}
 }
+
+
+/* Compact room collection, price range slider, and draggable photo cards */
+.room-browser-shell{max-width:1380px}
+.room-filter-bar{margin:26px 0 25px;padding:20px 24px;border:1px solid #dce5d6;border-radius:18px;background:rgba(255,253,247,.94);box-shadow:0 10px 28px rgba(44,68,46,.06)}
+.room-filter-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:16px}
+.room-filter-heading .eyebrow{margin:0;color:#78936d;font-size:10px;font-weight:800;letter-spacing:.17em}
+.room-filter-heading .secondary-button{padding:8px 15px;font-size:11px}
+.room-filter-controls{display:grid;grid-template-columns:minmax(150px,1fr) minmax(250px,1.7fr) minmax(130px,.8fr) minmax(150px,1fr);gap:18px;align-items:end}
+.room-filter-field{display:grid;gap:8px;min-width:0}
+.room-filter-field label{display:flex;justify-content:space-between;gap:8px;color:#526b55;font-size:11px;font-weight:750}
+.room-filter-field select{width:100%;min-height:42px;padding:0 12px;border:1px solid #d6e1d0;border-radius:11px;background:#fffef9;color:#304c39}
+.room-price-range{padding:0 5px}.room-price-range strong{color:#304c39;font-variant-numeric:tabular-nums}
+.range-track{position:relative;height:24px;display:flex;align-items:center}
+.range-track:before{content:"";position:absolute;left:0;right:0;height:5px;border-radius:9px;background:#dce7d6}
+.range-track input{position:absolute;inset:0;width:100%;height:24px;margin:0;background:transparent;appearance:none;pointer-events:none}
+.range-track input::-webkit-slider-thumb{appearance:none;width:17px;height:17px;border:3px solid #fff;border-radius:50%;background:#456b4d;box-shadow:0 1px 5px #0003;pointer-events:auto;cursor:grab}
+.range-track input::-moz-range-thumb{width:12px;height:12px;border:3px solid #fff;border-radius:50%;background:#456b4d;box-shadow:0 1px 5px #0003;pointer-events:auto;cursor:grab}
+.range-track input::-webkit-slider-runnable-track{height:5px;background:transparent}.range-track input::-moz-range-track{height:5px;background:transparent}
+.range-track input:first-child{z-index:2}.range-track input:last-child{z-index:3}
+.range-values{display:flex;justify-content:space-between;color:#81907e;font-size:10px;font-variant-numeric:tabular-nums}
+.room-card-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.room-browse-card{padding:0;min-width:0}.room-card-link{display:flex;height:100%;flex-direction:column;color:inherit;text-decoration:none}
+.room-card-gallery{position:relative;height:245px;overflow:hidden;background:#e5ecdf}
+.room-card-photo-strip{display:flex;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;touch-action:pan-y}
+.room-card-photo-strip::-webkit-scrollbar{display:none}.room-card-photo-strip:active{cursor:grabbing}
+.room-card-photo-strip img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:start;pointer-events:none;user-select:none}
+.room-card-cover{width:100%;height:100%;object-fit:cover}.room-card-placeholder{height:100%;display:grid;place-items:center}
+.room-gallery-hint{position:absolute;right:12px;bottom:12px;padding:7px 11px;border-radius:99px;background:#1d3529c9;color:#fffdf4;font-size:9px;letter-spacing:.04em;pointer-events:none}
+.room-browse-card .room-card-body{display:flex;flex:1;flex-direction:column;padding:21px 22px 19px}
+.room-browse-card .room-card-body .eyebrow{margin:0 0 8px;color:#78936d;font-size:9px;letter-spacing:.15em}
+.room-browse-card .room-card-body h2{margin:0 0 9px;font-family:Georgia,serif;font-size:25px;font-weight:500}
+.room-card-description{min-height:38px;margin:0 0 18px;color:#718073;font-size:11px;line-height:1.6}
+.room-browse-card .room-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;border-top:1px solid #e5eadf;font-size:11px}
+.room-browse-card .room-meta strong{font-size:13px;white-space:nowrap}
+.room-card-cta{display:flex;justify-content:space-between;align-items:center;margin-top:17px;color:#456b4d;font-size:11px;font-weight:800;letter-spacing:.04em}
+.room-card-link:hover .room-card-cta{color:#243c2c}
+@media(max-width:950px){.room-filter-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.room-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.room-filter-bar{padding:17px}.room-filter-controls{grid-template-columns:1fr;gap:14px}.room-card-grid{grid-template-columns:1fr}.room-card-gallery{height:230px}.room-filter-heading{align-items:flex-start}}
