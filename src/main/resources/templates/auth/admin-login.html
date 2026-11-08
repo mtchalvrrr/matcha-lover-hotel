@@ -18,7 +18,7 @@
             <h1>Operations portal.</h1>
             <p class="intro">Authorized hotel administrators only. Both booking admin accounts use the same ADMIN access level.</p>
         </div>
-        <form class="auth-card" th:action="@{/authenticate}" method="post">
+        <form class="auth-card" th:action="@{/admin/authenticate}" method="post">
             <h2>Sign in</h2>
             <p class="form-help">Use the account credentials assigned to you.</p>
             <div class="alert alert-error" th:if="${param.error}">The username or password is incorrect, or this account is inactive.</div>
