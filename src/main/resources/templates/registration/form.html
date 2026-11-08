@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Customer Registration | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer/login}">Customer sign in</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / REGISTRATION</p><h1>Create your<br><em>account.</em></h1><p class="intro">Submit your details and a valid ID document. Verify your email first; your account will remain pending until reviewed by the Super Admin.</p></section>
+<p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<form class="auth-card wide-form" th:action="@{/register}" method="post" enctype="multipart/form-data">
+<label for="firstName">First name</label><input id="firstName" name="firstName" maxlength="80" autocomplete="given-name" required>
+<label for="lastName">Last name</label><input id="lastName" name="lastName" maxlength="80" autocomplete="family-name" required>
+<label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" required>
+<label for="username">Preferred username</label><input id="username" name="username" minlength="4" maxlength="80" autocomplete="username" required>
+<label for="password">Password</label><input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
+<p class="form-help">At least 12 characters, including uppercase, lowercase, a number, and a special character.</p>
+<label for="idDocument">Valid ID document (JPG, PNG, or PDF; maximum 5 MB)</label><input id="idDocument" name="idDocument" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" required>
+<p class="security-note">Your ID document is stored privately and is accessible only to authorized Super Admin reviewers.</p>
+<button class="primary-button" type="submit">Submit registration</button>
+</form></main></body></html>
