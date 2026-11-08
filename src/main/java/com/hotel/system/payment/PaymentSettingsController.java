@@ -16,7 +16,7 @@ public class PaymentSettingsController {
             @Value("${payment.paymongo.secret-key:}") String apiKey,
             @Value("${payment.paymongo.webhook-secret:}") String webhookSecret) {
         this.mode = mode;
-        this.apiKeyConfigured = apiKey != null && !apiKey.isBlank();
+        this.apiKeyConfigured = apiKey != null && apiKey.trim().startsWith("sk_test_");
         this.webhookSecretConfigured = webhookSecret != null && !webhookSecret.isBlank();
     }
 
