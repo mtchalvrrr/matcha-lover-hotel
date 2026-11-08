@@ -53,7 +53,7 @@
 <article class="room-feedback-item" th:each="feedback : ${roomFeedback}">
 <div class="room-feedback-heading"><strong th:text="${feedback.customerUsername}">Customer</strong><span class="room-feedback-stars" th:text="${'★'.repeat(feedback.stars) + '☆'.repeat(5-feedback.stars)}">★★★★★</span></div>
 <p th:text="${feedback.reviewText}">Customer review</p>
-<time th:text="${#temporals.format(feedback.createdAt, 'MMM d, yyyy')}">Date</time>
+<time th:text="${#temporals.format(feedback.createdDate, 'MMM d, yyyy')}">Date</time>
 </article>
 </section>
 <p class="notice" th:if="${success}" th:text="${success}"></p>
