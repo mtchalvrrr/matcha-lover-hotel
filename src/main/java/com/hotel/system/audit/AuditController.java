@@ -29,6 +29,7 @@ public class AuditController {
                            RedirectAttributes redirect) {
         try {
             model.addAttribute("events", audit.searchEvents(actor, action, from, to));
+            model.addAttribute("integrity", audit.verifyIntegrity());
             model.addAttribute("actor", actor);
             model.addAttribute("action", action);
             model.addAttribute("from", from);
