@@ -14,6 +14,9 @@ public record ReportSummary(
     long cancelledReservations,
     long onlineReservations,
     long walkInReservations,
+    long uniqueCustomers,
+    long newCustomers,
+    long returningCustomers,
     long reservedRoomNights,
     long availableRoomNights,
     BigDecimal bookedCapacityRate,
@@ -22,5 +25,6 @@ public record ReportSummary(
     BigDecimal outstandingBalance,
     Map<String, Long> bookingsByRoom,
     Map<LocalDate, Long> bookingsByCheckInDate,
+    Map<LocalDate, Long> bookingsByCreatedDate,
     Map<LocalDate, BigDecimal> revenueByPaymentDate
 ) {}
