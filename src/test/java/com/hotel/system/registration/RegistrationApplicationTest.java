@@ -3,10 +3,38 @@ package com.hotel.system.registration;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import static org.mockito.Mockito.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationApplicationTest {
+    @Test
+    void otpIsExpiredAtTheExactExpiryInstant() {
+        Instant expiry = Instant.parse("2026-11-08T00:10:00Z");
+        RegistrationApplication application = new RegistrationApplication(
+                "Guest", "User", "guest@example.com", "guest-user", "password-hash",
+                "private/id.png", "document-hash", "otp-hash", expiry);
+        PasswordEncoder encoder = mock(PasswordEncoder.class);
+        when(encoder.matches("123456", "otp-hash")).thenReturn(true);
+
+        assertThrows(IllegalStateException.class,
+                () -> application.verifyOtp("123456", encoder, expiry));
+        verifyNoInteractions(encoder);
+    }
+
+    @Test
+    void otpCanBeUsedImmediatelyBeforeItsExpiryInstant() {
+        Instant expiry = Instant.parse("2026-11-08T00:10:00Z");
+        RegistrationApplication application = new RegistrationApplication(
+                "Guest", "User", "guest@example.com", "guest-user", "password-hash",
+                "private/id.png", "document-hash", "otp-hash", expiry);
+        PasswordEncoder encoder = mock(PasswordEncoder.class);
+        when(encoder.matches("123456", "otp-hash")).thenReturn(true);
+
+        assertTrue(application.verifyOtp("123456", encoder, expiry.minusNanos(1)));
+    }
+
     @Test
     void otpResendEnforcesCooldownAndResetsExpiry() {
         Instant now = Instant.parse("2026-11-08T00:00:00Z");
