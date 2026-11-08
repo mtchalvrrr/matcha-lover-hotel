@@ -13,6 +13,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByCustomerUsernameOrderByCreatedAtDesc(String username);
     List<Payment> findByReservationIdOrderByCreatedAtAsc(Long reservationId);
 
-    @Query("select coalesce(sum(p.amount), 0) from Payment p where p.reservationId = :reservationId and p.status = com.hotel.system.payment.PaymentStatus.PAID")
-    BigDecimal sumPaidForReservation(@Param("reservationId") Long reservationId);
+    @Query("select coalesce(sum(p.amount), 0) from Payment p where p.reservationId = :reservationId and p.status = :status")
+    BigDecimal sumPaidForReservation(@Param("reservationId") Long reservationId, @Param("status") PaymentStatus status);
 }
