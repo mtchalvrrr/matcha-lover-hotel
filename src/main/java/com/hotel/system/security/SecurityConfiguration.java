@@ -8,6 +8,7 @@ import org.springframework.session.MapSessionRepository;
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableSpringHttpSession
+@EnableMethodSecurity
 public class SecurityConfiguration {
     @Bean
     MapSessionRepository sessionRepository() {
