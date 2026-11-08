@@ -29,9 +29,20 @@
 <div class="room-image room-image-empty" th:if="${#lists.isEmpty(photos)}"><span>[ROOM PHOTOS]</span></div>
 <p class="intro" th:text="${room.description}">Room description</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
-<p class="form-help" th:text="${'Standard check-in: ' + checkInTime + ' · Standard check-out: ' + checkOutTime}">Standard check-in: 14:00 · Standard check-out: 12:00</p>
-<p class="notice" th:if="${availabilityChecked and availabilityAvailable}">This room is available for the selected dates and guest count.</p>
-<p class="alert alert-error" th:if="${availabilityChecked and !availabilityAvailable}">This room is not available for the selected dates or does not have enough capacity. Please choose another stay.</p>
+<section class="room-availability-panel">
+<h2>Check room availability</h2>
+<form class="room-availability-form" method="get" th:action="@{/rooms/{id}(id=${room.id})}">
+<div><label for="browseCheckIn">Check-in date</label><input id="browseCheckIn" name="checkIn" type="date" th:value="${checkIn}" th:attr="min=${minimumDate}" required></div>
+<div><label for="browseCheckOut">Check-out date</label><input id="browseCheckOut" name="checkOut" type="date" th:value="${checkOut}" th:attr="min=${minimumDate}" required></div>
+<div><label for="browseGuests">Guests</label><input id="browseGuests" name="guests" type="number" min="1" th:attr="max=${room.capacity}" th:value="${guestCount}" required></div>
+<button class="primary-button" type="submit">Check dates</button>
+</form>
+<p class="form-help" th:text="${'Daily check-in: ' + checkInTime + ' · Daily check-out: ' + checkOutTime}">Daily check-in: 14:00 · Daily check-out: 12:00</p>
+<p class="notice" th:if="${availabilityChecked and availabilityAvailable}">This room is available for the selected dates. Sign in to continue with a reservation.</p>
+<p class="alert alert-error" th:if="${availabilityChecked and !availabilityAvailable}">This room is not available for those dates or does not have enough guest capacity. Try another date.</p>
+</section>
+
+
 <h2>Amenities</h2><p th:text="${room.amenities != null and !#strings.isEmpty(room.amenities) ? room.amenities : 'Please contact the hotel for amenity details.'}">Amenities</p>
 <p class="notice" th:if="${success}" th:text="${success}"></p>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
