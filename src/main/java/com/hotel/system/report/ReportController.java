@@ -62,6 +62,11 @@ public class ReportController {
         for (Map.Entry<LocalDate, Long> entry : summary.bookingsByCheckInDate().entrySet()) {
             append(csv, "Daily check-in trend", entry.getKey(), entry.getValue());
         }
+        append(csv, "", "", "");
+        append(csv, "Daily paid revenue", "Payment date", "Revenue PHP");
+        for (Map.Entry<LocalDate, BigDecimal> entry : summary.revenueByPaymentDate().entrySet()) {
+            append(csv, "Daily paid revenue", entry.getKey(), entry.getValue());
+        }
 
         String filename = "hotel-report-" + from + "-to-" + to + ".csv";
         return ResponseEntity.ok()
