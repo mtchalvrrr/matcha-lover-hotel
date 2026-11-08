@@ -39,6 +39,32 @@ class RegistrationStatusLookupTest {
                 () -> service.findStatus(12L, "other@example.com"));
     }
 
+    @Test
+    void verificationRequiresTheApplicationEmailAsWellAsItsReference() {
+        RegistrationRepository applications = mock(RegistrationRepository.class);
+        when(applications.findByIdAndEmailIgnoreCase(12L, "other@example.com"))
+                .thenReturn(Optional.empty());
+        RegistrationService service = service(applications);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.verify(12L, "other@example.com", "123456"));
+        verify(applications).findByIdAndEmailIgnoreCase(12L, "other@example.com");
+        verify(applications, never()).findById(12L);
+    }
+
+    @Test
+    void otpResendRequiresTheApplicationEmailAsWellAsItsReference() {
+        RegistrationRepository applications = mock(RegistrationRepository.class);
+        when(applications.findByIdAndEmailIgnoreCase(12L, "other@example.com"))
+                .thenReturn(Optional.empty());
+        RegistrationService service = service(applications);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.resendOtp(12L, "other@example.com"));
+        verify(applications).findByIdAndEmailIgnoreCase(12L, "other@example.com");
+        verify(applications, never()).findById(12L);
+    }
+
     private RegistrationService service(RegistrationRepository applications) {
         return new RegistrationService(applications, mock(SystemUserRepository.class),
                 mock(RegistrationDocumentStorage.class), new BCryptPasswordEncoder(),
