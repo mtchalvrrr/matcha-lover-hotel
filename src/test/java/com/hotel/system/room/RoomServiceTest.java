@@ -66,10 +66,10 @@ class RoomServiceTest {
         RoomService service = new RoomService(rooms, audit, reservations,
                 Clock.fixed(Instant.parse("2026-11-08T04:00:00Z"), ZoneId.of("Asia/Manila")), stayTimes);
 
-        service.updateOperationalStatus(12L, CleaningStatus.INSPECTION_REQUIRED,
-                MaintenanceStatus.AVAILABLE, "admin");
+        service.updateOperationalStatus(12L, CleaningStatus.READY,
+                MaintenanceStatus.UNDER_MAINTENANCE, "admin");
 
-        assertEquals(CleaningStatus.INSPECTION_REQUIRED, room.getCleaningStatus());
+        assertEquals(CleaningStatus.READY, room.getCleaningStatus());
         assertFalse(room.isBookable());
         assertEquals("admin", room.getLastInspectedBy());
         assertNotNull(room.getLastInspectedAt());
