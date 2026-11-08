@@ -19,7 +19,9 @@
 <option value="2" th:selected="${ratingsByReservation[reservation.id] != null and ratingsByReservation[reservation.id].stars == 2}">★★☆☆☆ — Fair</option>
 <option value="1" th:selected="${ratingsByReservation[reservation.id] != null and ratingsByReservation[reservation.id].stars == 1}">★☆☆☆☆ — Poor</option>
 </select>
-<button class="text-button" type="submit" th:text="${ratingsByReservation[reservation.id] == null ? 'Submit rating' : 'Update rating'}">Submit rating</button>
+<label th:for="${'room-feedback-' + reservation.id}">Share your feedback (optional)</label>
+<textarea name="reviewText" th:id="${'room-feedback-' + reservation.id}" rows="3" maxlength="1000" placeholder="What did you like about this room?"></textarea>
+<button class="text-button" type="submit" th:text="${ratingsByReservation[reservation.id] == null ? 'Submit rating & feedback' : 'Update rating & feedback'}">Submit rating &amp; feedback</button>
 </form>
 <span th:if="${reservation.status.name() != 'CHECKED_OUT'}">Available after checkout</span>
 </td></tr>
