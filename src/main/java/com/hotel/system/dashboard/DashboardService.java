@@ -47,16 +47,22 @@ public class DashboardService {
 
     public AdminSummary adminSummary() {
         LocalDate today = LocalDate.now(clock);
+        java.time.Instant dayStart = today.atStartOfDay(clock.getZone()).toInstant();
+        java.time.Instant nextDayStart = today.plusDays(1).atStartOfDay(clock.getZone()).toInstant();
+        long arrivalsToday = reservations.countByCheckInDateAndStatusIn(today,
+                List.of(ReservationStatus.APPROVED))
+                + reservations.countByCheckedInAtBetween(dayStart, nextDayStart);
+        long departuresToday = reservations.countByCheckOutDateAndStatusIn(today,
+                List.of(ReservationStatus.CHECKED_IN))
+                + reservations.countByCheckedOutAtBetween(dayStart, nextDayStart);
         return new AdminSummary(
                 reservations.count(),
                 reservations.countByStatus(ReservationStatus.PENDING),
                 reservations.countByStatus(ReservationStatus.APPROVED),
                 reservations.countByStatus(ReservationStatus.CHECKED_IN),
                 reservations.countByStatus(ReservationStatus.CHECKED_OUT),
-                reservations.countByCheckInDateAndStatusIn(today,
-                        List.of(ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN)),
-                reservations.countByCheckOutDateAndStatusIn(today,
-                        List.of(ReservationStatus.CHECKED_IN)),
+                arrivalsToday,
+                departuresToday,
                 rooms.countByActiveTrue(),
                 payments.sumAmountByStatus(PaymentStatus.PAID),
                 audit.findTop5ByOrderByCreatedAtDesc()
