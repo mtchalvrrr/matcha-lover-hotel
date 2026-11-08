@@ -3,11 +3,12 @@ package com.hotel.system.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 @Configuration
@@ -23,11 +24,21 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    LoginAttemptAuthenticationProvider loginAttemptAuthenticationProvider(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            LoginAttemptService loginAttempts) {
+        return new LoginAttemptAuthenticationProvider(userDetailsService, passwordEncoder, loginAttempts);
+    }
+
+    @Bean
     SecurityFilterChain applicationSecurity(HttpSecurity http,
                                              PortalAuthenticationSuccessHandler successHandler,
                                              PortalAuthenticationFailureHandler failureHandler,
-                                             SessionRegistry sessionRegistry) throws Exception {
+                                             SessionRegistry sessionRegistry,
+                                             LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
         http
+            .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
                         "/customer/login", "/admin/login", "/super-admin/login", "/api/chat", "/register", "/register/**", "/forgot-password", "/reset-password",
