@@ -55,6 +55,10 @@ public class Reservation {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
+    private long version;
+
     protected Reservation() {}
 
     public Reservation(Long customerId, String customerUsername, String customerEmail,
@@ -103,6 +107,8 @@ public class Reservation {
     public ReservationStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public long getVersion() { return version; }
+    public void touchForPayment() { this.updatedAt = Instant.now(); }
 
     public Reservation(Long roomId, String guestName, String guestEmail, String adminUsername,
                        String roomCode, String roomName, LocalDate checkInDate, LocalDate checkOutDate,
