@@ -5,16 +5,14 @@
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
 <section class="room-detail-heading">
 <p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h1 class="room-detail-title" th:text="${room.name}">Room name</h1>
-<a class="room-availability-cta" href="#roomAvailability">Check available dates &amp; times <span aria-hidden="true">→</span></a>
+<button class="room-availability-cta" type="button" id="openRoomAvailability">Check available dates &amp; times</button>
 </section>
 <section class="room-gallery-viewer room-gallery-large" id="roomGallery" aria-label="Room photo carousel">
 <div class="gallery-main-row">
-<button type="button" class="gallery-arrow" id="galleryPrevious" aria-label="Previous photo">‹</button>
 <button type="button" class="gallery-active" id="galleryOpenLightbox" aria-label="Open photo zoom">
 <img id="galleryActiveImage" th:alt="${room.name + ' photo'}" alt="Room photo">
 <span class="gallery-zoom-hint">Click to enlarge</span>
 </button>
-<button type="button" class="gallery-arrow" id="galleryNext" aria-label="Next photo">›</button>
 </div>
 <div class="gallery-carousel-status" id="galleryCarouselStatus" aria-live="polite">1 / 5 · Sample room photos</div>
 <div class="gallery-thumbnails" id="galleryThumbnails">
@@ -34,8 +32,10 @@
 <p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
 <p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
+<dialog class="room-availability-dialog" id="roomAvailabilityDialog" aria-labelledby="roomAvailabilityTitle">
+<button type="button" class="availability-dialog-close" id="closeRoomAvailability" aria-label="Close">×</button>
 <section class="room-availability-panel" id="roomAvailability">
-<h2>Check room availability</h2>
+<h2 id="roomAvailabilityTitle">Check room availability</h2>
 <form class="room-availability-form" method="get" th:action="@{/rooms/{id}(id=${room.id})}">
 <div><label for="browseCheckIn">Check-in date</label><input id="browseCheckIn" name="checkIn" type="date" th:value="${checkIn}" th:attr="min=${minimumDate}" required></div>
 <div><label for="browseCheckOut">Check-out date</label><input id="browseCheckOut" name="checkOut" type="date" th:value="${checkOut}" th:attr="min=${minimumDate}" required></div>
@@ -46,7 +46,7 @@
 <p class="notice" th:if="${availabilityChecked and availabilityAvailable}">This room is available for the selected dates. Sign in to continue with a reservation.</p>
 <p class="alert alert-error" th:if="${availabilityChecked and !availabilityAvailable}">This room is not available for those dates or does not have enough guest capacity. Try another date.</p>
 </section>
-
+</dialog>
 
 <section class="room-customer-feedback">
 <h2>Customer feedback</h2>
