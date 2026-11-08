@@ -1,6 +1,7 @@
 package com.hotel.system.room;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@PreAuthorize("@adminPermissionService.isEnabled('ROOM_MANAGE')")
 public class RoomPhotoController {
     private final RoomService rooms;
     private final RoomPhotoService photos;
