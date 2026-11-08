@@ -572,3 +572,21 @@ body.availability-modal-open{overflow:hidden}
   .room-availability-dialog.is-open .room-availability-panel{padding:38px 18px 20px!important;border-radius:17px!important}
   .room-availability-dialog.is-open .room-availability-form{grid-template-columns:1fr!important}
 }
+
+
+/* Room availability popup and occupied-date list */
+.room-availability-dialog[hidden]{display:none!important}
+.room-availability-dialog.is-open{display:grid!important;place-items:center;position:fixed!important;inset:0!important;z-index:999999!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:24px!important;border:0!important;border-radius:0!important;background:rgba(20,35,25,.68)!important;box-shadow:none!important;overflow-y:auto!important}
+.room-availability-dialog.is-open .room-availability-panel{position:relative;width:min(680px,100%);max-width:680px;margin:auto!important;padding:34px 28px 26px!important;border:1px solid #dce5d6!important;border-radius:20px!important;background:#fffdf7!important;box-shadow:0 28px 90px rgba(22,39,27,.28)!important}
+body.availability-modal-open{overflow:hidden}
+.room-occupancy-list{margin:0 0 22px;padding:16px 18px;background:#f2f5ee;border:1px solid #dfe7da}
+.room-occupancy-list h3{margin:0 0 5px;font-family:Georgia,serif;font-size:19px;font-weight:400}
+.room-occupancy-list ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:9px}
+.room-occupancy-list li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 0;border-top:1px solid #dfe5da;font-size:12px}
+.room-occupancy-list li strong{font-size:12px;text-align:right}
+.occupancy-status{display:inline-block;padding:5px 8px;border-radius:99px;background:#e8eee2;color:#435b43;font-size:10px;font-weight:700}
+.occupancy-checked_in{background:#dcebe2;color:#285c3e}
+.occupancy-pending{background:#f5ecd8;color:#80601e}
+.occupancy-approved{background:#e5eaf0;color:#435b70}
+.room-occupancy-empty{font-size:12px;color:var(--muted)}
+@media(max-width:600px){.room-availability-dialog.is-open{padding:12px!important}.room-availability-dialog.is-open .room-availability-panel{padding:36px 17px 20px!important}.room-occupancy-list li{align-items:flex-start;flex-direction:column}.room-occupancy-list li strong{text-align:left}}
