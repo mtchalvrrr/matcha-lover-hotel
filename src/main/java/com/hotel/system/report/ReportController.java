@@ -44,6 +44,9 @@ public class ReportController {
         append(csv, "Summary", "Approved reservations", summary.approvedReservations());
         append(csv, "Summary", "Rejected reservations", summary.rejectedReservations());
         append(csv, "Summary", "Cancelled reservations", summary.cancelledReservations());
+        append(csv, "Summary", "No-show reservations", summary.noShowReservations());
+        append(csv, "Summary", "Checked-in reservations", summary.checkedInReservations());
+        append(csv, "Summary", "Checked-out reservations", summary.checkedOutReservations());
         append(csv, "Summary", "Online reservations", summary.onlineReservations());
         append(csv, "Summary", "Walk-in reservations", summary.walkInReservations());
         append(csv, "Summary", "Unique customers", summary.uniqueCustomers());
