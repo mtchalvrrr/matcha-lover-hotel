@@ -60,3 +60,14 @@
 .review-actions form{display:grid;gap:6px}
 .review-actions input{padding:8px;border:1px solid var(--line);font:inherit;font-size:12px;min-width:0}
 @media(max-width:760px){.room-gallery{grid-template-columns:1fr}.room-gallery .detail-image{height:220px}}
+
+.report-filter{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:white;border:1px solid var(--line);padding:18px;margin:0 0 24px}
+.report-filter label{font-size:11px;font-weight:700;color:var(--muted)}
+.report-filter input{padding:11px;border:1px solid var(--line);font:inherit;font-size:13px}
+.report-filter .primary-button{margin:0}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 38px}
+.metric-card{background:white;border:1px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:8px}
+.metric-card span,.metric-card small{font-size:11px;color:var(--muted)}
+.metric-card strong{font-family:Georgia,serif;font-size:30px;font-weight:400;color:var(--green)}
+.report-section h2{font-family:Georgia,serif;font-weight:400;font-size:26px}
+@media(max-width:760px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.report-filter{align-items:stretch;flex-direction:column}}
