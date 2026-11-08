@@ -15,10 +15,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class RoomController {
     private final RoomService rooms;
     private final Clock clock;
+    private final RoomPhotoService photos;
 
-    public RoomController(RoomService rooms, Clock clock) {
+    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos) {
         this.rooms = rooms;
         this.clock = clock;
+        this.photos = photos;
     }
 
     @GetMapping("/rooms")
@@ -30,6 +32,7 @@ public class RoomController {
     @GetMapping("/rooms/{id}")
     public String roomDetails(@PathVariable Long id, Model model, Authentication authentication) {
         model.addAttribute("room", rooms.getPublicRoom(id));
+        model.addAttribute("photos", photos.list(id));
         boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
         model.addAttribute("customerSignedIn", customerSignedIn);
