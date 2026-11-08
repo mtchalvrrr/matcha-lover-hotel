@@ -69,6 +69,7 @@ public class RoomController {
                               Model model, Authentication authentication) {
         model.addAttribute("room", rooms.getPublicRoom(id));
         model.addAttribute("photos", photos.list(id));
+        model.addAttribute("roomFeedback", roomRatings.feedbackForRoom(id));
         model.addAttribute("roomRating", roomRatings.summaries(java.util.List.of(id)).getOrDefault(id, RoomRatingSummary.empty()));
         boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
