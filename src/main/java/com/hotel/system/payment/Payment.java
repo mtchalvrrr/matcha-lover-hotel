@@ -52,4 +52,18 @@ public class Payment {
     public String getTransactionReference() { return transactionReference; }
     public PaymentStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public void markRefunded() {
+        if (status != PaymentStatus.PAID) {
+            throw new IllegalStateException("Only paid transactions can be refunded.");
+        }
+        status = PaymentStatus.REFUNDED;
+    }
+
+    public void markVoided() {
+        if (status != PaymentStatus.PENDING) {
+            throw new IllegalStateException("Only pending transactions can be voided.");
+        }
+        status = PaymentStatus.VOIDED;
+    }
 }
