@@ -1,20 +1,227 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Customer Registration | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer/login}">Customer sign in</a></header>
-<section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / REGISTRATION</p><h1>Create your<br><em>account.</em></h1><p class="intro">Create your customer account and verify your email address. Your account will be activated automatically after successful email verification.</p></section>
-<p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
-<p class="form-help">Already registered? <a th:href="@{/registration/status}">Track your application status</a>.</p>
-<form class="auth-card wide-form" th:action="@{/register}" method="post" enctype="multipart/form-data">
-<label for="firstName">First name</label><input id="firstName" name="firstName" maxlength="80" autocomplete="given-name" required>
-<label for="lastName">Last name</label><input id="lastName" name="lastName" maxlength="80" autocomplete="family-name" required>
-<label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" required>
-<label for="username">Preferred username</label><input id="username" name="username" minlength="4" maxlength="80" autocomplete="username" required>
-<label for="password">Password</label><input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
-<p class="form-help">At least 12 characters, including uppercase, lowercase, a number, and a special character.</p>
-<label for="idDocument">Government ID (optional for now)</label><input id="idDocument" name="idDocument" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
-<p class="security-note">ID upload is temporarily optional while the registration process is being tested.</p>
-<div th:if="${captchaEnabled}" class="g-recaptcha" th:attr="data-sitekey=${captchaSiteKey}"></div><script th:if="${captchaEnabled}" src="https://www.google.com/recaptcha/api.js" async defer></script>
-<button class="primary-button" type="submit">Submit registration</button>
-</form><p class="form-help">Already submitted an application? <a th:href="@{/registration/status}">Check your registration status</a>.</p></main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
-</body></html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Registration | [HOTEL NAME]</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="registration-page">
+<main class="shell registration-shell">
+  <header class="topbar">
+    <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
+    <a class="back-link" th:href="@{/customer/login}">Customer sign in</a>
+  </header>
+
+  <section class="registration-intro">
+    <p class="eyebrow">CUSTOMER / REGISTRATION</p>
+    <h1>Create your<br><em>account.</em></h1>
+    <p>Set up your guest account in a few simple steps.</p>
+  </section>
+
+  <div class="registration-card">
+    <div class="registration-progress" aria-label="Registration progress">
+      <div class="registration-progress-line"><span id="registrationProgressFill"></span></div>
+      <div class="registration-step-indicators">
+        <div class="registration-step-indicator is-active" data-step-indicator="0"><span>01</span><small>Personal</small></div>
+        <div class="registration-step-indicator" data-step-indicator="1"><span>02</span><small>Security</small></div>
+        <div class="registration-step-indicator" data-step-indicator="2"><span>03</span><small>Identity</small></div>
+      </div>
+    </div>
+
+    <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+    <form id="customerRegistrationForm" class="registration-form" th:action="@{/register}" method="post" enctype="multipart/form-data" novalidate>
+      <section class="registration-panel is-visible" data-step="0">
+        <p class="registration-kicker">STEP 1 OF 3</p>
+        <h2>Personal information</h2>
+        <p class="registration-description">Tell us how we should address you and where we can reach you.</p>
+        <div class="registration-fields two-columns">
+          <div class="registration-field">
+            <label for="firstName">First name</label>
+            <input id="firstName" name="firstName" maxlength="80" autocomplete="given-name" placeholder="Enter your first name" required>
+          </div>
+          <div class="registration-field">
+            <label for="lastName">Last name</label>
+            <input id="lastName" name="lastName" maxlength="80" autocomplete="family-name" placeholder="Enter your last name" required>
+          </div>
+        </div>
+        <div class="registration-field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" required>
+          <small>We will send a six-digit verification code to this address after you submit.</small>
+        </div>
+      </section>
+
+      <section class="registration-panel" data-step="1" hidden>
+        <p class="registration-kicker">STEP 2 OF 3</p>
+        <h2>Secure your account</h2>
+        <p class="registration-description">Create your sign-in details. Use a password that you do not use on other websites.</p>
+        <div class="registration-field">
+          <label for="username">Preferred username</label>
+          <input id="username" name="username" minlength="4" maxlength="80" autocomplete="username" placeholder="Choose a username" required>
+        </div>
+        <div class="registration-field">
+          <label for="password">Password</label>
+          <div class="registration-password-wrap">
+            <input id="password" name="password" type="password" minlength="12" autocomplete="new-password" placeholder="Create a strong password" required>
+            <button class="password-visibility" type="button" data-toggle-password="password" aria-label="Show password">Show</button>
+          </div>
+          <div class="password-strength" aria-live="polite">
+            <div class="password-strength-track"><span id="passwordStrengthFill"></span></div>
+            <small id="passwordStrengthText">Use at least 12 characters with uppercase, lowercase, a number, and a symbol.</small>
+          </div>
+        </div>
+        <div class="registration-field">
+          <label for="confirmPassword">Confirm password</label>
+          <div class="registration-password-wrap">
+            <input id="confirmPassword" type="password" minlength="12" autocomplete="new-password" placeholder="Enter your password again" required>
+            <button class="password-visibility" type="button" data-toggle-password="confirmPassword" aria-label="Show confirmation password">Show</button>
+          </div>
+          <small id="passwordMatchMessage" class="field-feedback" aria-live="polite"></small>
+        </div>
+      </section>
+
+      <section class="registration-panel" data-step="2" hidden>
+        <p class="registration-kicker">STEP 3 OF 3</p>
+        <h2>Identity and final check</h2>
+        <p class="registration-description">An ID helps protect guest accounts. Upload is optional while the registration process is being tested.</p>
+        <div class="registration-field">
+          <label for="idDocument">Government-issued ID <span class="optional-label">OPTIONAL FOR TESTING</span></label>
+          <input id="idDocument" name="idDocument" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+          <small>Accepted formats: JPG, PNG, or PDF. You may leave this blank for now.</small>
+          <div id="idFileName" class="selected-file" aria-live="polite">No file selected</div>
+        </div>
+        <div class="registration-privacy-note">
+          <span class="privacy-symbol">⌑</span>
+          <div><strong>Your information is handled with care.</strong><p>We use your details to create and protect your hotel guest account. Personal information should only be accessed by authorized personnel and handled in accordance with the Data Privacy Act of 2012 (RA 10173).</p></div>
+        </div>
+        <div th:if="${captchaEnabled}" class="registration-captcha">
+          <div class="g-recaptcha" th:attr="data-sitekey=${captchaSiteKey}"></div>
+          <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        </div>
+        <p class="registration-final-note">After submission, enter the six-digit code sent to your email. The code expires in five minutes.</p>
+      </section>
+
+      <p id="registrationError" class="registration-inline-error" role="alert" hidden></p>
+      <div class="registration-actions">
+        <button id="registrationBack" class="registration-back" type="button" hidden>Back</button>
+        <span class="registration-action-spacer"></span>
+        <button id="registrationNext" class="primary-button registration-next" type="button">Continue <span aria-hidden="true">→</span></button>
+        <button id="registrationSubmit" class="primary-button registration-next" type="submit" hidden>Create account <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+  </div>
+
+  <p class="registration-footer">Already have an application? <a th:href="@{/registration/status}">Check registration status</a></p>
+  <p class="registration-footer">Already have an account? <a th:href="@{/customer/login}">Sign in</a></p>
+</main>
+<div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+<script>
+(() => {
+  const form = document.getElementById('customerRegistrationForm');
+  if (!form) return;
+  const panels = [...form.querySelectorAll('.registration-panel')];
+  const indicators = [...document.querySelectorAll('[data-step-indicator]')];
+  const back = document.getElementById('registrationBack');
+  const next = document.getElementById('registrationNext');
+  const submit = document.getElementById('registrationSubmit');
+  const progress = document.getElementById('registrationProgressFill');
+  const error = document.getElementById('registrationError');
+  let current = 0;
+
+  const showStep = step => {
+    current = step;
+    panels.forEach((panel, index) => {
+      panel.hidden = index !== step;
+      panel.classList.toggle('is-visible', index === step);
+    });
+    indicators.forEach((item, index) => {
+      item.classList.toggle('is-active', index === step);
+      item.classList.toggle('is-complete', index < step);
+    });
+    progress.style.width = (step / (panels.length - 1) * 100) + '%';
+    back.hidden = step === 0;
+    next.hidden = step === panels.length - 1;
+    submit.hidden = step !== panels.length - 1;
+    error.hidden = true;
+    const first = panels[step].querySelector('input:not([type=file])');
+    if (first) first.focus({preventScroll:true});
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+
+  const validateStep = () => {
+    const fields = [...panels[current].querySelectorAll('input[required]')];
+    for (const field of fields) {
+      if (!field.checkValidity()) {
+        field.reportValidity();
+        field.focus();
+        return false;
+      }
+    }
+    if (current === 1) {
+      const password = document.getElementById('password');
+      const confirm = document.getElementById('confirmPassword');
+      const strong = password.value.length >= 12 && /[A-Z]/.test(password.value) &&
+        /[a-z]/.test(password.value) && /\d/.test(password.value) &&
+        /[^A-Za-z0-9]/.test(password.value);
+      if (!strong) {
+        error.textContent = 'Use at least 12 characters, including uppercase, lowercase, a number, and a special character.';
+        error.hidden = false;
+        password.focus();
+        return false;
+      }
+      if (password.value !== confirm.value) {
+        error.textContent = 'Your passwords do not match.';
+        error.hidden = false;
+        confirm.focus();
+        return false;
+      }
+    }
+    return true;
+  };
+
+  next.addEventListener('click', () => {
+    if (validateStep()) showStep(Math.min(current + 1, panels.length - 1));
+  });
+  back.addEventListener('click', () => showStep(Math.max(current - 1, 0)));
+  form.addEventListener('submit', event => {
+    if (!validateStep()) event.preventDefault();
+  });
+
+  document.querySelectorAll('[data-toggle-password]').forEach(button => {
+    button.addEventListener('click', () => {
+      const input = document.getElementById(button.dataset.togglePassword);
+      const reveal = input.type === 'password';
+      input.type = reveal ? 'text' : 'password';
+      button.textContent = reveal ? 'Hide' : 'Show';
+      button.setAttribute('aria-label', (reveal ? 'Hide ' : 'Show ') + 'password');
+    });
+  });
+
+  const password = document.getElementById('password');
+  const strengthFill = document.getElementById('passwordStrengthFill');
+  const strengthText = document.getElementById('passwordStrengthText');
+  password.addEventListener('input', () => {
+    const checks = [password.value.length >= 12, /[A-Z]/.test(password.value),
+      /[a-z]/.test(password.value), /\d/.test(password.value), /[^A-Za-z0-9]/.test(password.value)];
+    const score = checks.filter(Boolean).length;
+    strengthFill.style.width = (score * 20) + '%';
+    strengthFill.className = score >= 5 ? 'is-strong' : score >= 3 ? 'is-medium' : '';
+    strengthText.textContent = score === 5 ? 'Strong password' : 'Password requirements met: ' + score + ' of 5';
+  });
+
+  const confirm = document.getElementById('confirmPassword');
+  const match = document.getElementById('passwordMatchMessage');
+  confirm.addEventListener('input', () => {
+    match.textContent = !confirm.value ? '' : confirm.value === password.value ? 'Passwords match' : 'Passwords do not match';
+    match.classList.toggle('is-valid', !!confirm.value && confirm.value === password.value);
+    match.classList.toggle('is-invalid', !!confirm.value && confirm.value !== password.value);
+  });
+  document.getElementById('idDocument').addEventListener('change', event => {
+    document.getElementById('idFileName').textContent = event.target.files[0]?.name || 'No file selected';
+  });
+  showStep(0);
+})();
+</script>
+</body>
+</html>
