@@ -45,6 +45,9 @@ public class ChatAssistantService {
         }
 
         String normalized = message.toLowerCase(Locale.ROOT);
+        if (containsSensitiveData(message)) {
+            return new ChatReply("For your security, please do not send passwords, OTP codes, full payment-card numbers, or identity details in chat. Use the secure account pages for private information.", null);
+        }
         if (asksToBrowseRooms(normalized)) {
             return new ChatReply("Here are the rooms you can browse. You can view room details and availability before signing in.", "/rooms");
         }
@@ -144,6 +147,12 @@ public class ChatAssistantService {
             return "To make a reservation, browse the rooms, choose a room, select your stay dates and guest count, then sign in to submit a request. An administrator must approve the request before payment.";
         }
         return "I can help with room browsing, reservations, the 50% down payment, payment balances, check-in and check-out times, and hotel policies. What would you like to know?";
+    }
+
+    private boolean containsSensitiveData(String message) {
+        return message.matches("(?is).*\\b(password|passcode|otp|one[- ]time code)\\s*(is|:|=)\\s*\\S+.*")
+                || message.matches("(?is).*\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b.*")
+                || message.matches("(?s).*\\b(?:\\d[ -]*?){13,19}\\b.*");
     }
 
     private boolean asksToBrowseRooms(String message) {
