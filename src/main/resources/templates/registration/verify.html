@@ -14,5 +14,6 @@
 <p class="form-help">You can request up to three replacement codes. Each new code has a 60-second resend cooldown and expires after 10 minutes.</p>
 <button class="secondary-button" type="submit" th:disabled="${applicationId == null}">Resend verification code</button>
 </form>
+<p class="form-help">Already submitted? <a th:href="@{/registration/status}">Track your application status</a>.</p>
 </main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body></html>
