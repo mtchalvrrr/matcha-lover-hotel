@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Payment Settings | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / CONFIGURATION</p><h1>Payment<br><em>settings.</em></h1><p class="intro">Review the active payment mode and provider configuration without exposing secret credentials in the browser.</p></section>
+<p class="notice" th:if="${payMongoReady}">PayMongo test checkout is configured. Complete a real test checkout and webhook verification before enabling production payments.</p>
+<p class="alert alert-error" th:if="${!payMongoReady}">PayMongo is not fully configured. Customer checkout will not collect provider payments until all required settings are present.</p>
+<div class="table-wrap"><table class="data-table"><tbody>
+<tr><th>Payment mode</th><td th:text="${paymentMode}">SIMULATED</td></tr>
+<tr><th>PayMongo test secret key</th><td th:text="${apiKeyConfigured ? 'Configured (value hidden)' : 'Not configured'}">Not configured</td></tr>
+<tr><th>PayMongo webhook signing secret</th><td th:text="${webhookSecretConfigured ? 'Configured (value hidden)' : 'Not configured'}">Not configured</td></tr>
+<tr><th>Hosted checkout</th><td th:text="${payMongoReady ? 'Configuration ready' : 'Unavailable'}">Unavailable</td></tr>
+</tbody></table></div>
+<h2>Configure through environment secrets</h2>
+<p>Set <code>PAYMENT_MODE=PAYMONGO_TEST</code>, <code>PAYMONGO_SECRET_KEY</code> using a PayMongo test key beginning with <code>sk_test_</code>, and <code>PAYMONGO_WEBHOOK_SECRET</code> using the signing secret for the registered webhook.</p>
+<p>Register the public HTTPS endpoint <code>/webhooks/paymongo</code> in PayMongo and subscribe to checkout payment and refund events. Never enter API secrets into customer-facing forms or commit them to Git.</p>
+<p class="form-help">The application intentionally does not allow changing provider secrets from the website. Manage them through Codespaces secrets or the deployment environment.</p>
+</main></body></html>
