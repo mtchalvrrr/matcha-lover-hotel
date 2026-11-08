@@ -87,6 +87,9 @@ public class PayMongoService {
                 ? reservation.getTotalAmount().multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP)
                 : due;
         String reference = "HOTEL-" + reservationId + "-" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        // Force the reservation's optimistic version check before creating an external checkout.
+        reservation.touchForPayment();
+        reservations.saveAndFlush(reservation);
         Payment payment = payments.save(new Payment(reservationId, customer.getUsername(), type,
                 amount, "PAYMONGO", reference, PaymentStatus.PENDING));
 
