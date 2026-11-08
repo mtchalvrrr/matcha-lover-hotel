@@ -47,6 +47,13 @@ public class NotificationService {
         notifications.save(new Notification(username, title, message, category, null));
     }
 
+    public void notifyUserOnceInAppOnly(String username, String title, String message,
+                                        String category, String eventKey) {
+        if (username == null || username.isBlank() || eventKey == null || eventKey.isBlank()
+                || notifications.existsByEventKey(eventKey)) return;
+        notifications.save(new Notification(username, title, message, category, eventKey));
+    }
+
     public void notifyUserOnce(String username, String title, String message, String category, String eventKey) {
         if (eventKey == null || eventKey.isBlank()) {
             notifyUser(username, title, message, category);
