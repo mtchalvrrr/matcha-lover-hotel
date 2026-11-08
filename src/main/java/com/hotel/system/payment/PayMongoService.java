@@ -167,6 +167,11 @@ public class PayMongoService {
                 recordProcessedEvent(eventId, eventType);
                 return;
             }
+            if ("payment.paid".equals(eventType)) {
+                processDirectPaymentPaidWebhook(eventAttributes.path("data"));
+                recordProcessedEvent(eventId, eventType);
+                return;
+            }
             if (!"checkout_session.payment.paid".equals(eventType)) return;
             JsonNode session = eventAttributes.path("data");
             if (session.isMissingNode() || session.isNull()) session = event.path("data");
@@ -480,6 +485,39 @@ public class PayMongoService {
     private void recordProcessedEvent(String eventId, String eventType) {
         if (eventId != null && !eventId.isBlank())
             processedEvents.save(new ProcessedPayMongoEvent(eventId, eventType));
+    }
+
+    private void processDirectPaymentPaidWebhook(JsonNode resource) {
+        JsonNode attributes = resource.path("attributes");
+        String reference = attributes.path("reference_number").asText("");
+        String providerPaymentId = resource.path("id").asText("");
+        Payment payment = reference.isBlank() ? null
+                : payments.findByTransactionReference(reference).orElse(null);
+        if (payment == null) {
+            String paymentId = attributes.path("metadata").path("hotel_payment_id").asText("");
+            if (!paymentId.isBlank()) {
+                try { payment = payments.findById(Long.parseLong(paymentId)).orElse(null); }
+                catch (NumberFormatException ignored) { return; }
+            }
+        }
+        if (payment == null || payment.getStatus() == PaymentStatus.PAID) return;
+        if (payment.getStatus() != PaymentStatus.PENDING
+                || !"PHP".equalsIgnoreCase(attributes.path("currency").asText(""))
+                || attributes.path("amount").asLong(-1)
+                    != payment.getAmount().movePointRight(2).longValueExact()) {
+            audit.record("PAYMONGO_WEBHOOK", "PAYMENT_RESOURCE_MISMATCH", "PAYMENT",
+                    payment.getId().toString(), "PayMongo payment.paid event did not match the pending hotel payment amount, currency, or status.");
+            notifications.notifyAdmins("PayMongo payment needs reconciliation",
+                    "A payment.paid event did not match the pending hotel payment record #" + payment.getId()
+                            + ". Check the provider dashboard.", "PAYMENT");
+            return;
+        }
+        payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
+        audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
+                "Verified PayMongo payment.paid event; provider payment " + providerPaymentId);
+        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
+                "Your PayMongo payment for reservation #" + payment.getReservationId() + " has been confirmed.",
+                "PAYMENT");
     }
 
     private void processFailedPaymentWebhook(JsonNode resource) {
