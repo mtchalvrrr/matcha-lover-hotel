@@ -3,41 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>[HOTEL NAME] | Reservation System</title>
+    <title>[HOTEL NAME] | Program Launcher</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<main class="shell">
+<main class="shell launcher-shell">
     <header class="topbar">
         <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
         <span class="top-note">Reservation and Management System</span>
     </header>
-    <section class="hero">
-        <p class="eyebrow">A BETTER WAY TO STAY</p>
-        <h1>Welcome to<br><em>[HOTEL NAME]</em></h1>
-        <p class="intro">Explore rooms, manage reservations, and access the right portal.</p>
+
+    <section class="launcher-content">
+        <p class="eyebrow">SYSTEM READY</p>
+        <h1>Open your<br><em>workspace.</em></h1>
+        <p class="intro">Launch the Customer, Admin, and Super Admin programs in separate tabs in this browser window.</p>
+        <button class="primary-button launcher-button" id="launch-programs" type="button">
+            Open all three programs <span aria-hidden="true">↗</span>
+        </button>
+        <p class="launcher-help" id="launcher-status" role="status" aria-live="polite">
+            If your browser blocks new tabs, allow pop-ups for this Codespaces address and try again.
+        </p>
+        <nav class="launcher-fallback" aria-label="Open programs individually">
+            <a th:href="@{/customer}" target="_blank" rel="noopener">Open Customer Program</a>
+            <a th:href="@{/admin}" target="_blank" rel="noopener">Open Admin Program</a>
+            <a th:href="@{/super-admin}" target="_blank" rel="noopener">Open Super Admin Program</a>
+        </nav>
     </section>
-    <section class="portal-grid" aria-label="System programs">
-        <a class="portal-card" th:href="@{/customer}">
-            <span class="portal-number">01 / GUESTS</span>
-            <h2>Customer Program</h2>
-            <p>Browse rooms, check availability, and manage your reservations.</p>
-            <span class="portal-link">Enter customer program <span aria-hidden="true">↗</span></span>
-        </a>
-        <a class="portal-card" th:href="@{/admin}">
-            <span class="portal-number">02 / OPERATIONS</span>
-            <h2>Admin Program</h2>
-            <p>Manage rooms, reservations, payments, and hotel operations.</p>
-            <span class="portal-link">Enter admin program <span aria-hidden="true">↗</span></span>
-        </a>
-        <a class="portal-card" th:href="@{/super-admin}">
-            <span class="portal-number">03 / CONTROL</span>
-            <h2>Super Admin Program</h2>
-            <p>Manage access, review applications, and monitor system activity.</p>
-            <span class="portal-link">Enter super admin program <span aria-hidden="true">↗</span></span>
-        </a>
-    </section>
+
     <footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
 </main>
+<script>
+    document.getElementById('launch-programs').addEventListener('click', function () {
+        const paths = ['/customer', '/admin', '/super-admin'];
+        const opened = paths.map(function (path) {
+            return window.open(new URL(path, window.location.origin).href, '_blank');
+        });
+        const blocked = opened.filter(function (tab) { return tab === null; }).length;
+        const status = document.getElementById('launcher-status');
+        if (blocked === 0) {
+            status.textContent = 'Launch requested for all three programs. Check the tabs in this browser window.';
+        } else {
+            status.textContent = 'Your browser blocked one or more tabs. Allow pop-ups for this site, then try again, or use the individual links below.';
+        }
+    });
+</script>
 </body>
 </html>
