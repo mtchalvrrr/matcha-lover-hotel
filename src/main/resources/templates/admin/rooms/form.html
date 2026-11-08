@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${pageTitle + ' | [HOTEL NAME]'}">Room form</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/rooms}">Back to room list</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / ROOM MANAGEMENT</p><h1 th:text="${pageTitle}">Add room</h1></section>
+<form class="auth-card wide-form" th:object="${room}" th:action="${room.id == null ? '/admin/rooms' : '/admin/rooms/' + room.id}" method="post">
+<p class="alert alert-error" th:if="${formError}" th:text="${formError}"></p>
+<label for="roomCode">Room code</label><input id="roomCode" th:field="*{roomCode}" maxlength="30" required><small class="field-error" th:errors="*{roomCode}"></small>
+<label for="name">Room name</label><input id="name" th:field="*{name}" maxlength="100" required><small class="field-error" th:errors="*{name}"></small>
+<label for="roomType">Room type</label><input id="roomType" th:field="*{roomType}" maxlength="60" required><small class="field-error" th:errors="*{roomType}"></small>
+<label for="description">Description</label><textarea id="description" th:field="*{description}" rows="4" maxlength="2000"></textarea>
+<label for="capacity">Maximum guests</label><input id="capacity" type="number" min="1" max="50" th:field="*{capacity}" required><small class="field-error" th:errors="*{capacity}"></small>
+<label for="nightlyRate">Nightly rate (PHP)</label><input id="nightlyRate" type="number" min="0.01" step="0.01" th:field="*{nightlyRate}" required><small class="field-error" th:errors="*{nightlyRate}"></small>
+<label for="amenities">Amenities (separate with commas)</label><textarea id="amenities" th:field="*{amenities}" rows="3" maxlength="1000"></textarea>
+<label for="coverImagePath">Cover image path (media uploads will be added in the media module)</label><input id="coverImagePath" th:field="*{coverImagePath}" maxlength="500">
+<div class="action-row"><button class="primary-button" type="submit">Save room</button><a class="secondary-link" th:href="@{/admin/rooms}">Cancel</a></div>
+</form></main></body></html>
