@@ -30,6 +30,8 @@ public class Payment {
     private PaymentStatus status;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+    @Column(name = "refunded_at")
+    private Instant refundedAt;
 
     protected Payment() {}
     public Payment(Long reservationId, String customerUsername, PaymentType paymentType,
@@ -52,12 +54,17 @@ public class Payment {
     public String getTransactionReference() { return transactionReference; }
     public PaymentStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
+    public Instant getRefundedAt() { return refundedAt; }
 
-    public void markRefunded() {
+    public void markRefunded(Instant refundedAt) {
         if (status != PaymentStatus.PAID) {
             throw new IllegalStateException("Only paid transactions can be refunded.");
         }
+        if (refundedAt == null) {
+            throw new IllegalArgumentException("A refund timestamp is required.");
+        }
         status = PaymentStatus.REFUNDED;
+        this.refundedAt = refundedAt;
     }
 
     public void markVoided() {
