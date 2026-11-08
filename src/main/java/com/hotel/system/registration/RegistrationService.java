@@ -76,8 +76,6 @@ public class RegistrationService {
         }
         audit.record(user, "CUSTOMER_REGISTRATION_SUBMITTED", "REGISTRATION", application.getId().toString(),
             "Application submitted; email OTP sent.");
-        notifications.notifySuperAdmins("Customer application awaiting review",
-            "Verified email application #" + application.getId() + " is awaiting identity review.", "REGISTRATION");
         return application;
     }
 
@@ -86,8 +84,12 @@ public class RegistrationService {
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
         if (otp == null) return false;
         boolean verified = app.verifyOtp(otp.trim(), encoder, Instant.now(clock));
-        if (verified) audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
-            "Email OTP verified; awaiting Super Admin review.");
+        if (verified) {
+            audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
+                "Email OTP verified; awaiting Super Admin review.");
+            notifications.notifySuperAdmins("Customer application awaiting review",
+                "Verified email application #" + id + " is awaiting identity review.", "REGISTRATION");
+        }
         return verified;
     }
 
@@ -111,8 +113,7 @@ public class RegistrationService {
         }
         audit.record(reviewer, approve ? "CUSTOMER_REGISTRATION_APPROVED" : "CUSTOMER_REGISTRATION_REJECTED",
             "REGISTRATION", id.toString(), "Applicant " + app.getUsername() + ". " + clean(reason));
-        if (!approve) notifications.notifyUser(app.getUsername(), "Registration application update",
-            "Your registration application was not approved. Reason: " + clean(reason), "ACCOUNT");
+
     }
 
     public RegistrationApplication get(Long id) {
