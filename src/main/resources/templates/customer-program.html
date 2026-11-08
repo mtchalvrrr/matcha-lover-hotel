@@ -1,9 +1,61 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CUSTOMER PROGRAM | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/}">Back to portals</a></header>
-<section class="portal-hero"><p class="eyebrow">CUSTOMER PROGRAM</p><h1>Your stay<br><em>starts here.</em></h1><p class="intro">Browse rooms and hotel information without signing in. Sign in to access your reservations and customer account.</p>
-<div class="action-row"><a class="primary-link" th:href="@{/rooms}">Browse rooms</a><a class="secondary-link" th:href="@{/customer/login}">Customer sign in</a><a class="secondary-link" th:href="@{/register}">Create account</a></div></section>
-</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
-</body></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Matcha Lover Hotel | Customer Program</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="matcha-customer-home">
+<main class="shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">M</span>
+            <span>Matcha Lover Hotel</span>
+        </a>
+        <a class="back-link" th:href="@{/}">Back to portals</a>
+    </header>
+
+    <section class="portal-hero customer-welcome">
+        <div class="customer-welcome-copy">
+            <p class="eyebrow">A THOUGHTFUL STAY</p>
+            <h1>Feel at home.<br><em>Stay a little longer.</em></h1>
+            <p class="intro">Discover comfortable rooms, thoughtful details, and a relaxing hotel experience. Browse our rooms anytime, or sign in to manage your stay.</p>
+            <div class="action-row">
+                <a class="primary-link" th:href="@{/rooms}">Explore rooms <span aria-hidden="true">↗</span></a>
+                <a class="secondary-link" th:href="@{/customer/login}">Customer sign in</a>
+                <a class="secondary-link" th:href="@{/register}">Create account</a>
+            </div>
+        </div>
+        <span class="customer-hero-caption">MATCHA LOVER HOTEL · YOUR PLACE TO UNWIND</span>
+    </section>
+
+    <section class="customer-welcome-details" aria-label="Hotel highlights">
+        <article>
+            <span class="customer-detail-number">01</span>
+            <h2>Find your room</h2>
+            <p>Explore room options, view photos and rates, and check availability before making a reservation.</p>
+            <a th:href="@{/rooms}">Browse rooms <span aria-hidden="true">↗</span></a>
+        </article>
+        <article>
+            <span class="customer-detail-number">02</span>
+            <h2>Plan your stay</h2>
+            <p>Choose your dates and room details, then send your reservation request online.</p>
+            <a th:href="@{/rooms}">View availability <span aria-hidden="true">↗</span></a>
+        </article>
+        <article>
+            <span class="customer-detail-number">03</span>
+            <h2>Your account, in one place</h2>
+            <p>Sign in to view reservations, follow booking updates, and manage your customer account.</p>
+            <a th:href="@{/customer/login}">Sign in <span aria-hidden="true">↗</span></a>
+        </article>
+    </section>
+
+    <footer class="customer-home-footer">
+        <span>Matcha Lover Hotel</span>
+        <span>A calm stay, thoughtfully made.</span>
+    </footer>
+</main>
+<div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body>
+</html>
