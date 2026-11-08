@@ -232,6 +232,20 @@ public class ReservationService {
 
 
 
+    @Transactional(readOnly = true)
+    public Reservation adminReservationForModification(Long id) {
+        Reservation reservation = reservations.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (reservation.getStatus() != ReservationStatus.PENDING
+                && reservation.getStatus() != ReservationStatus.APPROVED) {
+            throw new IllegalStateException("Only pending or approved reservations can be modified.");
+        }
+        if (reservation.getCheckedInAt() != null || reservation.getCheckedOutAt() != null) {
+            throw new IllegalStateException("A stay that has started or ended cannot be modified.");
+        }
+        return reservation;
+    }
+
     public Reservation adminModifyReservation(Long id, String adminUsername, Long roomId,
                                                LocalDate checkIn, LocalDate checkOut, Integer guests) {
         Reservation reservation = reservations.findById(id)
