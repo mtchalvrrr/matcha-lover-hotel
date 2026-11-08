@@ -67,10 +67,15 @@ class ReportServiceTest {
     void calculatesOutstandingBalanceForApprovedReservations() {
         LocalDate from = LocalDate.of(2026, 11, 10);
         LocalDate to = LocalDate.of(2026, 11, 10);
-        Reservation approved = new Reservation(9L, "guest", "guest@example.com", 1L,
-                "A-01", "Garden Room", from, from.plusDays(2), 2, 2,
-                new BigDecimal("1000.00"), new BigDecimal("2000.00"));
-        approved.changeStatus(ReservationStatus.APPROVED);
+        Reservation approved = mock(Reservation.class);
+        when(approved.getId()).thenReturn(9L);
+        when(approved.getStatus()).thenReturn(ReservationStatus.APPROVED);
+        when(approved.getSource()).thenReturn(com.hotel.system.reservation.ReservationSource.ONLINE);
+        when(approved.getRoomCode()).thenReturn("A-01");
+        when(approved.getRoomName()).thenReturn("Garden Room");
+        when(approved.getCheckInDate()).thenReturn(from);
+        when(approved.getCheckOutDate()).thenReturn(from.plusDays(2));
+        when(approved.getTotalAmount()).thenReturn(new BigDecimal("2000.00"));
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
                 .thenReturn(List.of(approved));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
