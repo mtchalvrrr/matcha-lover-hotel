@@ -625,3 +625,70 @@ body.availability-modal-open{overflow:hidden}
 .otp-entry .otp-separator{width:8px;height:2px;justify-self:center;background:#aab5a6;border-radius:2px}
 .otp-help{margin:10px 0 0}
 @media(max-width:480px){.otp-entry{gap:6px;grid-template-columns:repeat(3,minmax(0,1fr)) 8px repeat(3,minmax(0,1fr))}.otp-entry .otp-digit{height:54px;font-size:22px;border-radius:8px}}
+
+/* Guided customer registration */
+.registration-page{background:#f2f3ec}
+.registration-shell{max-width:1040px;width:min(100% - 48px,1040px);padding-top:24px}
+.registration-intro{padding:54px 0 28px}
+.registration-intro h1{margin:12px 0 12px;color:#263c2e;font-family:Georgia,"Times New Roman",serif;font-size:clamp(48px,7vw,72px);font-weight:400;line-height:.98;letter-spacing:-.05em}
+.registration-intro h1 em{color:#81957a;font-weight:400}
+.registration-intro>p:last-child{margin:0;color:#778176;font-size:14px;line-height:1.7}
+.registration-card{width:min(100%,760px);margin:0 auto 26px;padding:34px 42px 30px;border:1px solid #e0e5d9;border-radius:5px;background:#fff;box-shadow:0 18px 55px rgba(37,57,41,.07)}
+.registration-progress{position:relative;margin:0 0 36px}
+.registration-progress-line{position:absolute;top:15px;left:8%;right:8%;height:2px;background:#e7ebe3}
+.registration-progress-line span{display:block;width:0;height:100%;background:#6f896d;transition:width .25s ease}
+.registration-step-indicators{position:relative;display:grid;grid-template-columns:repeat(3,1fr)}
+.registration-step-indicator{display:grid;justify-items:center;gap:7px;color:#a0a99d}
+.registration-step-indicator span{display:grid;width:32px;height:32px;place-items:center;border:1px solid #dce3d8;border-radius:50%;background:#fff;font-size:10px;font-weight:800;letter-spacing:.04em}
+.registration-step-indicator small{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.registration-step-indicator.is-active,.registration-step-indicator.is-complete{color:#46664a}
+.registration-step-indicator.is-active span,.registration-step-indicator.is-complete span{border-color:#58775b;background:#58775b;color:#fff}
+.registration-panel[hidden],.registration-actions [hidden],.registration-inline-error[hidden]{display:none!important}
+.registration-kicker{margin:0 0 9px;color:#83927e;font-size:9px;font-weight:800;letter-spacing:.18em}
+.registration-panel h2{margin:0 0 8px;color:#293d2f;font-family:Georgia,serif;font-size:30px;font-weight:400}
+.registration-description{margin:0 0 27px;color:#7b8579;font-size:12px;line-height:1.7}
+.registration-fields{display:grid;gap:16px}
+.registration-fields.two-columns{grid-template-columns:repeat(2,minmax(0,1fr))}
+.registration-field{display:grid;gap:8px;margin:0 0 18px}
+.registration-field label{color:#344638;font-size:11px;font-weight:750}
+.registration-field input{width:100%;min-width:0;min-height:47px;padding:12px 14px;border:1px solid #dfe5dc;border-radius:3px;background:#fbfcf9;color:#27372b;font:inherit;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s}
+.registration-field input:focus{border-color:#82977c;box-shadow:0 0 0 3px rgba(111,137,109,.12)}
+.registration-field input::placeholder{color:#a6aea3}
+.registration-field>small,.registration-field small{color:#879186;font-size:10px;line-height:1.6}
+.registration-password-wrap{position:relative}
+.registration-password-wrap input{padding-right:66px}
+.password-visibility{position:absolute;top:50%;right:12px;transform:translateY(-50%);border:0;background:transparent;color:#557456;font-size:10px;font-weight:800;cursor:pointer}
+.password-strength{display:grid;gap:7px;margin-top:2px}
+.password-strength-track{height:4px;overflow:hidden;background:#edf0e9}
+.password-strength-track span{display:block;width:0;height:100%;background:#b58c4b;transition:width .2s,background .2s}
+.password-strength-track span.is-medium{background:#b58c4b}
+.password-strength-track span.is-strong{background:#648567}
+.field-feedback.is-valid{color:#527a55}
+.field-feedback.is-invalid{color:#a34e42}
+.optional-label{margin-left:7px;color:#8a987e;font-size:8px;letter-spacing:.08em}
+.selected-file{padding:10px 12px;border:1px dashed #d8e1d4;background:#fafbf8;color:#778276;font-size:11px;overflow-wrap:anywhere}
+.registration-privacy-note{display:flex;gap:14px;margin:10px 0 18px;padding:17px;border:1px solid #e2e9df;background:#f7f9f4}
+.privacy-symbol{display:grid;flex:0 0 30px;width:30px;height:30px;place-items:center;border-radius:50%;background:#e5ecdf;color:#527354;font-size:20px}
+.registration-privacy-note strong{display:block;margin:0 0 5px;color:#3c533f;font-size:11px}
+.registration-privacy-note p{margin:0;color:#788477;font-size:10px;line-height:1.7}
+.registration-captcha{margin:18px 0}
+.registration-final-note{margin:18px 0 0;padding:13px 15px;border-left:2px solid #8ca185;background:#f5f7f1;color:#667463;font-size:11px;line-height:1.65}
+.registration-actions{display:flex;align-items:center;gap:12px;margin-top:26px;padding-top:22px;border-top:1px solid #edf0e9}
+.registration-action-spacer{flex:1}
+.registration-back{min-height:45px;padding:0 20px;border:1px solid #dfe5dc;background:#fff;color:#526451;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.registration-next{display:inline-flex;align-items:center;justify-content:center;gap:18px;min-width:164px;min-height:46px;margin:0;padding:0 20px;border-radius:2px;background:#354f3c;font-size:11px;letter-spacing:.02em}
+.registration-next:hover{background:#263c2e}
+.registration-inline-error{margin:16px 0 0;padding:11px 13px;border-left:3px solid #bd6657;background:#f8e9e6;color:#8c3428;font-size:11px;line-height:1.6}
+.registration-footer{margin:9px auto;color:#818a7f;text-align:center;font-size:11px}
+.registration-footer a{color:#49684b;font-weight:750;text-decoration:none}
+.registration-footer a:hover{text-decoration:underline}
+@media(max-width:650px){
+ .registration-shell{width:auto;padding:16px}
+ .registration-intro{padding:42px 0 22px}
+ .registration-card{padding:25px 20px 22px}
+ .registration-fields.two-columns{grid-template-columns:1fr;gap:0}
+ .registration-panel h2{font-size:27px}
+ .registration-next{min-width:0;flex:1}
+ .registration-progress{margin-bottom:30px}
+ .registration-step-indicator small{font-size:9px}
+}
