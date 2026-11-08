@@ -58,8 +58,9 @@ public class SecurityConfiguration {
     LoginAttemptAuthenticationProvider loginAttemptAuthenticationProvider(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder,
-            LoginAttemptService loginAttempts) {
-        return new LoginAttemptAuthenticationProvider(userDetailsService, passwordEncoder, loginAttempts);
+            LoginAttemptService loginAttempts,
+            CaptchaService captcha) {
+        return new LoginAttemptAuthenticationProvider(userDetailsService, passwordEncoder, loginAttempts, captcha);
     }
 
     @Bean
