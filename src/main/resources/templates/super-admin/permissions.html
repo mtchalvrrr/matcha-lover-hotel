@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin Permissions | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / ACCESS CONTROL</p><h1>Admin<br><em>permissions.</em></h1><p class="intro">Enable or disable Admin capabilities. These settings apply equally to both Admin accounts so their permissions remain identical.</p></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<section class="report-section"><div class="table-wrap"><table class="data-table"><thead><tr><th>Capability</th><th>Status</th><th>Action</th></tr></thead><tbody>
+<tr th:each="permission : ${permissions}"><td th:text="${permission.label}">Capability</td><td th:text="${permission.enabled ? 'Enabled' : 'Disabled'}">Enabled</td><td><form th:action="@{/super-admin/permissions/{key}(key=${permission.key})}" method="post"><input type="hidden" name="enabled" th:value="${!permission.enabled}"><button class="text-button" type="submit" th:text="${permission.enabled ? 'Disable' : 'Enable'}">Toggle</button></form></td></tr>
+</tbody></table></div></section>
+</main></body></html>
