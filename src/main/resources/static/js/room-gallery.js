@@ -66,7 +66,7 @@
       thumbnail.setAttribute("aria-current", active ? "true" : "false");
     });
     if (status) {
-      status.textContent = `${activeIndex + 1} / ${photos.length}${usingSamples ? " · Sample room photos" : ""}`;
+      status.textContent = `${activeIndex + 1} / ${photos.length}${usingSamples ? " · Includes sample photos" : ""}`;
     }
     if (restartAutoplay) startAutoplay();
   }
