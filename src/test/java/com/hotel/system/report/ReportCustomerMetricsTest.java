@@ -42,6 +42,12 @@ class ReportCustomerMetricsTest {
                 .thenReturn(List.of());
         when(reservations.findByCustomerIdIn(Set.of(7L, 8L)))
                 .thenReturn(List.of(returningGuestBooking, newGuestBooking, previousStay));
+        Reservation createdRequestOne = mock(Reservation.class);
+        Reservation createdRequestTwo = mock(Reservation.class);
+        when(createdRequestOne.getCreatedAt()).thenReturn(Instant.parse("2026-11-10T02:00:00Z"));
+        when(createdRequestTwo.getCreatedAt()).thenReturn(Instant.parse("2026-11-11T02:00:00Z"));
+        when(reservations.findByCreatedAtBetweenOrderByCreatedAtAsc(any(), any()))
+                .thenReturn(List.of(createdRequestOne, createdRequestTwo));
         when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
         when(rooms.countByActiveTrue()).thenReturn(2L);
