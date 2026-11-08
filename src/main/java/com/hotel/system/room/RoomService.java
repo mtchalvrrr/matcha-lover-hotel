@@ -106,8 +106,15 @@ public class RoomService {
             throw new IllegalStateException(
                     "Room capacity cannot be reduced below the guest count of a pending, approved, or checked-in reservation.");
         }
+        String previous = "code=" + room.getRoomCode() + ", name=" + room.getName()
+                + ", type=" + room.getRoomType() + ", capacity=" + room.getCapacity()
+                + ", nightlyRate=" + room.getNightlyRate() + ", amenities=" + room.getAmenities();
         room.updateFrom(form);
-        audit.record(actor, "ROOM_UPDATED", "ROOM", id.toString(), "Updated room " + room.getRoomCode());
+        String updated = "code=" + room.getRoomCode() + ", name=" + room.getName()
+                + ", type=" + room.getRoomType() + ", capacity=" + room.getCapacity()
+                + ", nightlyRate=" + room.getNightlyRate() + ", amenities=" + room.getAmenities();
+        audit.record(actor, "ROOM_UPDATED", "ROOM", id.toString(),
+                "Previous: " + previous + ". Updated: " + updated);
         return room;
     }
 
@@ -124,8 +131,10 @@ public class RoomService {
 
     public void setActive(Long id, boolean active, String actor) {
         Room room = getRoom(id);
+        boolean previousActive = room.isActive();
         if (active) room.activate(); else room.deactivate();
         audit.record(actor, active ? "ROOM_ACTIVATED" : "ROOM_DEACTIVATED", "ROOM", id.toString(),
-            "Changed availability of room " + room.getRoomCode());
+            "Room " + room.getRoomCode() + "; previous active=" + previousActive
+                    + "; updated active=" + room.isActive());
     }
 }
