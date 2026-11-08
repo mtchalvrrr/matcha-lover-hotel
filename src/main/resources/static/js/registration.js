@@ -72,6 +72,17 @@
     return false;
   };
 
+  const nextButton = document.getElementById('registrationNext');
+  const backButton = document.getElementById('registrationBack');
+  nextButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    window.registrationNextStep();
+  });
+  backButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    window.registrationPreviousStep();
+  });
+
   form.addEventListener('submit', function (event) {
     if (step !== panels.length - 1) {
       event.preventDefault();
