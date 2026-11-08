@@ -45,9 +45,17 @@ public class AuditController {
                                                   @RequestParam(required = false) String action,
                                                   @RequestParam(required = false) LocalDate from,
                                                   @RequestParam(required = false) LocalDate to) {
+        java.util.List<AuditLog> events;
+        try {
+            events = audit.searchEvents(actor, action, from, to);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(ex.getMessage().getBytes(StandardCharsets.UTF_8));
+        }
         StringBuilder csv = new StringBuilder("\uFEFF");
         append(csv, "Timestamp", "Actor", "Action", "Target type", "Target ID", "Details");
-        for (AuditLog event : audit.searchEvents(actor, action, from, to)) {
+        for (AuditLog event : events) {
             append(csv, event.getCreatedAt(), event.getActorUsername(), event.getAction(),
                     event.getTargetType(), event.getTargetId(), event.getDetails());
         }
