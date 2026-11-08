@@ -21,6 +21,10 @@ public class NotificationService{
         users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.ADMIN))
             .forEach(admin->notifyUser(admin.getUsername(),title,message,category));
     }
+    public void notifySuperAdmins(String title,String message,String category){
+        users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.SUPER_ADMIN))
+            .forEach(admin->notifyUser(admin.getUsername(),title,message,category));
+    }
     @Transactional(readOnly=true)
     public List<Notification> inbox(String username){
         return notifications.findByRecipientUsernameOrderByCreatedAtDesc(username);
