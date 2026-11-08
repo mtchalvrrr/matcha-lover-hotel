@@ -41,7 +41,7 @@ public class PendingReservationExpiryScheduler {
     public void expireStalePendingReservations() {
         Instant now = Instant.now(clock);
         Instant cutoff = now.minus(Duration.ofHours(expiryHours));
-        List<Reservation> stale = reservations.findByStatusAndCreatedAtBeforeOrderByCreatedAtAsc(
+        List<Reservation> stale = reservations.findByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc(
                 ReservationStatus.PENDING, cutoff);
         for (Reservation reservation : stale) {
             if (reservation.getStatus() != ReservationStatus.PENDING) continue;
