@@ -54,6 +54,9 @@ public class ReservationService {
             .orElseThrow(() -> new IllegalArgumentException("Customer account was not found."));
         Room room = rooms.findByIdAndActiveTrue(roomId)
             .orElseThrow(() -> new RoomNotFoundException("This room is not available."));
+        if (!room.isBookable()) {
+            throw new IllegalStateException("This room is not ready for guests or is under maintenance.");
+        }
         validateDates(checkIn, checkOut);
         if (guests == null || guests < 1 || guests > room.getCapacity()) {
             throw new IllegalArgumentException("Guest count must be between 1 and the room capacity.");
@@ -106,6 +109,9 @@ public class ReservationService {
 
         Room room = rooms.findByIdAndActiveTrue(roomId)
                 .orElseThrow(() -> new RoomNotFoundException("This room is not available."));
+        if (!room.isBookable()) {
+            throw new IllegalStateException("This room is not ready for guests or is under maintenance.");
+        }
         validateDates(checkIn, checkOut);
         if (guests == null || guests < 1 || guests > room.getCapacity()) {
             throw new IllegalArgumentException("Guest count must be between 1 and the room capacity.");
@@ -259,6 +265,9 @@ public class ReservationService {
             throw new IllegalArgumentException("Enter a valid guest email address.");
         Room room = rooms.findByIdAndActiveTrue(roomId)
             .orElseThrow(() -> new RoomNotFoundException("This room is not available."));
+        if (!room.isBookable()) {
+            throw new IllegalStateException("This room is not ready for guests or is under maintenance.");
+        }
         validateWalkInDates(checkIn, checkOut);
         if (guests == null || guests < 1 || guests > room.getCapacity())
             throw new IllegalArgumentException("Guest count must be between 1 and the room capacity.");
