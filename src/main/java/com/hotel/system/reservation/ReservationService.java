@@ -151,6 +151,20 @@ public class ReservationService {
         return reservations.findAllByOrderByCreatedAtDesc();
     }
 
+    @Transactional(readOnly = true)
+    public List<Reservation> searchReservations(String query, ReservationStatus status,
+                                                ReservationSource source, LocalDate from, LocalDate to) {
+        String cleanQuery = query == null || query.isBlank() ? null : query.trim();
+        if (cleanQuery != null && cleanQuery.length() > 120) {
+            throw new IllegalArgumentException("Search text must be 120 characters or fewer.");
+        }
+        if (from != null && to != null && to.isBefore(from)) {
+            throw new IllegalArgumentException("The end date must be on or after the start date.");
+        }
+        return reservations.searchReservations(cleanQuery, status, source, from, to);
+    }
+
+
     public void review(Long id, boolean approve, String adminUsername) {
         Reservation reservation = reservations.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
