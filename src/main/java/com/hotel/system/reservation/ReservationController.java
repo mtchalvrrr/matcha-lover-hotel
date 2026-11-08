@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.hotel.system.payment.PaymentService;
 import com.hotel.system.room.RoomService;
+import com.hotel.system.room.RoomRatingService;
 
 import java.time.LocalDate;
 import java.time.Clock;
@@ -20,16 +21,18 @@ public class ReservationController {
     private final RoomService rooms;
     private final Clock clock;
     private final ReservationHistoryService history;
+    private final RoomRatingService roomRatings;
 
     public ReservationController(ReservationService reservations, PaymentService payments,
                                  WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
-                                 ReservationHistoryService history) {
+                                 ReservationHistoryService history, RoomRatingService roomRatings) {
         this.reservations = reservations;
         this.payments = payments;
         this.walkInBookings = walkInBookings;
         this.rooms = rooms;
         this.clock = clock;
         this.history = history;
+        this.roomRatings = roomRatings;
     }
 
     @PostMapping("/customer/reservations")
@@ -75,7 +78,10 @@ public class ReservationController {
 
     @GetMapping("/customer/reservations")
     public String customerReservations(Authentication authentication, Model model) {
-        model.addAttribute("reservations", reservations.customerReservations(authentication.getName()));
+        var customerReservations = reservations.customerReservations(authentication.getName());
+        model.addAttribute("reservations", customerReservations);
+        model.addAttribute("ratingsByReservation", roomRatings.ratingsForReservations(
+                customerReservations.stream().map(Reservation::getId).toList()));
         return "customer/reservations";
     }
 
