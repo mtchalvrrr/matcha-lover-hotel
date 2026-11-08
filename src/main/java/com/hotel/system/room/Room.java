@@ -56,7 +56,7 @@ public class Room {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
-    protected Room() {}
+    public Room() {}
 
     public Long getId() { return id; }
     public String getRoomCode() { return roomCode; }
@@ -70,6 +70,15 @@ public class Room {
     public boolean isActive() { return active; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public void setRoomCode(String roomCode) { this.roomCode = roomCode; }
+    public void setName(String name) { this.name = name; }
+    public void setRoomType(String roomType) { this.roomType = roomType; }
+    public void setDescription(String description) { this.description = description; }
+    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+    public void setNightlyRate(BigDecimal nightlyRate) { this.nightlyRate = nightlyRate; }
+    public void setAmenities(String amenities) { this.amenities = amenities; }
+    public void setCoverImagePath(String coverImagePath) { this.coverImagePath = coverImagePath; }
 
     public void updateFrom(Room form) {
         this.roomCode = form.roomCode.trim();
