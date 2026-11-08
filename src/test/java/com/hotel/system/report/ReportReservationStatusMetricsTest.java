@@ -7,6 +7,7 @@ import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
 import com.hotel.system.room.RoomRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -54,6 +55,7 @@ class ReportReservationStatusMetricsTest {
         Reservation reservation = new Reservation(id, "guest-" + id, "guest" + id + "@example.com",
                 id, "R-" + id, "Room " + id, date, date.plusDays(1), 1, 1,
                 new BigDecimal("1000.00"), new BigDecimal("1000.00"));
+        ReflectionTestUtils.setField(reservation, "id", id);
         reservation.changeStatus(status);
         return reservation;
     }
