@@ -5,6 +5,7 @@ import com.hotel.system.config.HotelStayTimePolicy;
 import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -52,4 +53,33 @@ class RoomServiceTest {
         assertEquals(4, existing.getCapacity());
         verify(audit, never()).record(anyString(), anyString(), anyString(), anyString(), anyString());
     }
+    @Test
+    void operationalStatusChangeIsAuditedAndRoomIsNoLongerBookable() {
+        RoomRepository rooms = mock(RoomRepository.class);
+        AuditService audit = mock(AuditService.class);
+        ReservationRepository reservations = mock(ReservationRepository.class);
+        HotelStayTimePolicy stayTimes = mock(HotelStayTimePolicy.class);
+        Room room = new Room();
+        ReflectionTestUtils.setField(room, "id", 12L);
+        when(rooms.findById(12L)).thenReturn(Optional.of(room));
+
+        RoomService service = new RoomService(rooms, audit, reservations,
+                Clock.fixed(Instant.parse("2026-11-08T04:00:00Z"), ZoneId.of("Asia/Manila")), stayTimes);
+
+        service.updateOperationalStatus(12L, CleaningStatus.INSPECTION_REQUIRED,
+                MaintenanceStatus.AVAILABLE, "admin");
+
+        assertEquals(CleaningStatus.INSPECTION_REQUIRED, room.getCleaningStatus());
+        assertFalse(room.isBookable());
+        verify(audit).record(eq("admin"), eq("ROOM_OPERATIONAL_STATUS_UPDATED"), eq("ROOM"),
+                eq("12"), contains("Previous: cleaning=READY"));
+    }
+
+    @Test
+    void roomUnderMaintenanceCannotBeBooked() {
+        Room room = new Room();
+        room.updateOperationalStatus(CleaningStatus.READY, MaintenanceStatus.UNDER_MAINTENANCE);
+        assertFalse(room.isBookable());
+    }
+
 }
