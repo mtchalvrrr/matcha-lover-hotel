@@ -34,6 +34,18 @@ public class AccountManagementController {
         }
     }
 
+    @PostMapping("/super-admin/accounts/{id}/reset-password")
+    public String resetAdminPassword(@PathVariable Long id, @RequestParam String password,
+                                     Authentication authentication, RedirectAttributes redirect) {
+        try {
+            accounts.resetAdminPassword(authentication.getName(), id, password);
+            redirect.addFlashAttribute("success", "Admin password reset. The Admin must sign in again.");
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/super-admin/accounts";
+    }
+
     @PostMapping("/super-admin/accounts/{id}/status")
     public String changeStatus(@PathVariable Long id, @RequestParam boolean active,
                                Authentication authentication, RedirectAttributes redirect) {
