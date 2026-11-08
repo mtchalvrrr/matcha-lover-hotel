@@ -42,6 +42,20 @@ class ChatAssistantServiceTest {
     }
 
     @Test
+    void signedInPaymentQuestionRedirectsToPaymentHistory() {
+        ChatAssistantService.ChatReply reply = service().reply("Show my payment history", true);
+
+        assertEquals("/customer/payments", reply.redirectUrl());
+    }
+
+    @Test
+    void signedInReservationQuestionRedirectsToReservations() {
+        ChatAssistantService.ChatReply reply = service().reply("Show my reservation", true);
+
+        assertEquals("/customer/reservations", reply.redirectUrl());
+    }
+
+    @Test
     void answersCheckInAndCheckOutFaqWithoutExternalAi() {
         ChatAssistantService.ChatReply reply = service().reply("What time is check-in and check-out?", false);
 
