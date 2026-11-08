@@ -77,6 +77,19 @@ public class RegistrationDocumentStorage {
         };
     }
 
+
+    public void delete(String storedPath) {
+        Path path = resolve(storedPath);
+        if (!path.getFileName().toString().matches("[A-Za-z0-9-]+\\.(jpg|jpeg|png|pdf)")) {
+            throw new IllegalArgumentException("Invalid private document filename.");
+        }
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Unable to remove the private ID document.", ex);
+        }
+    }
+
     public Path resolve(String storedPath) {
         Path path = Paths.get(storedPath).toAbsolutePath().normalize();
         if (!path.startsWith(root)) throw new IllegalArgumentException("Invalid document path.");
