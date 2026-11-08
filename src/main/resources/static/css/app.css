@@ -409,3 +409,13 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 .room-card-link:hover .room-card-cta{color:#243c2c}
 @media(max-width:950px){.room-filter-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.room-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.room-filter-bar{padding:17px}.room-filter-controls{grid-template-columns:1fr;gap:14px}.room-card-grid{grid-template-columns:1fr}.room-card-gallery{height:230px}.room-filter-heading{align-items:flex-start}}
+
+
+.room-availability-panel{margin:24px 0;padding:22px;border:1px solid #dce5d6;border-radius:18px;background:rgba(255,253,247,.94);box-shadow:0 10px 28px rgba(44,68,46,.06)}
+.room-availability-panel h2{margin:0 0 16px;color:#304c39;font-family:Georgia,serif;font-weight:500}
+.room-availability-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:12px;align-items:end}
+.room-availability-form>div{display:grid;gap:7px}
+.room-availability-form label{color:#526b55;font-size:11px;font-weight:750}
+.room-availability-form input{min-height:43px;padding:0 11px;border:1px solid #d6e1d0;border-radius:11px;background:#fffef9;color:#304c39}
+.room-availability-form .primary-button{min-height:43px;white-space:nowrap}
+@media(max-width:760px){.room-availability-form{grid-template-columns:1fr 1fr}.room-availability-form .primary-button{grid-column:1/-1}}
