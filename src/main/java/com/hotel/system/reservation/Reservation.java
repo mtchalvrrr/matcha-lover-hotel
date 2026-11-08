@@ -106,6 +106,18 @@ public class Reservation {
         this.checkOutTime = checkOutTime;
         this.updatedAt = Instant.now();
     }
+
+    public void extendCheckout(LocalDate newCheckoutDate) {
+        if (newCheckoutDate == null || !newCheckoutDate.isAfter(this.checkOutDate)) {
+            throw new IllegalArgumentException("The new checkout date must be later than the current checkout date.");
+        }
+        long updatedNights = java.time.temporal.ChronoUnit.DAYS.between(this.checkInDate, newCheckoutDate);
+        if (updatedNights > 365) throw new IllegalArgumentException("A reservation cannot exceed 365 nights.");
+        this.checkOutDate = newCheckoutDate;
+        this.nights = Math.toIntExact(updatedNights);
+        this.totalAmount = this.nightlyRate.multiply(BigDecimal.valueOf(updatedNights));
+        this.updatedAt = Instant.now();
+    }
     public Integer getGuests() { return guests; }
     public Integer getNights() { return nights; }
     public BigDecimal getNightlyRate() { return nightlyRate; }
