@@ -1,4 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Super Admin Program | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/}">Back to portals</a></header><section class="portal-hero"><p class="eyebrow">SUPER ADMIN PROGRAM</p><h1>System<br><em>oversight.</em></h1><p class="intro">A separate control center for account approvals, administrator access, audit trails, and security monitoring.</p></section><p class="notice">The Super Admin Program is under development. Super Admin permissions will be separate from ADMIN permissions and enforced on the server.</p></main></body></html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SUPER ADMIN PROGRAM | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/}">Back to portals</a></header>
+<section class="portal-hero"><p class="eyebrow">SUPER ADMIN PROGRAM</p><h1>System<br><em>oversight.</em></h1><p class="intro">A restricted control center for account approvals, administrator access, audit trails, and security monitoring.</p>
+<div class="action-row"><a class="primary-link" th:href="@{/super-admin/login}">Super Admin sign in</a></div></section>
+</main></body></html>
