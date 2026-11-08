@@ -5,7 +5,6 @@ import com.hotel.system.account.SystemUserRepository;
 import com.hotel.system.audit.AuditService;
 import com.hotel.system.notification.NotificationService;
 import com.hotel.system.payment.PaymentRepository;
-import com.hotel.system.payment.PaymentStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +24,6 @@ public class ReservationExtensionService {
     private final ReservationExtensionRequestRepository extensions;
     private final ReservationRepository reservations;
     private final SystemUserRepository users;
-    private final PaymentRepository payments;
     private final AuditService audit;
     private final NotificationService notifications;
     private final Clock clock;
@@ -37,7 +35,6 @@ public class ReservationExtensionService {
         this.extensions = extensions;
         this.reservations = reservations;
         this.users = users;
-        this.payments = payments;
         this.audit = audit;
         this.notifications = notifications;
         this.clock = clock;
@@ -59,6 +56,12 @@ public class ReservationExtensionService {
         }
         long extraNights = ChronoUnit.DAYS.between(reservation.getCheckOutDate(), newCheckout);
         if (extraNights > 30) throw new IllegalArgumentException("An extension request cannot exceed 30 additional nights.");
+        if (reservation.getNights() + extraNights > 365)
+            throw new IllegalArgumentException("A reservation cannot exceed 365 total nights.");
+        if (!java.time.LocalDateTime.now(clock).isBefore(
+                reservation.getCheckOutDate().atTime(reservation.getCheckOutTime()))) {
+            throw new IllegalStateException("Extension requests must be submitted before the scheduled checkout time. Please contact the hotel.");
+        }
         if (extensions.existsByReservationIdAndStatus(reservationId, ExtensionRequestStatus.PENDING)) {
             throw new IllegalStateException("An extension request is already awaiting review.");
         }
@@ -95,6 +98,11 @@ public class ReservationExtensionService {
                 throw new IllegalStateException("This reservation is no longer eligible for an extension.");
             if (!reservation.getCheckOutDate().equals(request.getOriginalCheckOut()))
                 throw new IllegalStateException("The reservation dates changed after this request was submitted. Submit a new request.");
+            if (!java.time.LocalDateTime.now(clock).isBefore(
+                    reservation.getCheckOutDate().atTime(reservation.getCheckOutTime())))
+                throw new IllegalStateException("The scheduled checkout time has passed. The extension must be handled by the hotel.");
+            if (reservation.getNights() + request.getExtraNights() > 365)
+                throw new IllegalStateException("The extension would exceed the 365-night reservation limit.");
             if (!request.getRequestedCheckOut().isAfter(LocalDate.now(clock)))
                 throw new IllegalStateException("The requested checkout date has already passed.");
             if (reservations.existsOverlappingReservation(reservation.getRoomId(), BLOCKING,
