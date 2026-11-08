@@ -78,7 +78,7 @@ public class Room {
     public void setCapacity(Integer capacity) { this.capacity = capacity; }
     public void setNightlyRate(BigDecimal nightlyRate) { this.nightlyRate = nightlyRate; }
     public void setAmenities(String amenities) { this.amenities = amenities; }
-    public void setCoverImagePath(String coverImagePath) { this.coverImagePath = coverImagePath; }
+    public void setCoverImagePath(String coverImagePath) { this.coverImagePath = coverImagePath; this.updatedAt = Instant.now(); }
 
     public void updateFrom(Room form) {
         this.roomCode = form.roomCode.trim();
@@ -88,7 +88,7 @@ public class Room {
         this.capacity = form.capacity;
         this.nightlyRate = form.nightlyRate;
         this.amenities = form.amenities;
-        this.coverImagePath = form.coverImagePath;
+        if (form.coverImagePath != null && !form.coverImagePath.isBlank()) this.coverImagePath = form.coverImagePath;
         this.updatedAt = Instant.now();
     }
 
