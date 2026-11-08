@@ -392,6 +392,36 @@ public class PayMongoService {
                         + " expired without payment. You can start a new payment from your reservations.", "PAYMENT");
     }
 
+    public void voidPendingCheckout(Payment payment) {
+        requireTestConfiguration();
+        if (payment == null || payment.getStatus() != PaymentStatus.PENDING
+                || payment.getProviderCheckoutSessionId() == null)
+            throw new IllegalStateException("Only an active pending PayMongo checkout can be voided.");
+        Map<?, ?> response = client.get()
+                .uri("/v2/checkout_sessions/{id}", payment.getProviderCheckoutSessionId())
+                .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                .retrieve().body(Map.class);
+        if (response == null || !(response.get("data") instanceof Map<?, ?> data)
+                || !(data.get("attributes") instanceof Map<?, ?> attributes))
+            throw new IllegalStateException("PayMongo checkout status could not be verified.");
+        Object rawPayments = attributes.get("payments");
+        if (rawPayments instanceof List<?> entries) {
+            for (Object entry : entries) {
+                if (entry instanceof Map<?, ?> item && item.get("attributes") instanceof Map<?, ?> attempt) {
+                    String status = String.valueOf(attempt.get("status")).toLowerCase(Locale.ROOT);
+                    if ("paid".equals(status) || "pending".equals(status) || "processing".equals(status))
+                        throw new IllegalStateException("PayMongo reports a paid or in-progress attempt. The checkout cannot be voided yet.");
+                }
+            }
+        }
+        expireAbandonedSession(payment);
+        if (payment.getStatus() == PaymentStatus.PENDING)
+            throw new IllegalStateException("PayMongo has not confirmed checkout expiration. The local payment remains pending.");
+        payment.markVoided();
+        audit.record("PAYMONGO", "PAYMONGO_CHECKOUT_VOIDED", "PAYMENT", payment.getId().toString(),
+                "Admin voided the pending checkout after PayMongo confirmed expiration.");
+    }
+
     public String refund(Payment payment, PaymentRefundRequest refundRequest) {
         requireTestConfiguration();
         if (payment == null || refundRequest == null
