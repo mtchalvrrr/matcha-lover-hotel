@@ -2,6 +2,7 @@ package com.hotel.system.reservation;
 
 import com.hotel.system.account.SystemUser;
 import com.hotel.system.account.SystemUserRepository;
+import com.hotel.system.config.HotelStayTimePolicy;
 import com.hotel.system.audit.AuditService;
 import com.hotel.system.payment.PaymentRepository;
 import com.hotel.system.payment.PaymentStatus;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -31,9 +33,11 @@ public class ReservationService {
     private final AuditService audit;
     private final PaymentRepository payments;
     private final NotificationService notifications;
+    private final HotelStayTimePolicy stayTimes;
 
     public ReservationService(ReservationRepository reservations, RoomRepository rooms,
-                              SystemUserRepository users, Clock clock, AuditService audit, PaymentRepository payments, NotificationService notifications) {
+                              SystemUserRepository users, Clock clock, AuditService audit, PaymentRepository payments,
+                              NotificationService notifications, HotelStayTimePolicy stayTimes) {
         this.reservations = reservations;
         this.rooms = rooms;
         this.users = users;
@@ -41,6 +45,7 @@ public class ReservationService {
         this.audit = audit;
         this.payments = payments;
         this.notifications = notifications;
+        this.stayTimes = stayTimes;
     }
 
     public Reservation request(String username, Long roomId, LocalDate checkIn,
@@ -58,9 +63,11 @@ public class ReservationService {
         }
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
-        Reservation saved = reservations.save(new Reservation(customer.getId(), customer.getUsername(),
+        Reservation reservation = new Reservation(customer.getId(), customer.getUsername(),
             customer.getEmail(), room.getId(), room.getRoomCode(), room.getName(),
-            checkIn, checkOut, guests, nights, room.getNightlyRate(), total));
+            checkIn, checkOut, guests, nights, room.getNightlyRate(), total);
+        reservation.setStayTimes(stayTimes.checkInTime(), stayTimes.checkOutTime());
+        Reservation saved = reservations.save(reservation);
         audit.record(username, "RESERVATION_REQUESTED", "RESERVATION", saved.getId().toString(),
             "Room " + room.getRoomCode() + ", stay " + checkIn + " to " + checkOut);
         notifications.notifyAdmins("New reservation request", "Reservation #" + saved.getId()
@@ -117,8 +124,9 @@ public class ReservationService {
                 && reservation.getStatus() != ReservationStatus.APPROVED) {
             throw new IllegalStateException("This reservation can no longer be cancelled online.");
         }
-        if (!reservation.getCheckInDate().isAfter(LocalDate.now(clock))) {
-            throw new IllegalStateException("Reservations starting today or in the past require admin assistance.");
+        LocalDateTime scheduledCheckIn = reservation.getCheckInDate().atTime(reservation.getCheckInTime());
+        if (!LocalDateTime.now(clock).isBefore(scheduledCheckIn)) {
+            throw new IllegalStateException("Reservations at or after check-in time require admin assistance to cancel.");
         }
         reservation.changeStatus(ReservationStatus.CANCELLED);
         audit.record(username, "RESERVATION_CANCELLED", "RESERVATION", id.toString(),
@@ -144,8 +152,10 @@ public class ReservationService {
             throw new IllegalArgumentException("This room is already reserved for some or all of those dates.");
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
-        Reservation saved = reservations.save(new Reservation(room.getId(), name, email, adminUsername,
-            room.getRoomCode(), room.getName(), checkIn, checkOut, guests, nights, room.getNightlyRate(), total));
+        Reservation reservation = new Reservation(room.getId(), name, email, adminUsername,
+            room.getRoomCode(), room.getName(), checkIn, checkOut, guests, nights, room.getNightlyRate(), total);
+        reservation.setStayTimes(stayTimes.checkInTime(), stayTimes.checkOutTime());
+        Reservation saved = reservations.save(reservation);
         audit.record(adminUsername, "WALK_IN_RESERVATION_CREATED", "RESERVATION", saved.getId().toString(),
             "Walk-in guest " + name + "; room " + room.getRoomCode());
         return saved;
@@ -156,8 +166,9 @@ public class ReservationService {
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
         if (reservation.getStatus() != ReservationStatus.APPROVED)
             throw new IllegalStateException("Only approved reservations can be checked in.");
-        if (LocalDate.now(clock).isBefore(reservation.getCheckInDate()))
-            throw new IllegalStateException("The check-in date has not started.");
+        LocalDateTime scheduledCheckIn = reservation.getCheckInDate().atTime(reservation.getCheckInTime());
+        if (LocalDateTime.now(clock).isBefore(scheduledCheckIn))
+            throw new IllegalStateException("The scheduled check-in time has not started.");
         BigDecimal requiredDeposit = reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
             .setScale(2, java.math.RoundingMode.HALF_UP);
         if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(requiredDeposit) < 0)
@@ -182,9 +193,11 @@ public class ReservationService {
     public void markNoShow(Long id, String adminUsername) {
         Reservation reservation = reservations.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        LocalDateTime noShowEligibleAt = reservation.getCheckInDate()
+                .atTime(reservation.getCheckInTime()).plusHours(2);
         if (reservation.getStatus() != ReservationStatus.APPROVED
-                || !LocalDate.now(clock).isAfter(reservation.getCheckInDate()))
-            throw new IllegalStateException("Only an approved reservation whose check-in date has passed can be marked no-show.");
+                || LocalDateTime.now(clock).isBefore(noShowEligibleAt))
+            throw new IllegalStateException("A reservation can be marked no-show only two hours after its scheduled check-in time.");
         reservation.changeStatus(ReservationStatus.NO_SHOW);
         audit.record(adminUsername, "RESERVATION_MARKED_NO_SHOW", "RESERVATION", id.toString(),
             "Marked guest " + reservation.getGuestName() + " as no-show.");
@@ -192,8 +205,9 @@ public class ReservationService {
 
     private void validateWalkInDates(LocalDate checkIn, LocalDate checkOut) {
         LocalDate today = LocalDate.now(clock);
-        if (checkIn == null || checkOut == null || checkIn.isBefore(today))
-            throw new IllegalArgumentException("Walk-in check-in cannot be in the past.");
+        if (checkIn == null || checkOut == null
+                || checkIn.atTime(stayTimes.checkInTime()).isBefore(LocalDateTime.now(clock)))
+            throw new IllegalArgumentException("Walk-in check-in time cannot be in the past.");
         if (!checkOut.isAfter(checkIn))
             throw new IllegalArgumentException("Check-out must be after check-in.");
         if (ChronoUnit.DAYS.between(checkIn, checkOut) > 365)
@@ -210,9 +224,9 @@ public class ReservationService {
     }
 
     private void validateDates(LocalDate checkIn, LocalDate checkOut) {
-        LocalDate today = LocalDate.now(clock);
-        if (checkIn == null || checkOut == null || !checkIn.isAfter(today)) {
-            throw new IllegalArgumentException("Check-in must be a future date.");
+        if (checkIn == null || checkOut == null
+                || checkIn.atTime(stayTimes.checkInTime()).isBefore(LocalDateTime.now(clock))) {
+            throw new IllegalArgumentException("Check-in must be a future date and time.");
         }
         if (!checkOut.isAfter(checkIn)) {
             throw new IllegalArgumentException("Check-out must be after check-in.");
