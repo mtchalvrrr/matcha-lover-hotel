@@ -11,6 +11,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
     List<Reservation> findAllByOrderByCreatedAtDesc();
     List<Reservation> findByCheckInDateBetweenOrderByCheckInDateAsc(LocalDate from, LocalDate to);
+    List<Reservation> findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+        LocalDate checkOutExclusive, LocalDate checkInExclusive, Collection<ReservationStatus> statuses);
 
     @Query("select case when count(r) > 0 then true else false end from Reservation r " +
            "where r.roomId = :roomId and r.status in :statuses " +
