@@ -59,7 +59,7 @@ public class ReportController {
         append(csv, "Summary", "Reserved room nights", summary.reservedRoomNights());
         append(csv, "Summary", "Available room nights", summary.availableRoomNights());
         append(csv, "Summary", "Booked capacity percent", summary.bookedCapacityRate());
-        append(csv, "Summary", "Paid revenue PHP", summary.paidRevenue());
+        append(csv, "Summary", "Gross payments received PHP", summary.paidRevenue());
         append(csv, "Summary", "Refunded amount PHP", summary.refundedAmount());
         append(csv, "Summary", "Outstanding balance PHP", summary.outstandingBalance());
         append(csv, "", "", "");
