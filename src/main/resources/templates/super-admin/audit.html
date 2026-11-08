@@ -5,6 +5,8 @@
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / SECURITY</p><h1>Audit<br><em>trail.</em></h1><p class="intro">Search recorded actions by account, action type, and date range. Administrator usernames identify who performed each operation.</p></section>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<p class="notice" th:if="${integrity.valid}">Audit chain verified: <strong th:text="${integrity.checkedEntries}">0</strong> protected entries checked. <span th:text="${integrity.hmacProtected ? 'HMAC-SHA256 protection is enabled.' : 'SHA-256 chain active; configure AUDIT_HMAC_KEY for keyed protection.'}">Integrity mode</span></p>
+<p class="alert alert-error" th:if="${!integrity.valid}">Audit integrity check failed at entry <strong th:text="${integrity.firstInvalidEntryId}">0</strong>. Preserve the database and investigate immediately.</p>
 <form class="report-filter" th:action="@{/super-admin/audit}" method="get">
 <label for="auditActor">Account / actor</label><input id="auditActor" name="actor" type="search" maxlength="80" th:value="${actor}" placeholder="Username">
 <label for="auditAction">Action</label><input id="auditAction" name="action" type="search" maxlength="80" th:value="${action}" placeholder="e.g. RESERVATION_APPROVED">
