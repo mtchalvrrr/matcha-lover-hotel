@@ -67,6 +67,33 @@ class ReportServiceTest {
     }
 
     @Test
+    void calculatesOccupiedNightsUsingActualEarlyCheckoutDate() {
+        LocalDate from = LocalDate.of(2026, 11, 8);
+        LocalDate to = LocalDate.of(2026, 11, 12);
+        Reservation checkedOut = new Reservation(null, "guest", "guest@example.com",
+                3L, "A-01", "Garden Room", from, to, 2, 4,
+                new BigDecimal("1000.00"), new BigDecimal("4000.00"));
+        checkedOut.recordCheckIn(Instant.parse("2026-11-08T06:00:00Z"));
+        checkedOut.recordCheckOut(Instant.parse("2026-11-10T02:00:00Z"));
+
+        when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
+                .thenReturn(List.of(checkedOut));
+        when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
+                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                .thenReturn(List.of(checkedOut));
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
+                .thenReturn(List.of());
+        when(rooms.countByActiveTrue()).thenReturn(1L);
+
+        ReportSummary summary = service.summarize(from, to);
+
+        assertEquals(2L, summary.reservedRoomNights(),
+                "The report must not count the nights after the guest actually checked out.");
+        assertEquals(new BigDecimal("40.00"), summary.bookedCapacityRate());
+    }
+
+    @Test
     void calculatesOutstandingBalanceForApprovedReservations() {
         LocalDate from = LocalDate.of(2026, 11, 10);
         LocalDate to = LocalDate.of(2026, 11, 10);
