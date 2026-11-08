@@ -31,7 +31,7 @@ public class RoomRatingService {
         this.users = users;
     }
 
-    public RoomRating rateCompletedStay(Long reservationId, String username, int stars) {
+    public RoomRating rateCompletedStay(Long reservationId, String username, int stars, String reviewText) {
         if (stars < 1 || stars > 5) {
             throw new IllegalArgumentException("Choose a rating from 1 to 5 stars.");
         }
@@ -53,7 +53,13 @@ public class RoomRatingService {
                 .orElseGet(() -> new RoomRating(reservation.getRoomId(), reservationId,
                         customer.getId(), customer.getUsername(), stars));
         rating.setStars(stars);
+        rating.setReviewText(reviewText);
         return ratings.save(rating);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoomRating> feedbackForRoom(Long roomId) {
+        return ratings.findByRoomIdAndReviewTextIsNotNullOrderByCreatedAtDesc(roomId);
     }
 
     @Transactional(readOnly = true)
