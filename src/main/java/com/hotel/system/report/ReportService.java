@@ -79,6 +79,19 @@ public class ReportService {
                 payment -> payment.getCreatedAt().atZone(zone).toLocalDate(),
                 LinkedHashMap::new,
                 Collectors.reducing(BigDecimal.ZERO, Payment::getAmount, BigDecimal::add)));
+        Map<String, BigDecimal> roomRevenue = new LinkedHashMap<>();
+        List<Payment> collectedPayments = payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(
+                start, end, List.of(PaymentStatus.PAID));
+        for (Payment payment : collectedPayments) {
+            reservations.findById(payment.getReservationId()).ifPresent(reservation -> {
+                String roomLabel = reservation.getRoomCode() + " — " + reservation.getRoomName();
+                roomRevenue.merge(roomLabel, payment.getAmount(), BigDecimal::add);
+            });
+        }
+        roomRevenue = roomRevenue.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (first, second) -> first, LinkedHashMap::new));
         BigDecimal refundedAmount = payments.findByRefundedAtBetweenOrderByRefundedAtAsc(start, end)
                 .stream().filter(payment -> payment.getStatus() == PaymentStatus.REFUNDED)
                 .map(Payment::getAmount)
@@ -179,7 +192,8 @@ public class ReportService {
                 byCheckInDate,
                 byActualStayDate,
                 byCreatedDate,
-                revenueByPaymentDate
+                revenueByPaymentDate,
+                roomRevenue
         );
     }
 
