@@ -86,6 +86,15 @@ class SecurityRouteIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "private-page-user", roles = "CUSTOMER")
+    void authenticatedPortalPagesAreNotCachedByTheBrowser() throws Exception {
+        mvc.perform(get("/customer/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control",
+                        org.hamcrest.Matchers.containsString("no-store")));
+    }
+
+    @Test
     void anonymousVisitorsCanBrowseRooms() throws Exception {
         mvc.perform(get("/rooms"))
                 .andExpect(status().isOk())
