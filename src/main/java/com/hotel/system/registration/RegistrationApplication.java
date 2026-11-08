@@ -24,6 +24,8 @@ public class RegistrationApplication {
     private String passwordHash;
     @Column(name = "id_document_path", nullable = false, length = 500)
     private String idDocumentPath;
+    @Column(name = "document_hash", length = 64, unique = true)
+    private String documentHash;
     @Column(name = "otp_hash", nullable = false, length = 100)
     private String otpHash;
     @Column(name = "otp_expires_at", nullable = false)
@@ -44,9 +46,10 @@ public class RegistrationApplication {
 
     protected RegistrationApplication() {}
     public RegistrationApplication(String firstName, String lastName, String email, String username,
-        String passwordHash, String idDocumentPath, String otpHash, Instant otpExpiresAt) {
+        String passwordHash, String idDocumentPath, String documentHash, String otpHash, Instant otpExpiresAt) {
         this.firstName = firstName; this.lastName = lastName; this.email = email;
         this.username = username; this.passwordHash = passwordHash; this.idDocumentPath = idDocumentPath;
+        this.documentHash = documentHash;
         this.otpHash = otpHash; this.otpExpiresAt = otpExpiresAt;
     }
     public Long getId() { return id; }
