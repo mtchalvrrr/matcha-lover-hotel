@@ -2,6 +2,7 @@ package com.hotel.system.registration;
 
 import com.hotel.system.account.*;
 import com.hotel.system.audit.AuditService;
+import com.hotel.system.notification.NotificationService;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -29,14 +30,16 @@ public class RegistrationService {
     private final Clock clock;
     private final AuditService audit;
     private final String fromAddress;
+    private final NotificationService notifications;
     private final SecureRandom random = new SecureRandom();
 
     public RegistrationService(RegistrationRepository applications, SystemUserRepository users,
         RegistrationDocumentStorage documents, PasswordEncoder encoder, JavaMailSender mail,
-        Clock clock, AuditService audit, @Value("${spring.mail.username:}") String fromAddress) {
+        Clock clock, AuditService audit, @Value("${spring.mail.username:}") String fromAddress, NotificationService notifications) {
         this.applications = applications; this.users = users; this.documents = documents;
         this.encoder = encoder; this.mail = mail; this.clock = clock; this.audit = audit;
         this.fromAddress = fromAddress;
+        this.notifications = notifications;
     }
 
     public RegistrationApplication submit(String firstName, String lastName, String email,
@@ -73,6 +76,8 @@ public class RegistrationService {
         }
         audit.record(user, "CUSTOMER_REGISTRATION_SUBMITTED", "REGISTRATION", application.getId().toString(),
             "Application submitted; email OTP sent.");
+        notifications.notifySuperAdmins("Customer application awaiting review",
+            "Verified email application #" + application.getId() + " is awaiting identity review.", "REGISTRATION");
         return application;
     }
 
@@ -101,9 +106,13 @@ public class RegistrationService {
             if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail()))
                 throw new IllegalStateException("A matching account already exists; resolve the duplicate before approval.");
             users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(), app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
+            notifications.notifyUser(app.getUsername(), "Customer account approved",
+                "Your customer account has been approved. You can now sign in.", "ACCOUNT");
         }
         audit.record(reviewer, approve ? "CUSTOMER_REGISTRATION_APPROVED" : "CUSTOMER_REGISTRATION_REJECTED",
             "REGISTRATION", id.toString(), "Applicant " + app.getUsername() + ". " + clean(reason));
+        if (!approve) notifications.notifyUser(app.getUsername(), "Registration application update",
+            "Your registration application was not approved. Reason: " + clean(reason), "ACCOUNT");
     }
 
     public RegistrationApplication get(Long id) {
