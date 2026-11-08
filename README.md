@@ -61,6 +61,9 @@ Optional Groq assistant:
 
 Without the Groq key and `AI_ENABLED=true`, the assistant uses the built-in hotel FAQ responses. The API key remains server-side.
 
+Session cookie:
+- `SESSION_COOKIE_SECURE=true` when deployed behind HTTPS (default false for local development).
+
 Hotel stay defaults:
 - `HOTEL_CHECK_IN_TIME` (default `14:00`)
 - `HOTEL_CHECK_OUT_TIME` (default `12:00`)
