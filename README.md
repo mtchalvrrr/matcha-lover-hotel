@@ -71,6 +71,10 @@ Hotel stay defaults:
 Database and file storage:
 - SQLite: `HOTEL_DB_URL` (default `jdbc:sqlite:./data/hotel-reservation-system.db?busy_timeout=5000`)
 - Upload directory: `HOTEL_STORAGE_LOCATION` (default `./data/uploads`)
+- Backup directory: `HOTEL_BACKUP_LOCATION` (default `./data/backups`)
+- Backup schedule: `HOTEL_BACKUP_CRON` (default daily at 02:00 Asia/Manila). The 14 newest backups are retained. Super Admins can also download a fresh backup from their dashboard.
+
+To restore a backup, stop the application, preserve the current database file, copy the chosen backup over the configured SQLite database file, and restart the application. Keep backup files in private storage; they contain personal and reservation data.
 
 ## Run locally or in Codespaces
 
