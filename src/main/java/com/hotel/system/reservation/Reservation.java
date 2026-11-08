@@ -54,6 +54,10 @@ public class Reservation {
     private Instant createdAt = Instant.now();
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
+    @Column(name = "checked_in_at")
+    private Instant checkedInAt;
+    @Column(name = "checked_out_at")
+    private Instant checkedOutAt;
 
     @Version
     @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
@@ -107,6 +111,20 @@ public class Reservation {
     public ReservationStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public Instant getCheckedInAt() { return checkedInAt; }
+    public Instant getCheckedOutAt() { return checkedOutAt; }
+
+    public void recordCheckIn(Instant at) {
+        this.checkedInAt = at;
+        this.status = ReservationStatus.CHECKED_IN;
+        this.updatedAt = at;
+    }
+
+    public void recordCheckOut(Instant at) {
+        this.checkedOutAt = at;
+        this.status = ReservationStatus.CHECKED_OUT;
+        this.updatedAt = at;
+    }
     public long getVersion() { return version; }
     public void touchForPayment() { this.updatedAt = Instant.now(); }
 
