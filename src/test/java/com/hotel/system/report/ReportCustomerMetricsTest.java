@@ -37,8 +37,7 @@ class ReportCustomerMetricsTest {
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(from, to))
                 .thenReturn(List.of(returningGuestBooking, newGuestBooking));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
-                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                to.plusDays(1), from, List.of(ReservationStatus.APPROVED)))
                 .thenReturn(List.of());
         when(reservations.findByCustomerIdIn(Set.of(7L, 8L)))
                 .thenReturn(List.of(returningGuestBooking, newGuestBooking, previousStay));
@@ -48,7 +47,7 @@ class ReportCustomerMetricsTest {
         when(createdRequestTwo.getCreatedAt()).thenReturn(Instant.parse("2026-11-11T02:00:00Z"));
         when(reservations.findByCreatedAtBetweenOrderByCreatedAtAsc(any(), any()))
                 .thenReturn(List.of(createdRequestOne, createdRequestTwo));
-        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
         when(rooms.countByActiveTrue()).thenReturn(2L);
 
