@@ -1,0 +1,21 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="chatWidget" id="hotelChatWidget" class="chat-widget">
+    <button type="button" id="chatToggle" class="chat-toggle" aria-expanded="false" aria-controls="chatPanel">
+        <span aria-hidden="true">✦</span> Hotel assistant
+    </button>
+    <section id="chatPanel" class="chat-panel" hidden aria-label="Hotel assistant chat">
+        <header class="chat-header">
+            <div><strong>Hotel assistant</strong><small>Room and reservation help</small></div>
+            <button type="button" id="chatClose" aria-label="Close chat">×</button>
+        </header>
+        <div id="chatMessages" class="chat-messages" aria-live="polite">
+            <p class="chat-message assistant-message">Hello! I can help with rooms, reservations, payments, check-in times, and hotel policies.</p>
+        </div>
+        <form id="chatForm" class="chat-form">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <label class="visually-hidden" for="chatInput">Your message</label>
+            <input id="chatInput" name="message" type="text" maxlength="1000" placeholder="Ask about your stay..." autocomplete="off" required>
+            <button type="submit" aria-label="Send message">Send</button>
+        </form>
+    </section>
+    <script th:src="@{/js/hotel-chat.js}" defer></script>
+</div>
