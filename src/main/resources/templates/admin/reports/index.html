@@ -10,6 +10,9 @@
 <article class="metric-card"><span>Approved</span><strong th:text="${summary.approvedReservations}">0</strong></article>
 <article class="metric-card"><span>Rejected</span><strong th:text="${summary.rejectedReservations}">0</strong></article>
 <article class="metric-card"><span>Cancelled</span><strong th:text="${summary.cancelledReservations}">0</strong></article>
+<article class="metric-card"><span>No-show</span><strong th:text="${summary.noShowReservations}">0</strong></article>
+<article class="metric-card"><span>Checked in</span><strong th:text="${summary.checkedInReservations}">0</strong></article>
+<article class="metric-card"><span>Checked out</span><strong th:text="${summary.checkedOutReservations}">0</strong></article>
 <article class="metric-card"><span>Paid revenue</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0.00</strong><small>Payments received in selected period</small></article>
 <article class="metric-card"><span>Refunded</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.refundedAmount,1,'COMMA',2,'POINT')}">₱0.00</strong></article>
 <article class="metric-card"><span>Outstanding balance</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.outstandingBalance,1,'COMMA',2,'POINT')}">₱0.00</strong><small>Active reservations in selected check-in period</small></article>
