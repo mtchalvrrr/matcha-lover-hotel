@@ -101,7 +101,7 @@ public class ReservationService {
             .orElseThrow(() -> new IllegalArgumentException("Customer account was not found."));
         Reservation reservation = reservations.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
-        if (!reservation.getCustomerId().equals(customer.getId())) {
+        if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())) {
             throw new IllegalArgumentException("Reservation not found.");
         }
         if (reservation.getStatus() != ReservationStatus.PENDING
@@ -161,7 +161,7 @@ public class ReservationService {
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
         if (reservation.getStatus() != ReservationStatus.CHECKED_IN)
             throw new IllegalStateException("Only checked-in guests can be checked out.");
-        if (payments.sumPaidForReservation(id).compareTo(reservation.getTotalAmount()) < 0)
+        if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(reservation.getTotalAmount()) < 0)
             throw new IllegalStateException("The remaining balance must be settled before checkout.");
         reservation.changeStatus(ReservationStatus.CHECKED_OUT);
         audit.record(adminUsername, "GUEST_CHECKED_OUT", "RESERVATION", id.toString(),
