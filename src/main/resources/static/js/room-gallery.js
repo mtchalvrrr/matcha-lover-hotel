@@ -7,6 +7,12 @@
   const lightbox = document.getElementById("roomLightbox");
   const lightboxImage = document.getElementById("galleryLightboxImage");
   const status = document.getElementById("galleryCarouselStatus");
+  const availabilityDialog = document.getElementById("roomAvailabilityDialog");
+  document.getElementById("openRoomAvailability")?.addEventListener("click", () => availabilityDialog?.showModal());
+  document.getElementById("closeRoomAvailability")?.addEventListener("click", () => availabilityDialog?.close());
+  availabilityDialog?.addEventListener("click", event => {
+    if (event.target === availabilityDialog) availabilityDialog.close();
+  });
   if (!activeImage || !thumbnailStrip) return;
 
   // Used only when the room has no uploaded photos yet. Replace these with
@@ -83,8 +89,6 @@
     autoplayTimer = window.setInterval(nextPhoto, 5000);
   }
 
-  document.getElementById("galleryPrevious")?.addEventListener("click", previousPhoto);
-  document.getElementById("galleryNext")?.addEventListener("click", nextPhoto);
   thumbnails.forEach((thumbnail, index) => {
     thumbnail.addEventListener("click", () => showPhoto(index));
   });
