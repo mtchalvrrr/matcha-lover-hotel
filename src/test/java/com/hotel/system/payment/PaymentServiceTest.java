@@ -11,7 +11,9 @@ import com.hotel.system.reservation.ReservationStatus;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +28,8 @@ class PaymentServiceTest {
         SystemUserRepository users = mock(SystemUserRepository.class);
         AuditService audit = mock(AuditService.class);
         NotificationService notifications = mock(NotificationService.class);
-        PaymentService service = new PaymentService(payments, reservations, users, audit, "SIMULATED", notifications);
+        PaymentService service = new PaymentService(payments, reservations, users, audit, "SIMULATED",
+                notifications, Clock.fixed(java.time.Instant.parse("2026-11-08T04:00:00Z"), ZoneId.of("Asia/Manila")));
 
         SystemUser customer = new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER);
         Reservation reservation = new Reservation(null, "guest", "guest@example.com", 4L,
