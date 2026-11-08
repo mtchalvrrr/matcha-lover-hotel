@@ -32,6 +32,9 @@ public class Payment {
     private Instant createdAt = Instant.now();
     @Column(name = "refunded_at")
     private Instant refundedAt;
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "integer default 0")
+    private long version;
 
     protected Payment() {}
     public Payment(Long reservationId, String customerUsername, PaymentType paymentType,
