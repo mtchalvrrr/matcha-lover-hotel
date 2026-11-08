@@ -75,6 +75,50 @@ class ReservationServiceTest {
     }
 
     @Test
+    void adminCanEditUnpaidReservationAndPreservesApprovedStatus() {
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 1L,
+                "A-01", "Old Room", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        reservation.changeStatus(ReservationStatus.APPROVED);
+        Room selectedRoom = mock(Room.class);
+        when(selectedRoom.getId()).thenReturn(2L);
+        when(selectedRoom.getRoomCode()).thenReturn("B-02");
+        when(selectedRoom.getName()).thenReturn("New Room");
+        when(selectedRoom.getCapacity()).thenReturn(3);
+        when(selectedRoom.isBookable()).thenReturn(true);
+        when(selectedRoom.getNightlyRate()).thenReturn(new BigDecimal("1500.00"));
+        when(reservations.findById(77L)).thenReturn(Optional.of(reservation));
+        when(payments.findByReservationIdOrderByCreatedAtAsc(77L)).thenReturn(java.util.List.of());
+        when(rooms.findByIdAndActiveTrue(2L)).thenReturn(Optional.of(selectedRoom));
+        when(reservations.existsOverlappingReservation(eq(2L), anyCollection(),
+                eq(LocalDate.of(2026, 11, 15)), eq(LocalDate.of(2026, 11, 17)), eq(77L))).thenReturn(false);
+
+        Reservation updated = service().adminModifyReservation(77L, "admin", 2L,
+                LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 17), 3);
+
+        assertEquals(ReservationStatus.APPROVED, updated.getStatus());
+        assertEquals("B-02", updated.getRoomCode());
+        assertEquals(new BigDecimal("3000.00"), updated.getTotalAmount());
+        verify(audit).record(eq("admin"), eq("ADMIN_RESERVATION_MODIFIED"), eq("RESERVATION"), eq("77"), contains("Before:"));
+        verify(notifications).notifyUser(eq("guest"), eq("Reservation updated by the hotel"), contains("New stay"), eq("RESERVATION"));
+    }
+
+    @Test
+    void adminCannotEditReservationWithPendingOrRecordedPaymentActivity() {
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 1L,
+                "A-01", "Old Room", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        when(reservations.findById(77L)).thenReturn(Optional.of(reservation));
+        com.hotel.system.payment.Payment pending = mock(com.hotel.system.payment.Payment.class);
+        when(pending.getStatus()).thenReturn(PaymentStatus.PENDING);
+        when(payments.findByReservationIdOrderByCreatedAtAsc(77L)).thenReturn(java.util.List.of(pending));
+
+        assertThrows(IllegalStateException.class, () -> service().adminModifyReservation(77L, "admin", 2L,
+                LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 17), 2));
+        verify(rooms, never()).findByIdAndActiveTrue(anyLong());
+    }
+
+    @Test
     void customerCannotReserveRoomThatIsNotReadyForGuests() {
         Room room = mock(Room.class);
         when(room.isBookable()).thenReturn(false);
