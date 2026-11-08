@@ -226,6 +226,8 @@ public class RegistrationService {
         RegistrationApplication application = get(id);
         if (application.getStatus() != RegistrationStatus.APPROVED)
             throw new IllegalArgumentException("Approved customer document not found.");
+        if (application.getIdDocumentPath() == null || application.getIdDocumentPath().isBlank())
+            throw new IllegalArgumentException("No ID document was submitted with this application.");
         return documents.resolve(application.getIdDocumentPath());
     }
 
