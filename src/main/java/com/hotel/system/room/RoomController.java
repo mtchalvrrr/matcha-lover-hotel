@@ -1,5 +1,7 @@
 package com.hotel.system.room;
 
+import com.hotel.system.reservation.ReservationService;
+
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.security.core.Authentication;
@@ -21,13 +23,15 @@ public class RoomController {
     private final RoomPhotoService photos;
     private final HotelStayTimePolicy stayTimes;
     private final RoomRatingService roomRatings;
+    private final ReservationService reservationService;
 
-    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos, HotelStayTimePolicy stayTimes, RoomRatingService roomRatings) {
+    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos, HotelStayTimePolicy stayTimes, RoomRatingService roomRatings, ReservationService reservationService) {
         this.rooms = rooms;
         this.clock = clock;
         this.photos = photos;
         this.stayTimes = stayTimes;
         this.roomRatings = roomRatings;
+        this.reservationService = reservationService;
     }
 
     @GetMapping("/rooms")
@@ -69,6 +73,7 @@ public class RoomController {
                               Model model, Authentication authentication) {
         model.addAttribute("room", rooms.getPublicRoom(id));
         model.addAttribute("photos", photos.list(id));
+        model.addAttribute("roomOccupancy", reservationService.roomOccupancy(id));
         model.addAttribute("roomFeedback", roomRatings.feedbackForRoom(id));
         model.addAttribute("roomRating", roomRatings.summaries(java.util.List.of(id)).getOrDefault(id, RoomRatingSummary.empty()));
         boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
