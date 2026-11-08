@@ -70,6 +70,8 @@ public class PaymentService {
             amount = due;
         }
 
+        reservation.touchForPayment();
+        reservations.save(reservation);
         String reference = "SIM-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, customer.getUsername(),
             type, amount, "SIMULATED", reference, PaymentStatus.PAID));
@@ -93,6 +95,8 @@ public class PaymentService {
             throw new IllegalArgumentException("Choose a valid onsite payment method.");
         if (payments.sumPaidForReservation(reservationId, PaymentStatus.PAID).signum() > 0)
             throw new IllegalStateException("Payment has already been recorded for this walk-in reservation.");
+        reservation.touchForPayment();
+        reservations.save(reservation);
         String reference = "WALKIN-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, reservation.getCustomerUsername(),
             PaymentType.WALK_IN_FULL, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
@@ -111,6 +115,7 @@ public class PaymentService {
         if (cleanReason.isBlank() || cleanReason.length() > 500) {
             throw new IllegalArgumentException("Enter a refund reason up to 500 characters.");
         }
+        touchReservation(payment.getReservationId());
         payment.markRefunded();
         audit.record(adminUsername, "PAYMENT_REFUNDED", "PAYMENT", paymentId.toString(),
                 "Refunded " + payment.getAmount() + " for reservation #" + payment.getReservationId()
@@ -131,12 +136,20 @@ public class PaymentService {
         if (cleanReason.isBlank() || cleanReason.length() > 500) {
             throw new IllegalArgumentException("Enter a void reason up to 500 characters.");
         }
+        touchReservation(payment.getReservationId());
         payment.markVoided();
         audit.record(adminUsername, "PAYMENT_VOIDED", "PAYMENT", paymentId.toString(),
                 "Voided pending payment for reservation #" + payment.getReservationId()
                         + ". Reason: " + cleanReason);
     }
 
+
+    private void touchReservation(Long reservationId) {
+        Reservation reservation = reservations.findById(reservationId)
+                .orElseThrow(() -> new IllegalStateException("The linked reservation no longer exists."));
+        reservation.touchForPayment();
+        reservations.save(reservation);
+    }
 
     @Transactional(readOnly = true)
     public Payment customerPayment(Long paymentId, String username) {
