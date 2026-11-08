@@ -4,6 +4,13 @@
 <body><main class="shell">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer}">Customer portal</a></header>
 <section class="portal-hero"><p class="eyebrow">ROOM COLLECTION</p><h1>Find your<br><em>place to stay.</em></h1><p class="intro">Explore available room categories, rates, capacity, and amenities. Sign in when you are ready to manage a reservation.</p></section>
+<form class="availability-search" th:action="@{/rooms}" method="get">
+<div><label for="stayCheckIn">Check-in date</label><input id="stayCheckIn" name="checkIn" type="date" th:value="${checkIn}" th:attr="min=${minimumDate}" required></div>
+<div><label for="stayCheckOut">Check-out date</label><input id="stayCheckOut" name="checkOut" type="date" th:value="${checkOut}" th:attr="min=${minimumDate}" required></div>
+<div><label for="stayGuests">Guests</label><input id="stayGuests" name="guests" type="number" min="1" max="20" th:value="${guestCount}" required></div>
+<button class="primary-button" type="submit">Check availability</button><a class="secondary-link" th:href="@{/rooms}">Clear dates</a>
+</form>
+<p class="alert alert-error" th:if="${availabilityError}" th:text="${availabilityError}"></p>
 <section class="room-filters" aria-label="Filter rooms">
   <label for="roomTypeFilter">Room type</label>
   <select id="roomTypeFilter"><option value="">All types</option><option th:each="type : ${roomTypes}" th:value="${type}" th:text="${type}">Type</option></select>
@@ -22,11 +29,12 @@
     th:attr="data-room-type=${room.roomType},data-price=${room.nightlyRate},data-capacity=${room.capacity},data-amenities=${room.amenities},data-name=${room.name}">
     <div class="room-image" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><img th:src="${room.coverImagePath}" th:alt="${room.name}"></div>
     <div class="room-image room-image-empty" th:unless="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><span>[HOTEL LOGO]</span></div>
-    <div class="room-card-body"><p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h2 th:text="${room.name}">Room name</h2><p th:text="${room.description}">Room description</p><div class="room-meta"><span th:text="${room.capacity + ' guests'}">2 guests</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' / night'}">₱1,000 / night</strong></div><a class="primary-link" th:href="@{/rooms/{id}(id=${room.id})}">View room details</a></div>
+    <div class="room-card-body"><span class="availability-tag" th:if="${availabilitySearch}">Available for selected dates</span><p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h2 th:text="${room.name}">Room name</h2><p th:text="${room.description}">Room description</p><div class="room-meta"><span th:text="${room.capacity + ' guests'}">2 guests</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' / night'}">₱1,000 / night</strong></div><a class="primary-link" th:href="@{/rooms/{id}(id=${room.id},checkIn=${checkIn},checkOut=${checkOut},guests=${guestCount})}">View room details</a></div>
   </article>
 </section>
 <p class="notice" id="roomFilterEmpty" hidden>No rooms match these filters. Try changing your selections.</p>
-<p class="notice" th:if="${#lists.isEmpty(rooms)}">There are no rooms available to display at the moment. Please check again later.</p>
+<p class="notice" th:if="${#lists.isEmpty(rooms) and availabilitySearch}">No rooms are available for the selected dates and guest count. Try different dates or fewer guests.</p>
+<p class="notice" th:if="${#lists.isEmpty(rooms) and !availabilitySearch}">There are no rooms available to display at the moment. Please check again later.</p>
 <script th:src="@{/js/room-browser.js}" defer></script>
 <footer><span th:text="${hotelSettings.address}">[HOTEL ADDRESS]</span><span th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</span></footer>
 </main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
