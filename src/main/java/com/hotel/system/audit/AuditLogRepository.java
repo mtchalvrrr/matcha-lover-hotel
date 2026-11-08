@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+    List<AuditLog> findTop5ByOrderByCreatedAtDesc();
     List<AuditLog> findTop500ByOrderByCreatedAtDesc();
 
     @Query("""
