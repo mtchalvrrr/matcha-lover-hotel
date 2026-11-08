@@ -83,6 +83,9 @@ public class ReportController {
 
     private String escape(Object value) {
         String text = value == null ? "" : value.toString();
+        if (!text.isEmpty() && "=+-@".indexOf(text.charAt(0)) >= 0) {
+            text = "'" + text;
+        }
         return "\"" + text.replace("\"", "\"\"") + "\"";
     }
 }
