@@ -24,16 +24,16 @@ The three portals are separate entry points within one coordinated backend, not 
 
 ## Implemented modules
 
-- Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, temporary lockout, and browser security response headers.\n- Room photos and private ID uploads validate file signatures and extension/MIME consistency; cleanup prevents stored-file path traversal and removes orphaned ID files when registration cannot complete.
+- Database-backed authentication, role checks, BCrypt password hashing, failed-login tracking, temporary lockout, browser security headers, and independent Customer/Admin/Super Admin sessions using separate portal cookies and logout endpoints. Automated integration coverage verifies simultaneous login and logout independence.\n- Room photos and private ID uploads validate file signatures and extension/MIME consistency; cleanup prevents stored-file path traversal and removes orphaned ID files when registration cannot complete.
 - Customer registration application with ID upload, exact-file duplicate fingerprint checks, email OTP verification with resend cooldown/limits and applicant-email matching for verification/resend, plus Super Admin manual ID review and approval/rejection.
 - Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
-- Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management.
+- Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management. Admins can also update cleaning and maintenance status; only active, clean/ready, non-maintenance rooms can be newly booked. Readiness confirmation records the Admin and inspection time.
 - Online reservation requests, modification, customer/admin reservation activity and payment history, shared room-date conflict checks, Admin approval/rejection/cancellation, walk-in bookings, check-in (blocked after scheduled checkout), checkout, no-show processing, customer-visible reservation history, and automatic expiration of unreviewed pending requests after 24 hours by default.
 - Configurable hotel check-in/check-out times, including same-day time validation.
-- 50% down payment and balance tracking, printable payment receipts, and audited refund/void status workflows. The default payment mode is simulated; it does not collect real money.
+- 50% down payment and balance tracking, payment due-date guidance, printable receipts, and audited void workflows. Refunds now require a second Admin account to authorize the request. Approval records the refund state in the hotel database but does not itself transfer money; settlement must be completed through the original payment channel. The default payment mode is simulated; it does not collect real money.
 - Admin reservation search by guest, email, room, or reservation ID, with status, source, and check-in date filters; audited admin cancellation with payment-refund safeguards.
 - In-app notifications, optional SMTP email notifications, and duplicate-safe scheduled check-in/check-out reminders.
-- Live Customer, Admin, and Super Admin dashboard metrics with recent activity and today's arrivals/departures, plus daily SQLite backups, 14-copy retention, and Super Admin backup downloads; Admin reports for reservation status (including no-shows, check-ins, and checkouts), online versus walk-in bookings, unique/new/returning customers, gross payments by payment date, refunds by refund date, outstanding balances, room popularity ranked from most to least reserved, daily reservation creation and check-in-date trends, booked room-night capacity, print/PDF, and CSV export.
+- Live Customer, Admin, and Super Admin dashboard metrics with recent activity and today's arrivals/departures, plus daily SQLite backups, 14-copy retention, and Super Admin backup downloads; Admin reports for reservation status (including no-shows, check-ins, and checkouts), online versus walk-in bookings, unique/new/returning customers, gross payments by payment date, refunds by refund date, outstanding balances, room popularity ranked from most to least reserved, daily reservation creation and check-in-date trends, scheduled booked room-night capacity, separately calculated actual occupied room nights and actual occupancy, peak booking/stay dates, print/PDF, and CSV export.
 - Hotel profile, contact, stay-time, and cancellation-policy settings.
 - Super Admin account management, customer application review and status tracking, searchable audit/security log with sign-in events and filtered CSV export, and database backup downloads.
 - Customer-facing hotel FAQ assistant with optional Groq AI integration, public room-page redirection, and per-session request limiting.
@@ -98,11 +98,10 @@ Do not add:
 - Separate independent databases for each portal.
 - Reservation extension requests.
 - Reservation rating or review system.
-- Housekeeping, room cleaning, inspection, readiness, or maintenance modules.
 
 ## Remaining completion and release work
 
-The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including additional reservation history policy rules, advanced payment reconciliation and real gateway integration (if enabled), complete operational dashboards, full email delivery verification, and comprehensive end-to-end/security testing.
+The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including PayMongo test-mode checkout and verified webhook handling (not yet integrated), CAPTCHA configuration, stronger cross-instance session storage if the application is scaled beyond one process, complete payment reconciliation and actual refund settlement integration, full email-provider delivery verification, additional security controls, and comprehensive end-to-end/browser testing. Housekeeping, room readiness, actual-occupancy reporting, PDF report export, and independent portal sessions have been added but still need full manual browser verification.
 
 ## Verification policy
 
