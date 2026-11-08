@@ -39,4 +39,28 @@ public class PaymentController {
         model.addAttribute("payments", payments.allPayments());
         return "admin/payments/list";
     }
+
+    @PostMapping("/admin/payments/{id}/refund")
+    public String refund(@PathVariable Long id, @RequestParam String reason,
+                         Authentication authentication, RedirectAttributes redirect) {
+        try {
+            payments.refundPayment(id, authentication.getName(), reason);
+            redirect.addFlashAttribute("success", "Payment marked as refunded.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/payments";
+    }
+
+    @PostMapping("/admin/payments/{id}/void")
+    public String voidPayment(@PathVariable Long id, @RequestParam String reason,
+                              Authentication authentication, RedirectAttributes redirect) {
+        try {
+            payments.voidPendingPayment(id, authentication.getName(), reason);
+            redirect.addFlashAttribute("success", "Pending payment voided.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/payments";
+    }
 }
