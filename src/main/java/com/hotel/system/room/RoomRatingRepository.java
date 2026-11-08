@@ -8,5 +8,6 @@ import java.util.Optional;
 public interface RoomRatingRepository extends JpaRepository<RoomRating, Long> {
     Optional<RoomRating> findByReservationId(Long reservationId);
     List<RoomRating> findByRoomIdIn(Collection<Long> roomIds);
+    List<RoomRating> findByRoomIdAndReviewTextIsNotNullOrderByCreatedAtDesc(Long roomId);
     List<RoomRating> findByReservationIdIn(Collection<Long> reservationIds);
 }
