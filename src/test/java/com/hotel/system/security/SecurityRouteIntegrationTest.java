@@ -110,7 +110,7 @@ class SecurityRouteIntegrationTest {
                         .param("to", "2026-12-02"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/csv"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Bookings by room")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Reservations by room")));
     }
 
     @Test
