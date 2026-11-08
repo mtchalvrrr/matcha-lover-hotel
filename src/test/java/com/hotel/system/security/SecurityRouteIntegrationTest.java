@@ -151,6 +151,30 @@ class SecurityRouteIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "booking-admin", roles = "ADMIN")
+    void adminDashboardRendersLiveMetrics() throws Exception {
+        mvc.perform(get("/admin/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboards/admin-dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "guest", roles = "CUSTOMER")
+    void customerDashboardRendersLiveReservationSummary() throws Exception {
+        mvc.perform(get("/customer/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboards/customer-dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "system-superadmin", roles = "SUPER_ADMIN")
+    void superAdminDashboardRendersLiveApprovalAndAuditMetrics() throws Exception {
+        mvc.perform(get("/super-admin/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboards/super-admin-dashboard"));
+    }
+
+    @Test
     void customerPrivateRoutesRequireCustomerAuthentication() throws Exception {
         mvc.perform(get("/customer/reservations"))
                 .andExpect(status().is3xxRedirection())
