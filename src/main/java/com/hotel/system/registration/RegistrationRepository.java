@@ -5,6 +5,7 @@ import java.util.List;
 
 public interface RegistrationRepository extends JpaRepository<RegistrationApplication, Long> {
     List<RegistrationApplication> findByStatusOrderBySubmittedAtAsc(RegistrationStatus status);
+    long countByStatus(RegistrationStatus status);
     boolean existsByEmailIgnoreCaseAndStatusIn(String email, List<RegistrationStatus> statuses);
     boolean existsByUsernameIgnoreCaseAndStatusIn(String username, List<RegistrationStatus> statuses);
     boolean existsByDocumentHashAndStatusIn(String documentHash, List<RegistrationStatus> statuses);
