@@ -78,7 +78,7 @@ public class ReportController {
             append(csv, "Daily check-in trend", entry.getKey(), entry.getValue());
         }
         append(csv, "", "", "");
-        append(csv, "Daily paid revenue", "Payment date", "Revenue PHP");
+        append(csv, "Daily gross payments received", "Payment date", "Revenue PHP");
         for (Map.Entry<LocalDate, BigDecimal> entry : summary.revenueByPaymentDate().entrySet()) {
             append(csv, "Daily paid revenue", entry.getKey(), entry.getValue());
         }
