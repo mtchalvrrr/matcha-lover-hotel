@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin sign in | [HOTEL NAME]</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="shell narrow">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <a class="back-link" th:href="@{/}">Back to portals</a>
+    </header>
+    <section class="auth-layout">
+        <div class="auth-copy">
+            <p class="eyebrow">ADMIN ACCESS</p>
+            <h1>Operations portal.</h1>
+            <p class="intro">Authorized hotel administrators only. Both booking admin accounts use the same ADMIN access level.</p>
+        </div>
+        <form class="auth-card" th:action="@{/authenticate}" method="post">
+            <h2>Sign in</h2>
+            <p class="form-help">Use the account credentials assigned to you.</p>
+            <div class="alert alert-error" th:if="${param.error}">The username or password is incorrect, or this account is inactive.</div>
+            <div class="alert alert-error" th:if="${param.denied}">This account does not have permission to enter this portal.</div>
+            <input type="hidden" name="portal" value="admin">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" maxlength="80" required autofocus>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="primary-button" type="submit">Sign in</button>
+            <p class="security-note">Your access is checked against your assigned system role.</p>
+        </form>
+    </section>
+</main>
+</body>
+</html>
