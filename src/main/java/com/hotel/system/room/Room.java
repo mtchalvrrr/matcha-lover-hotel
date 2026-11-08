@@ -58,6 +58,12 @@ public class Room {
     @Column(name = "maintenance_status", nullable = false, length = 24, columnDefinition = "varchar(24) default 'AVAILABLE'")
     private MaintenanceStatus maintenanceStatus = MaintenanceStatus.AVAILABLE;
 
+    @Column(name = "last_inspected_by", length = 80)
+    private String lastInspectedBy;
+
+    @Column(name = "last_inspected_at")
+    private Instant lastInspectedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -82,16 +88,23 @@ public class Room {
     public boolean isActive() { return active; }
     public CleaningStatus getCleaningStatus() { return cleaningStatus; }
     public MaintenanceStatus getMaintenanceStatus() { return maintenanceStatus; }
+    public String getLastInspectedBy() { return lastInspectedBy; }
+    public Instant getLastInspectedAt() { return lastInspectedAt; }
     public boolean isBookable() {
         return active && cleaningStatus == CleaningStatus.READY
                 && maintenanceStatus == MaintenanceStatus.AVAILABLE;
     }
-    public void updateOperationalStatus(CleaningStatus cleaningStatus, MaintenanceStatus maintenanceStatus) {
+    public void updateOperationalStatus(CleaningStatus cleaningStatus, MaintenanceStatus maintenanceStatus,
+                                       String inspectedBy) {
         if (cleaningStatus == null || maintenanceStatus == null) {
             throw new IllegalArgumentException("Choose valid housekeeping and maintenance statuses.");
         }
         this.cleaningStatus = cleaningStatus;
         this.maintenanceStatus = maintenanceStatus;
+        if (cleaningStatus == CleaningStatus.READY) {
+            this.lastInspectedBy = inspectedBy;
+            this.lastInspectedAt = Instant.now();
+        }
         this.updatedAt = Instant.now();
     }
     public Instant getCreatedAt() { return createdAt; }
