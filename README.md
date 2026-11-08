@@ -47,6 +47,9 @@ Super Admin bootstrap:
 - `HOTEL_SUPER_ADMIN_EMAIL`
 - `HOTEL_SUPER_ADMIN_PASSWORD` — at least 12 characters, including uppercase, lowercase, a number, and a special character.
 
+Public URL used in password-reset emails:
+- `HOTEL_PUBLIC_BASE_URL` (default `http://localhost:8080`; set to the exact HTTPS Codespaces/deployment URL when not running locally)
+
 SMTP email:
 - `MAIL_HOST`
 - `MAIL_PORT` (default 587)
