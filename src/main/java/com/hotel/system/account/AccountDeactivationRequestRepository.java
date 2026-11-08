@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface AccountDeactivationRequestRepository extends JpaRepository<AccountDeactivationRequest, Long> {
     boolean existsByUserIdAndStatus(Long userId, DeactivationRequestStatus status);
+    long countByStatus(DeactivationRequestStatus status);
     List<AccountDeactivationRequest> findByStatusOrderByRequestedAtAsc(DeactivationRequestStatus status);
     List<AccountDeactivationRequest> findByUsernameOrderByRequestedAtDesc(String username);
 }
