@@ -88,10 +88,12 @@ public class ReportService {
                 roomRevenue.merge(roomLabel, payment.getAmount(), BigDecimal::add);
             });
         }
-        roomRevenue = roomRevenue.entrySet().stream()
+        Map<String, BigDecimal> sortedRoomRevenue = roomRevenue.entrySet().stream()
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (first, second) -> first, LinkedHashMap::new));
+        roomRevenue.clear();
+        roomRevenue.putAll(sortedRoomRevenue);
         BigDecimal refundedAmount = payments.findByRefundedAtBetweenOrderByRefundedAtAsc(start, end)
                 .stream().filter(payment -> payment.getStatus() == PaymentStatus.REFUNDED)
                 .map(Payment::getAmount)
