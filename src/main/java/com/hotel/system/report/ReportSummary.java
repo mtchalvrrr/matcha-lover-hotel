@@ -21,5 +21,6 @@ public record ReportSummary(
     BigDecimal refundedAmount,
     BigDecimal outstandingBalance,
     Map<String, Long> bookingsByRoom,
-    Map<LocalDate, Long> bookingsByCheckInDate
+    Map<LocalDate, Long> bookingsByCheckInDate,
+    Map<LocalDate, BigDecimal> revenueByPaymentDate
 ) {}
