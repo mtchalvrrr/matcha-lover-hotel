@@ -36,6 +36,10 @@ public class AuditService {
         this.logs = logs;
         this.clock = clock;
         this.hmacKey = hmacKey == null ? "" : hmacKey.trim();
+        if (!this.hmacKey.isBlank()
+                && this.hmacKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalArgumentException("AUDIT_HMAC_KEY must contain at least 32 bytes.");
+        }
     }
 
     public void record(String actor, String action, String targetType, String targetId, String details) {
@@ -91,8 +95,13 @@ public class AuditService {
 
     private String calculateHash(String previousHash, String actor, String action, String targetType,
                                  String targetId, String details, Instant createdAt) {
-        String canonical = String.join("|", safe(previousHash), safe(actor), safe(action),
-                safe(targetType), safe(targetId), safe(details), createdAt.toString());
+        String[] values = {safe(previousHash), safe(actor), safe(action), safe(targetType),
+                safe(targetId), safe(details), createdAt.toString()};
+        StringBuilder canonicalBuilder = new StringBuilder();
+        for (String value : values) {
+            canonicalBuilder.append(value.length()).append(':').append(value);
+        }
+        String canonical = canonicalBuilder.toString();
         try {
             byte[] bytes;
             if (!hmacKey.isBlank()) {
