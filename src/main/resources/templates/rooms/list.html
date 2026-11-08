@@ -1,41 +1,25 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Available Rooms | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Explore Rooms | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell room-browser-shell">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer}">Customer portal</a></header>
-<section class="portal-hero"><p class="eyebrow">ROOM COLLECTION</p><h1>Find your<br><em>place to stay.</em></h1><p class="intro">Explore available room categories, rates, capacity, and amenities. Sign in when you are ready to manage a reservation.</p></section>
-<form class="availability-search" th:action="@{/rooms}" method="get">
-<div><label for="stayCheckIn">Check-in date</label><input id="stayCheckIn" name="checkIn" type="date" th:value="${checkIn}" th:attr="min=${minimumDate}" required></div>
-<div><label for="stayCheckOut">Check-out date</label><input id="stayCheckOut" name="checkOut" type="date" th:value="${checkOut}" th:attr="min=${minimumDate}" required></div>
-<div><label for="stayGuests">Guests</label><input id="stayGuests" name="guests" type="number" min="1" max="20" th:value="${guestCount}" required></div>
-<button class="primary-button" type="submit">Check availability</button><a class="secondary-link" th:href="@{/rooms}">Clear dates</a>
-</form>
+<section class="room-filter-bar" aria-label="Filter rooms">
+<div class="room-filter-heading"><span class="eyebrow">FIND YOUR ROOM</span><button type="button" class="secondary-button" id="clearRoomFilters">Reset filters</button></div>
+<div class="room-filter-controls">
+<div class="room-filter-field"><label for="roomTypeFilter">Room type</label><select id="roomTypeFilter"><option value="">All room types</option><option th:each="type : ${roomTypes}" th:value="${type}" th:text="${type}">Type</option></select></div>
+<div class="room-filter-field room-price-range"><label>Nightly price range <strong id="roomPriceLabel">₱0 – ₱0</strong></label><div class="range-track"><input id="roomPriceMin" type="range" min="0" max="10000" value="0" step="100" aria-label="Minimum nightly price"><input id="roomPriceMax" type="range" min="0" max="10000" value="10000" step="100" aria-label="Maximum nightly price"></div><div class="range-values"><span id="roomPriceMinValue">₱0</span><span id="roomPriceMaxValue">₱10,000</span></div></div>
+<div class="room-filter-field"><label for="roomCapacityFilter">Guests</label><select id="roomCapacityFilter"><option value="1">1+ guests</option><option value="2">2+ guests</option><option value="3">3+ guests</option><option value="4">4+ guests</option><option value="5">5+ guests</option><option value="6">6+ guests</option></select></div>
+<div class="room-filter-field"><label for="roomSort">Sort by</label><select id="roomSort"><option value="default">Recommended</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="capacity-desc">Capacity: high to low</option><option value="name">Room name</option></select></div>
+</div></section>
 <p class="alert alert-error" th:if="${availabilityError}" th:text="${availabilityError}"></p>
-<section class="room-filters" aria-label="Filter rooms">
-  <label for="roomTypeFilter">Room type</label>
-  <select id="roomTypeFilter"><option value="">All types</option><option th:each="type : ${roomTypes}" th:value="${type}" th:text="${type}">Type</option></select>
-  <label for="roomPriceFilter">Maximum nightly rate (₱)</label>
-  <input id="roomPriceFilter" type="number" min="0" step="0.01" placeholder="Any price">
-  <label for="roomCapacityFilter">Minimum guests</label>
-  <input id="roomCapacityFilter" type="number" min="1" step="1" value="1">
-  <label for="roomAmenityFilter">Amenity</label>
-  <input id="roomAmenityFilter" type="search" placeholder="e.g. Wi-Fi">
-  <label for="roomSort">Sort by</label>
-  <select id="roomSort"><option value="default">Recommended</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="capacity-desc">Capacity: high to low</option><option value="name">Room name</option></select>
-  <button type="button" class="secondary-button" id="clearRoomFilters">Clear filters</button>
-</section>
-<section class="room-grid" id="roomGrid">
-  <article class="room-card" th:each="room : ${rooms}"
-    th:attr="data-room-type=${room.roomType},data-price=${room.nightlyRate},data-capacity=${room.capacity},data-amenities=${room.amenities},data-name=${room.name}">
-    <div class="room-image" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><img th:src="${room.coverImagePath}" th:alt="${room.name}"></div>
-    <div class="room-image room-image-empty" th:unless="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><span>[HOTEL LOGO]</span></div>
-    <div class="room-card-body"><span class="availability-tag" th:if="${availabilitySearch}">Available for selected dates</span><p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h2 th:text="${room.name}">Room name</h2><p th:text="${room.description}">Room description</p><div class="room-meta"><span th:text="${room.capacity + ' guests'}">2 guests</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' / night'}">₱1,000 / night</strong></div><a class="primary-link" th:href="${availabilitySearch} ? @{/rooms/{id}(id=${room.id},checkIn=${checkIn},checkOut=${checkOut},guests=${guestCount})} : @{/rooms/{id}(id=${room.id})}">View room details</a></div>
-  </article>
-</section>
-<p class="notice" id="roomFilterEmpty" hidden>No rooms match these filters. Try changing your selections.</p>
-<p class="notice" th:if="${#lists.isEmpty(rooms) and availabilitySearch}">No rooms are available for the selected dates and guest count. Try different dates or fewer guests.</p>
-<p class="notice" th:if="${#lists.isEmpty(rooms) and !availabilitySearch}">There are no rooms available to display at the moment. Please check again later.</p>
-<script th:src="@{/js/room-browser.js}" defer></script>
+<section class="room-grid room-card-grid" id="roomGrid">
+<article class="room-card room-browse-card" th:each="room : ${rooms}" th:attr="data-room-type=${room.roomType},data-price=${room.nightlyRate},data-capacity=${room.capacity},data-name=${room.name}">
+<a class="room-card-link" th:href="@{/rooms/{id}(id=${room.id})}" th:attr="aria-label=${'View ' + room.name}">
+<div class="room-card-gallery" th:if="${roomPhotos[room.id] != null and !#lists.isEmpty(roomPhotos[room.id])}"><div class="room-card-photo-strip"><img th:each="photo : ${roomPhotos[room.id]}" th:src="${photo.publicPath}" th:alt="${room.name + ' photo'}" loading="lazy"></div><span class="room-gallery-hint">Drag to explore photos</span></div>
+<div class="room-card-gallery" th:unless="${roomPhotos[room.id] != null and !#lists.isEmpty(roomPhotos[room.id])}"><img class="room-card-cover" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}" th:src="${room.coverImagePath}" th:alt="${room.name}" loading="lazy"><div class="room-image-empty room-card-placeholder" th:unless="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><span>ROOM PHOTO</span></div></div>
+<div class="room-card-body"><p class="eyebrow" th:text="${room.roomType}">ROOM TYPE</p><h2 th:text="${room.name}">Room name</h2><p class="room-card-description" th:text="${room.description}">Room description</p><div class="room-meta"><span th:text="${'Up to ' + room.capacity + ' guests'}">2 guests</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' / night'}">₱1,000 / night</strong></div><span class="room-card-cta">View availability <span aria-hidden="true">↗</span></span></div>
+</a></article></section>
+<p class="notice" id="roomFilterEmpty" hidden>No rooms match this price range or filter. Adjust your selection.</p>
+<p class="notice" th:if="${#lists.isEmpty(rooms)}">There are no rooms available to display at the moment. Please check again later.</p>
 <footer><span th:text="${hotelSettings.address}">[HOTEL ADDRESS]</span><span th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</span></footer>
-</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
-</body></html>
+</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div><script th:src="@{/js/room-browser.js}" defer></script></body></html>
