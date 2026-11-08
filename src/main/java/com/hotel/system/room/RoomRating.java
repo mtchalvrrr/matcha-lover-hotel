@@ -57,6 +57,7 @@ public class RoomRating {
     public int getStars() { return stars; }
     public String getReviewText() { return reviewText; }
     public Instant getCreatedAt() { return createdAt; }
+    public java.time.LocalDate getCreatedDate() { return createdAt.atZone(java.time.ZoneId.of("Asia/Manila")).toLocalDate(); }
     public Instant getUpdatedAt() { return updatedAt; }
 
     public void setReviewText(String reviewText) {
