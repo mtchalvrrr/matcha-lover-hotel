@@ -33,7 +33,7 @@ The three portals are separate entry points within one coordinated backend, not 
 - 50% down payment and balance tracking, printable payment receipts, and audited refund/void status workflows. The default payment mode is simulated; it does not collect real money.
 - Admin reservation search by guest, email, room, or reservation ID, with status, source, and check-in date filters; audited admin cancellation with payment-refund safeguards.
 - In-app notifications and optional SMTP email notifications.
-- Admin reports for reservation status, online versus walk-in bookings, paid revenue, bookings by room, and booked room-night capacity.
+- Admin reports for reservation status, online versus walk-in bookings, paid revenue, bookings by room, daily check-in trends, booked room-night capacity, print/PDF, and CSV export.
 - Hotel profile, contact, stay-time, and cancellation-policy settings.
 - Super Admin account management, customer application review, and audit log.
 - Customer-facing hotel FAQ assistant with optional Groq AI integration, public room-page redirection, and per-session request limiting.
@@ -92,7 +92,7 @@ Do not add:
 
 ## Remaining completion and release work
 
-The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including fuller reservation history policies, advanced payment reconciliation and real gateway integration (if enabled), report exports, complete operational dashboards, full email delivery verification, and comprehensive end-to-end/security testing.
+The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including fuller reservation history policies, advanced payment reconciliation and real gateway integration (if enabled), complete operational dashboards, full email delivery verification, and comprehensive end-to-end/security testing.
 
 ## Verification policy
 
