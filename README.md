@@ -29,7 +29,7 @@ The three portals are separate entry points within one coordinated backend, not 
 - Customer registration application with ID upload, exact-file duplicate fingerprint checks, email OTP verification with resend cooldown/limits and applicant-email matching for verification/resend, plus Super Admin manual ID review and approval/rejection.
 - Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
 - Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management. Admins can also update cleaning and maintenance status; only active, clean/ready, non-maintenance rooms can be newly booked. Readiness confirmation records the Admin and inspection time.
-- Online reservation requests, modification, customer/admin reservation activity and payment history, shared room-date conflict checks, Admin approval/rejection/cancellation, walk-in bookings, check-in (blocked after scheduled checkout), checkout, no-show processing, customer-visible reservation history, and automatic expiration of unreviewed pending requests after 24 hours by default.
+- Online reservation requests, modification, customer/admin reservation activity and payment history, shared room-date conflict checks, Admin approval/rejection/cancellation, walk-in bookings, check-in (blocked after scheduled checkout), checkout, no-show processing, customer-visible reservation history, customer reservation extension requests with Admin approval/rejection and availability rechecks, and automatic expiration of unreviewed pending requests after 24 hours by default.
 - Configurable hotel check-in/check-out times, including same-day time validation.
 - 50% down payment and balance tracking, payment due-date guidance, printable receipts, and audited void workflows. Refunds now require a second Admin account to authorize the request. Approval records the refund state in the hotel database but does not itself transfer money; settlement must be completed through the original payment channel. The default payment mode is simulated; it does not collect real money.
 - Admin reservation search by guest, email, room, or reservation ID, with status, source, and check-in date filters; audited admin cancellation with payment-refund safeguards.
@@ -97,10 +97,9 @@ On a local desktop, the launcher attempts to open the three portal pages in sepa
 Do not add:
 - Staff Portal, staff accounts, or staff management.
 - Separate independent databases for each portal.
-- Reservation extension requests.
 - Reservation rating or review system.
 
-## Remaining completion and release work
+## Reservation extension workflow\n\nCustomers with approved or checked-in reservations can request a later checkout date. Admins review each request; approval rechecks overlapping room bookings, updates the reservation nights and total, records the reviewer, and notifies the customer. Any added balance is included in the updated reservation amount.\n\n## Remaining completion and release work
 
 The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including PayMongo test-mode checkout and verified webhook handling (not yet integrated), CAPTCHA configuration, stronger cross-instance session storage if the application is scaled beyond one process, complete payment reconciliation and actual refund settlement integration, full email-provider delivery verification, additional security controls, and comprehensive end-to-end/browser testing. Housekeeping, room readiness, actual-occupancy reporting, PDF report export, and independent portal sessions have been added but still need full manual browser verification.
 
