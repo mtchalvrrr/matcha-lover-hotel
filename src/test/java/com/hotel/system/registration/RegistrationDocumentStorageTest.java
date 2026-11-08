@@ -25,6 +25,18 @@ class RegistrationDocumentStorageTest {
     }
 
     @Test
+    void deletesOnlyTheStoredPrivateDocument() throws Exception {
+        byte[] pdf = "%PDF-1.7 test".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        RegistrationDocumentStorage storage = new RegistrationDocumentStorage(temporaryDirectory.toString());
+        String saved = storage.store(new MockMultipartFile("id", "identity.pdf", "application/pdf", pdf));
+        Path savedPath = Path.of(saved);
+
+        storage.delete(saved);
+
+        assertFalse(Files.exists(savedPath));
+    }
+
+    @Test
     void rejectsSpoofedPdfContent() {
         RegistrationDocumentStorage storage = new RegistrationDocumentStorage(temporaryDirectory.toString());
         MockMultipartFile spoofed = new MockMultipartFile("id", "identity.pdf", "application/pdf",
