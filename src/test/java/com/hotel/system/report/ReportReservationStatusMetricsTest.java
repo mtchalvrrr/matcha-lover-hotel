@@ -35,10 +35,9 @@ class ReportReservationStatusMetricsTest {
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(date, date))
                 .thenReturn(List.of(noShow, checkedIn, checkedOut, expired));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
-                date.plusDays(1), date, List.of(ReservationStatus.APPROVED,
-                        ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
+                date.plusDays(1), date, List.of(ReservationStatus.APPROVED)))
                 .thenReturn(List.of(checkedIn, checkedOut));
-        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
         when(rooms.countByActiveTrue()).thenReturn(3L);
         when(payments.sumPaidForReservation(anyLong(), eq(PaymentStatus.PAID))).thenReturn(BigDecimal.ZERO);
