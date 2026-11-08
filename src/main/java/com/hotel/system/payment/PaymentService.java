@@ -50,7 +50,7 @@ public class PaymentService {
             throw new IllegalStateException("A verified payment gateway is not configured. No payment was taken.");
         }
 
-        BigDecimal paid = payments.sumPaidForReservation(reservationId);
+        BigDecimal paid = payments.sumPaidForReservation(reservationId, PaymentStatus.PAID);
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
 
