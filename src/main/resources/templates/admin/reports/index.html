@@ -14,7 +14,7 @@
 <article class="metric-card"><span>No-show</span><strong th:text="${summary.noShowReservations}">0</strong></article>
 <article class="metric-card"><span>Checked in</span><strong th:text="${summary.checkedInReservations}">0</strong></article>
 <article class="metric-card"><span>Checked out</span><strong th:text="${summary.checkedOutReservations}">0</strong></article>
-<article class="metric-card"><span>Paid revenue</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0.00</strong><small>Payments received in selected period</small></article>
+<article class="metric-card"><span>Gross payments received</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0.00</strong><small>Payments received in selected period</small></article>
 <article class="metric-card"><span>Refunded</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.refundedAmount,1,'COMMA',2,'POINT')}">₱0.00</strong></article>
 <article class="metric-card"><span>Outstanding balance</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.outstandingBalance,1,'COMMA',2,'POINT')}">₱0.00</strong><small>Active reservations in selected check-in period</small></article>
 <article class="metric-card"><span>Unique customers</span><strong th:text="${summary.uniqueCustomers}">0</strong></article>
@@ -39,12 +39,12 @@
 <strong th:text="${entry.value}">0</strong>
 </div>
 </div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByCheckInDate)}">No check-ins were recorded in this date range.</p></section>
-<section class="report-section"><h2>Daily paid revenue</h2><div class="trend-chart">
+<section class="report-section"><h2>Daily gross payments received</h2><div class="trend-chart">
 <div class="trend-row revenue-trend-row" th:each="entry : ${summary.revenueByPaymentDate}">
 <span th:text="${entry.key}">Date</span>
 <div class="trend-track"><div class="trend-fill revenue-trend-fill" th:style="|width: ${summary.paidRevenue.signum() > 0 ? (entry.value * 100.0 / summary.paidRevenue) : 0}%|"></div></div>
 <strong th:text="${'₱' + #numbers.formatDecimal(entry.value,1,'COMMA',2,'POINT')}">₱0.00</strong>
 </div>
-</div><p class="notice" th:if="${#maps.isEmpty(summary.revenueByPaymentDate)}">No paid transactions were recorded in this date range.</p></section>
+</div><p class="notice" th:if="${#maps.isEmpty(summary.revenueByPaymentDate)}">No payment transactions were recorded in this date range.</p></section>
 <section class="report-section"><h2>Reservations by room</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Room</th><th>Reservations</th></tr></thead><tbody><tr th:each="entry : ${summary.bookingsByRoom}"><td th:text="${entry.key}">Room</td><td th:text="${entry.value}">0</td></tr></tbody></table></div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByRoom)}">No check-ins were recorded in this date range.</p></section>
 </main></body></html>
