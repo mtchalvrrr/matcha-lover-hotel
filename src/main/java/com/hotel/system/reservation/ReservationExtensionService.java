@@ -123,6 +123,17 @@ public class ReservationExtensionService {
     }
 
     @Transactional(readOnly = true)
+    public Reservation customerReservation(Long id, String username) {
+        Reservation reservation = ownedReservation(id, username);
+        if (reservation.getSource() != ReservationSource.ONLINE
+                || (reservation.getStatus() != ReservationStatus.APPROVED
+                    && reservation.getStatus() != ReservationStatus.CHECKED_IN)) {
+            throw new IllegalStateException("Only approved or currently checked-in online reservations can be extended.");
+        }
+        return reservation;
+    }
+
+    @Transactional(readOnly = true)
     public List<ReservationExtensionRequest> customerRequests(String username) {
         return extensions.findByCustomerUsernameOrderByCreatedAtDesc(username);
     }
