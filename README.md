@@ -24,11 +24,11 @@ The three portals are separate entry points within one coordinated backend, not 
 
 ## Implemented modules
 
-- Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, and temporary lockout.
+- Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, temporary lockout, and browser security response headers.\n- Room photos and private ID uploads validate file signatures and extension/MIME consistency; cleanup prevents stored-file path traversal and removes orphaned ID files when registration cannot complete.
 - Customer registration application with ID upload, exact-file duplicate fingerprint checks, email OTP verification with resend cooldown/limits, and Super Admin manual ID review and approval/rejection.
 - Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
 - Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management.
-- Online reservation requests, modification, customer/admin reservation activity and payment history, shared room-date conflict checks, Admin approval/rejection/cancellation, walk-in bookings, check-in, checkout, and no-show processing.
+- Online reservation requests, modification, customer/admin reservation activity and payment history, shared room-date conflict checks, Admin approval/rejection/cancellation, walk-in bookings, check-in, checkout, no-show processing, and automatic expiration of unreviewed pending requests after 24 hours by default.
 - Configurable hotel check-in/check-out times, including same-day time validation.
 - 50% down payment and balance tracking, printable payment receipts, and audited refund/void status workflows. The default payment mode is simulated; it does not collect real money.
 - Admin reservation search by guest, email, room, or reservation ID, with status, source, and check-in date filters; audited admin cancellation with payment-refund safeguards.
