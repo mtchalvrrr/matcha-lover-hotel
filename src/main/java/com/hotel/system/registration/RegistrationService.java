@@ -79,18 +79,12 @@ public class RegistrationService {
     public void verify(Long id, String otp) {
         RegistrationApplication app = applications.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
-        if (otp == null || !encoder.matches(otp.trim(), app.getStatus() == RegistrationStatus.PENDING_OTP
-                ? getOtpHash(app) : ""))
-            throw new IllegalArgumentException("Verification code is incorrect.");
-        if (!app.verifyOtp(encoder.encode(otp.trim()), Instant.now(clock)))
+        if (otp == null || !app.verifyOtp(otp.trim(), encoder, Instant.now(clock)))
             throw new IllegalArgumentException("Verification code is incorrect.");
         audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
             "Email OTP verified; awaiting Super Admin review.");
     }
 
-    private String getOtpHash(RegistrationApplication app) {
-        return app.otpHashForVerification();
-    }
 
     public List<RegistrationApplication> pendingReview() {
         return applications.findByStatusOrderBySubmittedAtAsc(RegistrationStatus.PENDING_REVIEW);
