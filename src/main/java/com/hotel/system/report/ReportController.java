@@ -58,7 +58,8 @@ public class ReportController {
         model.addAttribute("cancellationRate", percentage(summary.cancelledReservations(), summary.totalReservations()));
         model.addAttribute("rejectionRate", percentage(summary.rejectedReservations(), summary.totalReservations()));
         model.addAttribute("peakBookingDay", peakDay(summary.bookingsByCreatedDate()));
-        model.addAttribute("peakStayDay", peakDay(summary.bookingsByCheckInDate()));
+        model.addAttribute("peakStayDay", peakDay(summary.bookingsByActualStayDate()));
+        model.addAttribute("actualOccupancyRate", summary.actualOccupancyRate());
         return "admin/reports/index";
     }
 
@@ -105,7 +106,9 @@ public class ReportController {
         append(csv, "Summary", "Returning customers", summary.returningCustomers());
         append(csv, "Summary", "Reserved room nights", summary.reservedRoomNights());
         append(csv, "Summary", "Available room nights", summary.availableRoomNights());
-        append(csv, "Summary", "Booked capacity percent", summary.bookedCapacityRate());
+        append(csv, "Summary", "Scheduled booked capacity percent", summary.bookedCapacityRate());
+        append(csv, "Summary", "Actual occupied room nights", summary.actualOccupiedRoomNights());
+        append(csv, "Summary", "Actual occupancy percent", summary.actualOccupancyRate());
         append(csv, "Summary", "Gross payments received PHP", summary.paidRevenue());
         append(csv, "Summary", "Refunded amount PHP", summary.refundedAmount());
         append(csv, "Summary", "Outstanding balance PHP", summary.outstandingBalance());
@@ -113,6 +116,11 @@ public class ReportController {
         append(csv, "Reservations by room", "Room", "Reservations");
         for (Map.Entry<String, Long> entry : summary.bookingsByRoom().entrySet()) {
             append(csv, "Bookings by room", entry.getKey(), entry.getValue());
+        }
+        append(csv, "", "", "");
+        append(csv, "Actual stay dates", "Actual check-in date", "Guests checked in");
+        for (Map.Entry<LocalDate, Long> entry : summary.bookingsByActualStayDate().entrySet()) {
+            append(csv, "Actual stay dates", entry.getKey(), entry.getValue());
         }
         append(csv, "", "", "");
         append(csv, "Daily reservation requests", "Creation date", "Reservations");
@@ -168,7 +176,9 @@ public class ReportController {
                 + " | Cancellation rate: " + percentage(summary.cancelledReservations(), summary.totalReservations()) + "%"
                 + " | Rejection rate: " + percentage(summary.rejectedReservations(), summary.totalReservations()) + "%");
         lines.add("Peak booking day: " + peakDay(summary.bookingsByCreatedDate()));
-        lines.add("Peak stay day: " + peakDay(summary.bookingsByCheckInDate()));
+        lines.add("Actual occupied room nights: " + summary.actualOccupiedRoomNights()
+                + " (" + summary.actualOccupancyRate() + "% actual occupancy)");
+        lines.add("Peak actual stay day: " + peakDay(summary.bookingsByActualStayDate()));
         lines.add("");
         lines.add("OCCUPANCY AND CUSTOMERS");
         lines.add("Reserved room nights: " + summary.reservedRoomNights()
