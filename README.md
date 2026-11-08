@@ -29,15 +29,17 @@ The two Admin accounts (Online Booking Admin and Walk-in Booking Admin) use the 
 - JPA / Hibernate
 
 ## Development and verification
-Build the complete agreed scope on the `new-hotel-system` branch. Keep the existing application under `hotel-clean-repo/` untouched. Run focused tests during development, then a complete build, automated test suite, database checks, security checks, and end-to-end workflow verification.
+This repository root is the new application's project root on the `new-hotel-system` branch. The old application files were removed from this branch only. The `main` branch remains unchanged.
+
+Build the complete agreed scope on this branch. Run focused tests during development, then a complete build, automated test suite, database checks, security checks, and end-to-end workflow verification.
 
 Do not claim the system is bug-free unless the relevant checks have actually passed. Record any unresolved issues clearly.
 
 ## Local development
-From this directory:
+From the repository root:
 ```bash
 mvn clean verify
 mvn spring-boot:run
 ```
 
-The exact run profiles and launch commands for each program will be documented as the separate entry points are implemented.
+The exact launch commands for each program will be documented as separate entry points are implemented.
