@@ -43,6 +43,16 @@ class SecurityRouteIntegrationTest {
     private ReservationRepository reservations;
 
     @Test
+    void responsesIncludeSecurityHeaders() throws Exception {
+        mvc.perform(get("/rooms"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
+                .andExpect(header().string("Permissions-Policy", "camera=(), microphone=(), geolocation=()"));
+    }
+
+    @Test
     void anonymousVisitorsCanBrowseRooms() throws Exception {
         mvc.perform(get("/rooms"))
                 .andExpect(status().isOk())
