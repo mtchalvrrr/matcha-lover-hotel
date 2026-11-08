@@ -22,6 +22,11 @@
 <article class="metric-card"><span>New customers</span><strong th:text="${summary.newCustomers}">0</strong></article>
 <article class="metric-card"><span>Returning customers</span><strong th:text="${summary.returningCustomers}">0</strong></article>
 <article class="metric-card"><span>Online bookings</span><strong th:text="${summary.onlineReservations}">0</strong></article>
+<article class="metric-card"><span>Approval rate</span><strong th:text="${approvalRate + '%'}">0%</strong></article>
+<article class="metric-card"><span>Cancellation rate</span><strong th:text="${cancellationRate + '%'}">0%</strong></article>
+<article class="metric-card"><span>Rejection rate</span><strong th:text="${rejectionRate + '%'}">0%</strong></article>
+<article class="metric-card"><span>Peak booking day</span><strong th:text="${peakBookingDay}">No activity</strong></article>
+<article class="metric-card"><span>Peak stay day</span><strong th:text="${peakStayDay}">No activity</strong></article>
 <article class="metric-card"><span>Walk-in bookings</span><strong th:text="${summary.walkInReservations}">0</strong></article>
 <article class="metric-card"><span>Reserved room nights</span><strong th:text="${summary.reservedRoomNights}">0</strong></article>
 <article class="metric-card"><span>Booked capacity</span><strong th:text="${summary.bookedCapacityRate + '%'}">0%</strong><small th:text="${summary.reservedRoomNights + ' of ' + summary.availableRoomNights + ' active room-nights'}">0 of 0 room-nights</small></article>
