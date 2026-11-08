@@ -174,3 +174,10 @@
 .dashboard-recent{margin:24px 0 32px}
 .dashboard-recent h2{font-family:Georgia,serif;font-weight:400;font-size:25px;margin:0 0 14px}
 .dashboard-recent .table-wrap{background:#fff}
+
+
+/* Super Admin database backup */
+.backup-action{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding:20px;background:#f2f4ed;border:1px solid var(--line);margin:24px 0}
+.backup-action h2{font-family:Georgia,serif;font-size:24px;font-weight:400;margin:0 0 5px}
+.backup-action p{flex:1 1 100%;margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.backup-action form{margin:0}
