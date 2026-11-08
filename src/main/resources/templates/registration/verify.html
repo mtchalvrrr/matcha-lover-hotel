@@ -8,4 +8,5 @@
 <label for="applicationId">Application reference</label><input id="applicationId" name="applicationId" type="number" th:value="${applicationId}" required>
 <label for="otp">Six-digit code</label><input id="otp" name="otp" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" required>
 <button class="primary-button" type="submit">Verify email</button>
-</form></main></body></html>
+</form></main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body></html>
