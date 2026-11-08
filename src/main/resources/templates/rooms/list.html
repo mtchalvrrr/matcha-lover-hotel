@@ -4,13 +4,29 @@
 <body><main class="shell">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer}">Customer portal</a></header>
 <section class="portal-hero"><p class="eyebrow">ROOM COLLECTION</p><h1>Find your<br><em>place to stay.</em></h1><p class="intro">Explore available room categories, rates, capacity, and amenities. Sign in when you are ready to manage a reservation.</p></section>
-<section class="room-grid">
-  <article class="room-card" th:each="room : ${rooms}">
+<section class="room-filters" aria-label="Filter rooms">
+  <label for="roomTypeFilter">Room type</label>
+  <select id="roomTypeFilter"><option value="">All types</option><option th:each="type : ${roomTypes}" th:value="${type}" th:text="${type}">Type</option></select>
+  <label for="roomPriceFilter">Maximum nightly rate (₱)</label>
+  <input id="roomPriceFilter" type="number" min="0" step="0.01" placeholder="Any price">
+  <label for="roomCapacityFilter">Minimum guests</label>
+  <input id="roomCapacityFilter" type="number" min="1" step="1" value="1">
+  <label for="roomAmenityFilter">Amenity</label>
+  <input id="roomAmenityFilter" type="search" placeholder="e.g. Wi-Fi">
+  <label for="roomSort">Sort by</label>
+  <select id="roomSort"><option value="default">Recommended</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="capacity-desc">Capacity: high to low</option><option value="name">Room name</option></select>
+  <button type="button" class="secondary-button" id="clearRoomFilters">Clear filters</button>
+</section>
+<section class="room-grid" id="roomGrid">
+  <article class="room-card" th:each="room : ${rooms}"
+    th:attr="data-room-type=${room.roomType},data-price=${room.nightlyRate},data-capacity=${room.capacity},data-amenities=${room.amenities},data-name=${room.name}">
     <div class="room-image" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><img th:src="${room.coverImagePath}" th:alt="${room.name}"></div>
     <div class="room-image room-image-empty" th:unless="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><span>[HOTEL LOGO]</span></div>
     <div class="room-card-body"><p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h2 th:text="${room.name}">Room name</h2><p th:text="${room.description}">Room description</p><div class="room-meta"><span th:text="${room.capacity + ' guests'}">2 guests</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' / night'}">₱1,000 / night</strong></div><a class="primary-link" th:href="@{/rooms/{id}(id=${room.id})}">View room details</a></div>
   </article>
 </section>
+<p class="notice" id="roomFilterEmpty" hidden>No rooms match these filters. Try changing your selections.</p>
 <p class="notice" th:if="${#lists.isEmpty(rooms)}">There are no rooms available to display at the moment. Please check again later.</p>
+<script th:src="@{/js/room-browser.js}" defer></script>
 <footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
 </main></body></html>
