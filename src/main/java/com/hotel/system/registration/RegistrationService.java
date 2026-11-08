@@ -76,7 +76,7 @@ public class RegistrationService {
         try {
             application = applications.save(new RegistrationApplication(first, last,
                     address, user, encoder.encode(password), path, documentHash, encoder.encode(otp),
-                    Instant.now(clock).plus(Duration.ofMinutes(10))));
+                    Instant.now(clock).plus(Duration.ofMinutes(5))));
         } catch (RuntimeException ex) {
             try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
             throw ex;
@@ -87,7 +87,7 @@ public class RegistrationService {
             message.setFrom(fromAddress);
             message.setTo(address);
             message.setSubject("[HOTEL NAME] — Email verification code");
-            message.setText("Your email verification code is " + otp + ". It expires in 10 minutes. If you did not request this, ignore this email.");
+            message.setText("Your email verification code is " + otp + ". It expires in 5 minutes. If you did not request this, ignore this email.");
             mail.send(message);
         } catch (RuntimeException ex) {
             applications.delete(application);
@@ -118,7 +118,7 @@ public class RegistrationService {
             message.setTo(app.getEmail());
             message.setSubject("[HOTEL NAME] — Email verification code");
             message.setText("Your new email verification code is " + otp
-                    + ". It expires in 10 minutes. If you did not request this, ignore this email.");
+                    + ". It expires in 5 minutes. If you did not request this, ignore this email.");
             mail.send(message);
         } catch (RuntimeException ex) {
             throw new IllegalStateException("We could not send a new verification code. Please try again later.", ex);
