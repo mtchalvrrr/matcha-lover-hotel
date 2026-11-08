@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ADMIN PROGRAM | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/}">Back to portals</a></header>
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/}">Back to portals</a></header>
 <section class="portal-hero"><p class="eyebrow">ADMIN PROGRAM</p><h1>Hotel<br><em>operations.</em></h1><p class="intro">A dedicated workspace for authorized administrators to manage hotel operations.</p>
 <div class="action-row"><a class="primary-link" th:href="@{/admin/login}">Admin sign in</a></div></section>
 </main></body></html>
