@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>All Reservations | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / SYSTEM RECORDS</p><h1>All<br><em>reservations.</em></h1><p class="intro">Read-only system-wide reservation records, including online and walk-in bookings.</p></section>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Customer / Guest</th><th>Source</th><th>Room</th><th>Stay</th><th>Total</th><th>Status</th></tr></thead><tbody>
+<tr th:each="r : ${reservations}"><td th:text="${'#' + r.id}">#1</td><td><span th:text="${r.guestName}">Guest</span><br><small th:text="${r.customerEmail}">Email</small></td><td th:text="${r.source}">ONLINE</td><td th:text="${r.roomCode + ' · ' + r.roomName}">Room</td><td th:text="${r.checkInDate + ' to ' + r.checkOutDate}">Dates</td><td th:text="${'₱' + #numbers.formatDecimal(r.totalAmount,1,'COMMA',2,'POINT')}">₱0</td><td th:text="${r.status}">PENDING</td></tr>
+</tbody></table></div><p class="notice" th:if="${#lists.isEmpty(reservations)}">No reservation records found.</p>
+<h2>Extension request records</h2>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Request</th><th>Reservation</th><th>Customer</th><th>Requested checkout</th><th>Status</th><th>Reviewed by</th></tr></thead><tbody>
+<tr th:each="e : ${extensions}"><td th:text="${e.id}">1</td><td th:text="${e.reservationId}">1</td><td th:text="${e.customerUsername}">customer</td><td th:text="${e.requestedCheckoutDate}">Date</td><td th:text="${e.status}">PENDING</td><td th:text="${e.reviewedBy != null ? e.reviewedBy : '—'}">—</td></tr>
+</tbody></table></div>
+</main></body></html>
