@@ -24,11 +24,14 @@ public record ReportSummary(
     long reservedRoomNights,
     long availableRoomNights,
     BigDecimal bookedCapacityRate,
+    long actualOccupiedRoomNights,
+    BigDecimal actualOccupancyRate,
     BigDecimal paidRevenue,
     BigDecimal refundedAmount,
     BigDecimal outstandingBalance,
     Map<String, Long> bookingsByRoom,
     Map<LocalDate, Long> bookingsByCheckInDate,
+    Map<LocalDate, Long> bookingsByActualStayDate,
     Map<LocalDate, Long> bookingsByCreatedDate,
     Map<LocalDate, BigDecimal> revenueByPaymentDate
 ) {}
