@@ -1,45 +1,4 @@
 (() => {
-  // Availability popup is initialized independently from the photo gallery.
-  const availabilityDialog = document.getElementById("roomAvailabilityDialog");
-  const openAvailability = document.getElementById("openRoomAvailability");
-  const closeAvailability = document.getElementById("closeRoomAvailability");
-
-  function openAvailabilityPopup() {
-    if (!availabilityDialog) return;
-    try {
-      if (typeof availabilityDialog.showModal === "function" && !availabilityDialog.open) {
-        availabilityDialog.showModal();
-      } else {
-        availabilityDialog.setAttribute("open", "");
-        availabilityDialog.classList.add("is-open");
-      }
-    } catch (error) {
-      availabilityDialog.setAttribute("open", "");
-      availabilityDialog.classList.add("is-open");
-    }
-  }
-  function closeAvailabilityPopup() {
-    if (!availabilityDialog) return;
-    try {
-      if (typeof availabilityDialog.close === "function" && availabilityDialog.open) {
-        availabilityDialog.close();
-      } else {
-        availabilityDialog.removeAttribute("open");
-      }
-    } catch (error) {
-      availabilityDialog.removeAttribute("open");
-    }
-    availabilityDialog.classList.remove("is-open");
-  }
-  openAvailability?.addEventListener("click", openAvailabilityPopup);
-  closeAvailability?.addEventListener("click", closeAvailabilityPopup);
-  availabilityDialog?.addEventListener("click", event => {
-    if (event.target === availabilityDialog) closeAvailabilityPopup();
-  });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && availabilityDialog?.hasAttribute("open")) closeAvailabilityPopup();
-  });
-
   // Gallery setup runs separately so a gallery issue cannot disable the popup.
   const gallery = document.getElementById("roomGallery");
   if (!gallery) return;
