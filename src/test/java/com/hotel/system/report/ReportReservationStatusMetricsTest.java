@@ -28,11 +28,12 @@ class ReportReservationStatusMetricsTest {
         RoomRepository rooms = mock(RoomRepository.class);
         LocalDate date = LocalDate.of(2026, 11, 10);
 
+        Reservation expired = booking(4L, date, ReservationStatus.EXPIRED);
         Reservation noShow = booking(1L, date, ReservationStatus.NO_SHOW);
         Reservation checkedIn = booking(2L, date, ReservationStatus.CHECKED_IN);
         Reservation checkedOut = booking(3L, date, ReservationStatus.CHECKED_OUT);
         when(reservations.findByCheckInDateBetweenOrderByCheckInDateAsc(date, date))
-                .thenReturn(List.of(noShow, checkedIn, checkedOut));
+                .thenReturn(List.of(noShow, checkedIn, checkedOut, expired));
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
                 date.plusDays(1), date, List.of(ReservationStatus.APPROVED,
                         ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
@@ -46,6 +47,7 @@ class ReportReservationStatusMetricsTest {
                 Clock.fixed(Instant.parse("2026-11-08T00:00:00Z"), ZoneId.of("Asia/Manila")))
                 .summarize(date, date);
 
+        assertEquals(1, summary.expiredReservations());
         assertEquals(1, summary.noShowReservations());
         assertEquals(1, summary.checkedInReservations());
         assertEquals(1, summary.checkedOutReservations());
