@@ -28,6 +28,8 @@
 </dialog>
 <div class="room-image room-image-empty" th:if="${#lists.isEmpty(photos)}"><span>[ROOM PHOTOS]</span></div>
 <p class="intro" th:text="${room.description}">Room description</p>
+<p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
+<p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
 <section class="room-availability-panel">
 <h2>Check room availability</h2>
