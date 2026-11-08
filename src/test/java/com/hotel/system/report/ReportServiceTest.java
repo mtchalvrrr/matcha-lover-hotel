@@ -49,7 +49,7 @@ class ReportServiceTest {
                 to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
                         ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
                 .thenReturn(List.of(overlappingStay));
-        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
         when(rooms.countByActiveTrue()).thenReturn(2L);
 
@@ -85,7 +85,7 @@ class ReportServiceTest {
                 to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
                         ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT)))
                 .thenReturn(List.of(approved));
-        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
         when(payments.sumPaidForReservation(9L, com.hotel.system.payment.PaymentStatus.PAID))
                 .thenReturn(new BigDecimal("500.00"));
@@ -110,16 +110,17 @@ class ReportServiceTest {
         when(reservations.findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
                 to.plusDays(1), from, List.of(ReservationStatus.APPROVED,
                         ReservationStatus.CHECKED_IN, ReservationStatus.CHECKED_OUT))).thenReturn(List.of());
-        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), eq(PaymentStatus.PAID)))
-                .thenReturn(List.of());
-        when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), eq(PaymentStatus.REFUNDED)))
-                .thenReturn(List.of());
+        when(payments.findByCreatedAtBetweenAndStatusInOrderByCreatedAtAsc(any(), any(),
+                eq(List.of(PaymentStatus.PAID, PaymentStatus.REFUNDED))))
+                .thenReturn(List.of(refunded));
         when(payments.findByRefundedAtBetweenOrderByRefundedAtAsc(any(), any())).thenReturn(List.of(refunded));
         when(rooms.countByActiveTrue()).thenReturn(1L);
 
         ReportSummary summary = service.summarize(from, to);
 
         assertEquals(new BigDecimal("500.00"), summary.refundedAmount());
+        assertEquals(new BigDecimal("500.00"), summary.paidRevenue(),
+                "A refunded payment remains part of gross receipts on its original payment date.");
         verify(payments).findByRefundedAtBetweenOrderByRefundedAtAsc(
                 Instant.parse("2026-11-07T16:00:00Z"), Instant.parse("2026-11-08T16:00:00Z"));
     }
