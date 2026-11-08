@@ -51,6 +51,25 @@ class ReservationCheckInOutTest {
     }
 
     @Test
+    void refusesCheckInAfterTheScheduledCheckoutTime() {
+        Reservation reservation = reservation();
+        reservation.changeStatus(ReservationStatus.APPROVED);
+        when(reservations.findById(95L)).thenReturn(Optional.of(reservation));
+        when(payments.sumPaidForReservation(95L, PaymentStatus.PAID)).thenReturn(new BigDecimal("1000.00"));
+        Clock afterCheckout = Clock.fixed(
+                Instant.parse("2026-11-10T05:00:00Z"), ZoneId.of("Asia/Manila"));
+        ReservationService lateService = new ReservationService(
+                reservations, rooms, users, afterCheckout, audit, payments, notifications, stayTimes);
+
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> lateService.checkIn(95L, "admin"));
+
+        assertTrue(error.getMessage().contains("checkout time has passed"));
+        assertEquals(ReservationStatus.APPROVED, reservation.getStatus());
+        assertNull(reservation.getCheckedInAt());
+    }
+
+    @Test
     void checkOutStoresActualTimeAfterFullBalanceIsPaid() {
         Reservation reservation = reservation();
         reservation.changeStatus(ReservationStatus.CHECKED_IN);
