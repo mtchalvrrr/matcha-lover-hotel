@@ -161,6 +161,12 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
+    public List<Reservation> roomOccupancy(Long roomId) {
+        return reservations.findByRoomIdAndStatusInOrderByCheckInDateAsc(roomId,
+                BLOCKING_STATUSES);
+    }
+
+    @Transactional(readOnly = true)
     public List<Reservation> allReservations() {
         return reservations.findAllByOrderByCreatedAtDesc();
     }
