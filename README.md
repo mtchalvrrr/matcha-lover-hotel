@@ -25,7 +25,7 @@ The three portals are separate entry points within one coordinated backend, not 
 ## Implemented modules
 
 - Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, and temporary lockout.
-- Customer registration application with ID upload, exact-file duplicate fingerprint checks, email OTP verification, and Super Admin manual ID review and approval/rejection.
+- Customer registration application with ID upload, exact-file duplicate fingerprint checks, email OTP verification with resend cooldown/limits, and Super Admin manual ID review and approval/rejection.
 - Customer profile updates, password changes, expiring password-reset tokens, and customer account deactivation requests with Super Admin review and active-session expiry.
 - Public room catalog with date-based availability search, guest-capacity checks, filters, sorting, room details, photo carousels/lightbox, and admin room/photo management.
 - Online reservation requests and modification with shared room-date conflict checks, Admin approval/rejection, walk-in bookings, check-in, checkout, and no-show processing.
