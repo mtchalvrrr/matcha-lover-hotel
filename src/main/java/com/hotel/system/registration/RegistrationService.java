@@ -94,6 +94,8 @@ public class RegistrationService {
     public void review(Long id, boolean approve, String reviewer, String reason) {
         RegistrationApplication app = applications.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
+        if (!approve && (reason == null || reason.isBlank()))
+            throw new IllegalArgumentException("A reason is required when rejecting an application.");
         app.review(approve, reviewer, reason);
         if (approve) {
             if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail()))
