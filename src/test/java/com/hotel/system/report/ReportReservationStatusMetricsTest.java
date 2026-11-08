@@ -1,6 +1,7 @@
 package com.hotel.system.report;
 
 import com.hotel.system.payment.PaymentRepository;
+import com.hotel.system.payment.PaymentStatus;
 import com.hotel.system.reservation.Reservation;
 import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
@@ -38,6 +39,7 @@ class ReportReservationStatusMetricsTest {
         when(payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(any(), any(), any()))
                 .thenReturn(List.of());
         when(rooms.countByActiveTrue()).thenReturn(3L);
+        when(payments.sumPaidForReservation(2L, PaymentStatus.PAID)).thenReturn(BigDecimal.ZERO);
 
         ReportSummary summary = new ReportService(reservations, payments, rooms,
                 Clock.fixed(Instant.parse("2026-11-08T00:00:00Z"), ZoneId.of("Asia/Manila")))
