@@ -29,4 +29,5 @@
 <p class="notice" th:if="${#lists.isEmpty(rooms)}">There are no rooms available to display at the moment. Please check again later.</p>
 <script th:src="@{/js/room-browser.js}" defer></script>
 <footer><span>[HOTEL ADDRESS]</span><span>[HOTEL CONTACT INFORMATION]</span></footer>
-</main></body></html>
+</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body></html>
