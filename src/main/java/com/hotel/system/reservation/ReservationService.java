@@ -285,9 +285,9 @@ public class ReservationService {
             .setScale(2, java.math.RoundingMode.HALF_UP);
         if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(requiredDeposit) < 0)
             throw new IllegalStateException("The 50% down payment must be recorded before check-in.");
-        reservation.changeStatus(ReservationStatus.CHECKED_IN);
+        reservation.recordCheckIn(java.time.Instant.now(clock));
         audit.record(adminUsername, "GUEST_CHECKED_IN", "RESERVATION", id.toString(),
-            "Checked in guest " + reservation.getGuestName());
+            "Checked in guest " + reservation.getGuestName() + " at " + reservation.getCheckedInAt());
     }
 
     public void checkOut(Long id, String adminUsername) {
@@ -297,9 +297,14 @@ public class ReservationService {
             throw new IllegalStateException("Only checked-in guests can be checked out.");
         if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(reservation.getTotalAmount()) < 0)
             throw new IllegalStateException("The remaining balance must be settled before checkout.");
-        reservation.changeStatus(ReservationStatus.CHECKED_OUT);
+        reservation.recordCheckOut(java.time.Instant.now(clock));
         audit.record(adminUsername, "GUEST_CHECKED_OUT", "RESERVATION", id.toString(),
-            "Checked out guest " + reservation.getGuestName());
+            "Checked out guest " + reservation.getGuestName() + " at " + reservation.getCheckedOutAt());
+        if (reservation.getSource() == ReservationSource.ONLINE) {
+            notifications.notifyUser(reservation.getCustomerUsername(), "Checkout completed",
+                    "Your checkout for reservation #" + id + " has been recorded. Thank you for staying with us.",
+                    "RESERVATION");
+        }
     }
 
     public void markNoShow(Long id, String adminUsername) {
