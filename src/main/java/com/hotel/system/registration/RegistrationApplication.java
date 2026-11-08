@@ -34,7 +34,7 @@ public class RegistrationApplication {
     private int otpAttempts;
     @Column(name = "otp_sent_at")
     private Instant otpSentAt = Instant.now();
-    @Column(name = "otp_resends", nullable = false)
+    @Column(name = "otp_resends", nullable = false, columnDefinition = "integer default 0")
     private int otpResends;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 24)
@@ -55,6 +55,7 @@ public class RegistrationApplication {
         this.username = username; this.passwordHash = passwordHash; this.idDocumentPath = idDocumentPath;
         this.documentHash = documentHash;
         this.otpHash = otpHash; this.otpExpiresAt = otpExpiresAt;
+        this.otpSentAt = otpExpiresAt.minusSeconds(600);
     }
     public Long getId() { return id; }
     public String getFirstName() { return firstName; }
