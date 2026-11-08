@@ -140,9 +140,26 @@ public class ReservationController {
     }
 
     @GetMapping("/admin/reservations")
-    public String adminReservations(Model model) {
-        model.addAttribute("reservations", reservations.allReservations());
-        return "admin/reservations/list";
+    public String adminReservations(@RequestParam(required = false) String q,
+                                    @RequestParam(required = false) ReservationStatus status,
+                                    @RequestParam(required = false) ReservationSource source,
+                                    @RequestParam(required = false) LocalDate from,
+                                    @RequestParam(required = false) LocalDate to,
+                                    Model model, RedirectAttributes redirect) {
+        try {
+            model.addAttribute("reservations", reservations.searchReservations(q, status, source, from, to));
+            model.addAttribute("q", q);
+            model.addAttribute("selectedStatus", status);
+            model.addAttribute("selectedSource", source);
+            model.addAttribute("from", from);
+            model.addAttribute("to", to);
+            model.addAttribute("statuses", ReservationStatus.values());
+            model.addAttribute("sources", ReservationSource.values());
+            return "admin/reservations/list";
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/reservations";
+        }
     }
 
     @PostMapping("/admin/reservations/{id}/review")
