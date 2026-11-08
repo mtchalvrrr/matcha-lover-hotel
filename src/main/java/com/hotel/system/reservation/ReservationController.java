@@ -18,14 +18,17 @@ public class ReservationController {
     private final WalkInBookingService walkInBookings;
     private final RoomService rooms;
     private final Clock clock;
+    private final ReservationHistoryService history;
 
     public ReservationController(ReservationService reservations, PaymentService payments,
-                                 WalkInBookingService walkInBookings, RoomService rooms, Clock clock) {
+                                 WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
+                                 ReservationHistoryService history) {
         this.reservations = reservations;
         this.payments = payments;
         this.walkInBookings = walkInBookings;
         this.rooms = rooms;
         this.clock = clock;
+        this.history = history;
     }
 
     @PostMapping("/customer/reservations")
@@ -42,6 +45,30 @@ public class ReservationController {
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/rooms/" + roomId;
+        }
+    }
+
+    @GetMapping("/customer/reservations/{id}/history")
+    public String customerReservationHistory(@PathVariable Long id, Authentication authentication,
+                                             Model model, RedirectAttributes redirect) {
+        try {
+            model.addAttribute("history", history.customerHistory(id, authentication.getName()));
+            return "reservations/history";
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/customer/reservations";
+        }
+    }
+
+    @GetMapping("/admin/reservations/{id}/history")
+    public String adminReservationHistory(@PathVariable Long id, Model model,
+                                          RedirectAttributes redirect) {
+        try {
+            model.addAttribute("history", history.adminHistory(id));
+            return "reservations/history";
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/reservations";
         }
     }
 
