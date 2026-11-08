@@ -4,16 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Customer Registration | [HOTEL NAME]</title>
-  <link rel="stylesheet" th:href="@{/css/app.css(v=20261111)}">
+  <link rel="stylesheet" th:href="@{/css/app.css(v=20261113)}">
 </head>
-<body class="registration-page">
-<main class="shell registration-shell">
+<body>
+<main class="shell narrow">
   <header class="topbar">
     <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
     <a class="back-link" th:href="@{/customer/login}">Customer sign in</a>
   </header>
 
-  <div class="registration-card">
+  <section class="auth-layout registration-layout">
+    <div class="auth-copy">
+      <p class="eyebrow">CUSTOMER ACCESS</p>
+      <h1>Create your account.</h1>
+      <p class="intro">Set up your guest account in three short steps.</p>
+    </div>
+    <form id="customerRegistrationForm" class="auth-card registration-card registration-form" th:action="@{/register}" method="post" enctype="multipart/form-data" novalidate>
     <div class="registration-progress" aria-label="Registration progress">
       <div class="registration-progress-line"><span id="registrationProgressFill"></span></div>
       <div class="registration-step-indicators">
@@ -24,7 +30,7 @@
     </div>
 
     <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
-    <form id="customerRegistrationForm" class="registration-form" th:action="@{/register}" method="post" enctype="multipart/form-data" novalidate>
+
       <section class="registration-panel is-visible" data-step="0">
         <p class="registration-kicker">STEP 1 OF 3</p>
         <h2>Personal information</h2>
@@ -103,10 +109,9 @@
         <button id="registrationSubmit" class="primary-button registration-next" type="submit" hidden>Create account <span aria-hidden="true">→</span></button>
       </div>
     </form>
-  </div>
+  </section>
 
-  <p class="registration-footer">Already registered? <a th:href="@{/customer/login}">Sign in</a></p>
 </main>
-<script th:src="@{/js/registration.js(v=20261112)}" defer></script>
+<script th:src="@{/js/registration.js(v=20261113)}" defer></script>
 </body>
 </html>
