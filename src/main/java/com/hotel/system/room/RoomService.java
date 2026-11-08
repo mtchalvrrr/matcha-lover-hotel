@@ -57,7 +57,8 @@ public class RoomService {
 
     @Transactional(readOnly = true)
     public boolean isAvailable(Long roomId, LocalDate checkIn, LocalDate checkOut) {
-        if (checkIn == null || checkOut == null || !checkOut.isAfter(checkIn)) return false;
+        if (checkIn == null || checkOut == null || !checkOut.isAfter(checkIn)
+                || checkIn.atTime(stayTimes.checkInTime()).isBefore(LocalDateTime.now(clock))) return false;
         return !reservations.existsOverlappingReservation(
                 roomId, BLOCKING_STATUSES, checkIn, checkOut, null);
     }
