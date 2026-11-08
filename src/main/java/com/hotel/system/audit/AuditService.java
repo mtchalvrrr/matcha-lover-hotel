@@ -17,6 +17,9 @@ import java.time.LocalDate;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.ReentrantLock;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @Transactional
@@ -25,6 +28,7 @@ public class AuditService {
     private final AuditLogRepository logs;
     private final Clock clock;
     private final String hmacKey;
+    private final ReentrantLock chainLock = new ReentrantLock(true);
 
     public AuditService(AuditLogRepository logs, Clock clock) {
         this(logs, clock, "");
@@ -43,14 +47,29 @@ public class AuditService {
     }
 
     public void record(String actor, String action, String targetType, String targetId, String details) {
-        String safeActor = (actor == null || actor.isBlank()) ? "SYSTEM" : actor;
-        Instant createdAt = Instant.now(clock);
-        String previousHash = logs.findTop1ByOrderByIdDesc()
-                .map(AuditLog::getEventHash).filter(value -> value != null && !value.isBlank())
-                .orElse(GENESIS);
-        String eventHash = calculateHash(previousHash, safeActor, action, targetType, targetId, details, createdAt);
-        logs.save(new AuditLog(safeActor, action, targetType, targetId, details,
-                createdAt, previousHash, eventHash));
+        chainLock.lock();
+        boolean releaseAfterTransaction = false;
+        try {
+            String safeActor = (actor == null || actor.isBlank()) ? "SYSTEM" : actor;
+            Instant createdAt = Instant.now(clock);
+            String previousHash = logs.findTop1ByOrderByIdDesc()
+                    .map(AuditLog::getEventHash).filter(value -> value != null && !value.isBlank())
+                    .orElse(GENESIS);
+            String eventHash = calculateHash(previousHash, safeActor, action, targetType, targetId, details, createdAt);
+            logs.saveAndFlush(new AuditLog(safeActor, action, targetType, targetId, details,
+                    createdAt, previousHash, eventHash));
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        chainLock.unlock();
+                    }
+                });
+                releaseAfterTransaction = true;
+            }
+        } finally {
+            if (!releaseAfterTransaction) chainLock.unlock();
+        }
     }
 
     @Transactional(readOnly = true)
