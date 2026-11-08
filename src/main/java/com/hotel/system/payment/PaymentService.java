@@ -137,6 +137,23 @@ public class PaymentService {
                         + ". Reason: " + cleanReason);
     }
 
+
+    @Transactional(readOnly = true)
+    public Payment customerPayment(Long paymentId, String username) {
+        Payment payment = payments.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
+        if (!payment.getCustomerUsername().equalsIgnoreCase(username)) {
+            throw new IllegalArgumentException("Payment record not found.");
+        }
+        return payment;
+    }
+
+    @Transactional(readOnly = true)
+    public Payment paymentDetails(Long paymentId) {
+        return payments.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
+    }
+
     @Transactional(readOnly = true)
     public List<Payment> allPayments() { return payments.findAllByOrderByCreatedAtDesc(); }
 
