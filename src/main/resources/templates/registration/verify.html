@@ -6,11 +6,13 @@
 <p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
 <form class="auth-card wide-form" th:action="@{/register/verify}" method="post">
 <label for="applicationId">Application reference</label><input id="applicationId" name="applicationId" type="number" th:value="${applicationId}" required>
+<label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" th:value="${email}" required>
 <label for="otp">Six-digit code</label><input id="otp" name="otp" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" required>
 <button class="primary-button" type="submit">Verify email</button>
 </form>
 <form class="auth-card wide-form" th:action="@{/register/verify/resend}" method="post">
 <input type="hidden" name="applicationId" th:value="${applicationId}">
+<label for="resendEmail">Email address</label><input id="resendEmail" name="email" type="email" maxlength="254" autocomplete="email" th:value="${email}" required>
 <p class="form-help">You can request up to three replacement codes. Each new code has a 60-second resend cooldown and expires after 10 minutes.</p>
 <button class="secondary-button" type="submit" th:disabled="${applicationId == null}">Resend verification code</button>
 </form>
