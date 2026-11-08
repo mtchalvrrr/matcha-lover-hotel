@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Edit Reservation | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/admin/reservations}">Back to reservations</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / RESERVATION #<span th:text="${reservation.id}">1</span></p><h1>Edit<br><em>reservation.</em></h1><p class="intro">Changes are checked against room capacity, availability, stay dates, and payment activity. Resolve all pending or completed financial transactions before editing.</p></section>
+<p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<form class="form-card" th:action="@{/admin/reservations/{id}/edit(id=${reservation.id})}" method="post">
+<label for="roomId">Room</label><select id="roomId" name="roomId" required><option th:each="room : ${rooms}" th:value="${room.id}" th:text="${room.roomCode + ' — ' + room.name + ' (₱' + room.nightlyRate + '/night)'}" th:selected="${room.id == reservation.roomId}">Room</option></select>
+<label for="checkIn">Check-in date</label><input id="checkIn" name="checkIn" type="date" th:min="${minimumDate}" th:value="${reservation.checkInDate}" required>
+<label for="checkOut">Check-out date</label><input id="checkOut" name="checkOut" type="date" th:min="${minimumDate}" th:value="${reservation.checkOutDate}" required>
+<label for="guests">Number of guests</label><input id="guests" name="guests" type="number" min="1" max="20" th:value="${reservation.guests}" required>
+<p class="notice">Current status: <strong th:text="${reservation.status}">PENDING</strong>. Status is preserved after a successful Admin edit.</p>
+<div class="action-row"><button class="primary-button" type="submit">Save reservation changes</button><a class="secondary-link" th:href="@{/admin/reservations}">Cancel</a></div>
+</form></main></body></html>
