@@ -3,6 +3,7 @@ package com.hotel.system.room;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.security.core.Authentication;
+import com.hotel.system.config.HotelStayTimePolicy;
 import org.springframework.security.core.GrantedAuthority;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -16,11 +17,13 @@ public class RoomController {
     private final RoomService rooms;
     private final Clock clock;
     private final RoomPhotoService photos;
+    private final HotelStayTimePolicy stayTimes;
 
-    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos) {
+    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos, HotelStayTimePolicy stayTimes) {
         this.rooms = rooms;
         this.clock = clock;
         this.photos = photos;
+        this.stayTimes = stayTimes;
     }
 
     @GetMapping("/rooms")
@@ -40,7 +43,9 @@ public class RoomController {
         boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
         model.addAttribute("customerSignedIn", customerSignedIn);
-        model.addAttribute("minimumDate", LocalDate.now(clock).plusDays(1));
+        model.addAttribute("minimumDate", LocalDate.now(clock));
+        model.addAttribute("checkInTime", stayTimes.checkInTime());
+        model.addAttribute("checkOutTime", stayTimes.checkOutTime());
         return "rooms/detail";
     }
 
