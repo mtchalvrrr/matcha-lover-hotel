@@ -432,3 +432,26 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
 .customer-room-rating-form select{min-height:36px;padding:0 8px;border:1px solid #d6e1d0;border-radius:9px;background:#fffef9;color:#304c39;font-size:11px}
 .customer-room-rating-form .text-button{padding:7px 10px;font-size:10px}
 @media(max-width:760px){.customer-room-rating-form{min-width:125px}}
+
+
+/* Room detail refinements */
+.room-detail-hero{padding:54px 0 42px}
+.room-detail-title{font-size:clamp(34px,4.5vw,52px)!important;line-height:1.08!important;margin:10px 0 18px!important;letter-spacing:-.035em!important}
+.room-availability-cta{display:inline-flex;align-items:center;gap:16px;padding:13px 18px;background:var(--green);color:#fff;text-decoration:none;font-size:12px;font-weight:750}
+.room-availability-cta:hover{background:#263c2e}
+.room-gallery-large{margin:24px 0 34px}
+.room-gallery-large .gallery-active{height:min(68vw,650px);min-height:360px;touch-action:pan-y;cursor:grab}
+.room-gallery-large .gallery-active:active{cursor:grabbing}
+.room-gallery-large .gallery-active img{user-select:none;-webkit-user-drag:none}
+.room-gallery-large .gallery-thumbnail{width:108px;height:78px}
+.room-customer-feedback{margin:38px 0 48px;padding-top:28px;border-top:1px solid var(--line)}
+.room-customer-feedback h2{font-family:Georgia,serif;font-size:27px;font-weight:400;margin:0 0 8px}
+.room-feedback-empty{color:var(--muted);font-size:13px;padding:18px;background:#fff;border:1px solid var(--line)}
+.room-feedback-item{padding:18px 0;border-bottom:1px solid var(--line)}
+.room-feedback-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.room-feedback-heading strong{font-size:13px}
+.room-feedback-stars{color:#a47b32;letter-spacing:.08em}
+.room-feedback-item p{font-size:13px;line-height:1.7;color:#566357;white-space:pre-wrap}
+.room-feedback-item time{font-size:10px;color:var(--muted)}
+.customer-room-rating-form textarea{width:100%;padding:8px;border:1px solid var(--line);font:inherit;font-size:11px;resize:vertical}
+@media(max-width:600px){.room-detail-hero{padding:40px 0 28px}.room-gallery-large .gallery-active{height:70vw;min-height:240px}.room-gallery-large .gallery-thumbnail{width:82px;height:62px}}
