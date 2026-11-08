@@ -32,6 +32,10 @@ public class RegistrationApplication {
     private Instant otpExpiresAt;
     @Column(name = "otp_attempts", nullable = false)
     private int otpAttempts;
+    @Column(name = "otp_sent_at")
+    private Instant otpSentAt = Instant.now();
+    @Column(name = "otp_resends", nullable = false)
+    private int otpResends;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 24)
     private RegistrationStatus status = RegistrationStatus.PENDING_OTP;
@@ -64,6 +68,23 @@ public class RegistrationApplication {
     public Instant getReviewedAt() { return reviewedAt; }
     public String getReviewedBy() { return reviewedBy; }
     public String getReviewReason() { return reviewReason; }
+
+    public void resendOtp(String newOtpHash, Instant now) {
+        if (status != RegistrationStatus.PENDING_OTP) {
+            throw new IllegalStateException("This registration no longer needs email verification.");
+        }
+        if (otpSentAt != null && otpSentAt.plusSeconds(60).isAfter(now)) {
+            throw new IllegalStateException("Wait at least 60 seconds before requesting another code.");
+        }
+        if (otpResends >= 3) {
+            throw new IllegalStateException("The resend limit has been reached. Submit a new registration application.");
+        }
+        otpHash = newOtpHash;
+        otpExpiresAt = now.plusSeconds(600);
+        otpSentAt = now;
+        otpAttempts = 0;
+        otpResends++;
+    }
 
     public boolean verifyOtp(String candidate, PasswordEncoder encoder, Instant now) {
         if (status != RegistrationStatus.PENDING_OTP) throw new IllegalStateException("This OTP is no longer active.");
