@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My Reservations | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><div class="action-row"><a class="back-link" th:href="@{/customer/dashboard}">Dashboard</a><form th:action="@{/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></div></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / BOOKINGS</p><h1>My<br><em>reservations.</em></h1><p class="intro">Track reservation requests and their current status.</p><div class="action-row"><a class="primary-link" th:href="@{/rooms}">Browse rooms</a></div></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Room</th><th>Stay dates</th><th>Guests</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>
+<tr th:each="reservation : ${reservations}"><td th:text="${'#' + reservation.id}">#1</td><td><strong th:text="${reservation.roomName}">Room</strong><br><span th:text="${reservation.roomCode}">101</span></td><td><span th:text="${reservation.checkInDate}">Check-in</span><br>to <span th:text="${reservation.checkOutDate}">Check-out</span></td><td th:text="${reservation.guests}">2</td><td th:text="${'₱' + #numbers.formatDecimal(reservation.totalAmount,1,'COMMA',2,'POINT')}">₱0.00</td><td th:text="${reservation.status}">PENDING</td><td><form th:if="${reservation.status.name() == 'PENDING' or reservation.status.name() == 'APPROVED'}" th:action="@{/customer/reservations/{id}/cancel(id=${reservation.id})}" method="post"><button class="text-button" type="submit">Cancel</button></form><span th:unless="${reservation.status.name() == 'PENDING' or reservation.status.name() == 'APPROVED'}">—</span></td></tr>
+</tbody></table></div><p class="notice" th:if="${#lists.isEmpty(reservations)}">You do not have any reservations yet.</p>
+</main></body></html>
