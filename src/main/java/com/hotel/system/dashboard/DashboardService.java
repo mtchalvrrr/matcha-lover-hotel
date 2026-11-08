@@ -46,15 +46,16 @@ public class DashboardService {
     }
 
     public AdminSummary adminSummary() {
+        LocalDate today = LocalDate.now(clock);
         return new AdminSummary(
                 reservations.count(),
                 reservations.countByStatus(ReservationStatus.PENDING),
                 reservations.countByStatus(ReservationStatus.APPROVED),
                 reservations.countByStatus(ReservationStatus.CHECKED_IN),
                 reservations.countByStatus(ReservationStatus.CHECKED_OUT),
-                reservations.countByCheckInDateAndStatusIn(LocalDate.now(clock),
+                reservations.countByCheckInDateAndStatusIn(today,
                         List.of(ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN)),
-                reservations.countByCheckOutDateAndStatusIn(LocalDate.now(clock),
+                reservations.countByCheckOutDateAndStatusIn(today,
                         List.of(ReservationStatus.CHECKED_IN)),
                 rooms.countByActiveTrue(),
                 payments.sumAmountByStatus(PaymentStatus.PAID),
