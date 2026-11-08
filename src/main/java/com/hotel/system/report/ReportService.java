@@ -119,7 +119,7 @@ public class ReportService {
         long newCustomers = uniqueCustomers - returningCustomers;
 
         long reservedRoomNights = overlappingStays.stream()
-                .mapToLong(reservation -> occupiedNightsWithin(reservation, from, to))
+                .mapToLong(reservation -> occupiedNightsWithin(reservation, from, to, zone))
                 .sum();
         long availableRoomNights = rooms.countByActiveTrue() * periodDays;
         BigDecimal bookedCapacityRate = availableRoomNights == 0
@@ -162,11 +162,16 @@ public class ReportService {
         return bookings.stream().filter(reservation -> reservation.getStatus() == status).count();
     }
 
-    private long occupiedNightsWithin(Reservation reservation, LocalDate from, LocalDate to) {
-        LocalDate occupiedFrom = reservation.getCheckInDate().isAfter(from)
-                ? reservation.getCheckInDate() : from;
-        LocalDate occupiedUntil = reservation.getCheckOutDate().isBefore(to.plusDays(1))
-                ? reservation.getCheckOutDate() : to.plusDays(1);
+    private long occupiedNightsWithin(Reservation reservation, LocalDate from, LocalDate to, ZoneId zone) {
+        LocalDate actualCheckIn = reservation.getCheckedInAt() == null
+                ? reservation.getCheckInDate()
+                : reservation.getCheckedInAt().atZone(zone).toLocalDate();
+        LocalDate actualCheckOut = reservation.getCheckedOutAt() == null
+                ? reservation.getCheckOutDate()
+                : reservation.getCheckedOutAt().atZone(zone).toLocalDate();
+        LocalDate occupiedFrom = actualCheckIn.isAfter(from) ? actualCheckIn : from;
+        LocalDate occupiedUntil = actualCheckOut.isBefore(to.plusDays(1))
+                ? actualCheckOut : to.plusDays(1);
         return Math.max(0, ChronoUnit.DAYS.between(occupiedFrom, occupiedUntil));
     }
 }
