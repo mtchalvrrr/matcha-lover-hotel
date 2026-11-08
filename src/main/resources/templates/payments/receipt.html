@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Payment Receipt | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body>
+<main class="shell narrow receipt-shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" href="javascript:history.back()">Back</a></header>
+<section class="receipt-card">
+<p class="eyebrow">PAYMENT RECEIPT</p>
+<h1 th:text="${hotelSettings.hotelName}">[HOTEL NAME]</h1>
+<p th:text="${hotelSettings.address}">[HOTEL ADDRESS]</p>
+<p th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</p>
+<div class="receipt-divider"></div>
+<div class="receipt-row"><span>Receipt reference</span><strong th:text="${payment.transactionReference}">REFERENCE</strong></div>
+<div class="receipt-row"><span>Reservation</span><strong th:text="${'#' + payment.reservationId}">#1</strong></div>
+<div class="receipt-row"><span>Account / guest</span><strong th:text="${payment.customerUsername}">guest</strong></div>
+<div class="receipt-row"><span>Payment type</span><strong th:text="${payment.paymentType}">DOWN_PAYMENT</strong></div>
+<div class="receipt-row"><span>Payment method</span><strong th:text="${payment.paymentMethod}">SIMULATED</strong></div>
+<div class="receipt-row"><span>Date received</span><strong th:text="${payment.createdAt}">Date</strong></div>
+<div class="receipt-row"><span>Status</span><strong th:text="${payment.status}">PAID</strong></div>
+<div class="receipt-divider"></div>
+<div class="receipt-total"><span>Amount</span><strong th:text="${'₱' + #numbers.formatDecimal(payment.amount,1,'COMMA',2,'POINT')}">₱0.00</strong></div>
+<p class="notice" th:if="${payment.paymentMethod == 'SIMULATED'}">Development test receipt only. This simulated transaction is not proof that real money was collected.</p>
+<p class="form-help">Keep this receipt reference for your records. For payment questions, contact the hotel using the details above.</p>
+<div class="receipt-actions"><button class="primary-button" type="button" onclick="window.print()">Print / Save as PDF</button></div>
+</section>
+</main>
+</body></html>
