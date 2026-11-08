@@ -15,4 +15,5 @@
 <label for="newPassword">New password</label><input id="newPassword" name="newPassword" type="password" minlength="12" autocomplete="new-password" required>
 <p class="form-help">At least 12 characters, including uppercase, lowercase, a number, and a special character.</p>
 <button class="primary-button" type="submit">Change password</button></form>
-</main></body></html>
+</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body></html>
