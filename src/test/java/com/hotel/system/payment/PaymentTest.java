@@ -3,6 +3,7 @@ package com.hotel.system.payment;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,10 +17,12 @@ class PaymentTest {
     void paidPaymentCanBeRefundedOnce() {
         Payment payment = paidPayment();
 
-        payment.markRefunded();
+        Instant refundedAt = Instant.parse("2026-11-08T04:00:00Z");
+        payment.markRefunded(refundedAt);
 
         assertEquals(PaymentStatus.REFUNDED, payment.getStatus());
-        assertThrows(IllegalStateException.class, payment::markRefunded);
+        assertEquals(refundedAt, payment.getRefundedAt());
+        assertThrows(IllegalStateException.class, () -> payment.markRefunded(refundedAt));
     }
 
     @Test
