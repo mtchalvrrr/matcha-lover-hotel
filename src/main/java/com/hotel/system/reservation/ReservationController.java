@@ -1,6 +1,7 @@
 package com.hotel.system.reservation;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -119,6 +120,36 @@ public class ReservationController {
         return "redirect:/customer/reservations";
     }
 
+
+    @PreAuthorize("@adminPermissionService.isEnabled('RESERVATION_EDIT')")
+    @GetMapping("/admin/reservations/{id}/edit")
+    public String adminEditForm(@PathVariable Long id, Model model, RedirectAttributes redirect) {
+        try {
+            Reservation reservation = reservations.adminReservationForModification(id);
+            model.addAttribute("reservation", reservation);
+            model.addAttribute("rooms", rooms.publicRooms());
+            model.addAttribute("minimumDate", LocalDate.now(clock));
+            return "admin/reservations/edit";
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/reservations";
+        }
+    }
+
+    @PreAuthorize("@adminPermissionService.isEnabled('RESERVATION_EDIT')")
+    @PostMapping("/admin/reservations/{id}/edit")
+    public String adminEditReservation(@PathVariable Long id, @RequestParam Long roomId,
+            @RequestParam LocalDate checkIn, @RequestParam LocalDate checkOut,
+            @RequestParam Integer guests, Authentication authentication, RedirectAttributes redirect) {
+        try {
+            reservations.adminModifyReservation(id, authentication.getName(), roomId, checkIn, checkOut, guests);
+            redirect.addFlashAttribute("success", "Reservation #" + id + " updated. Payment safeguards and availability checks passed.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/admin/reservations/" + id + "/edit";
+        }
+        return "redirect:/admin/reservations";
+    }
 
     @GetMapping("/admin/reservations/walk-in")
     public String walkInForm(Model model) {
