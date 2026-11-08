@@ -75,6 +75,70 @@ public class ReservationService {
         return saved;
     }
 
+
+    @Transactional(readOnly = true)
+    public Reservation customerReservationForModification(Long reservationId, String username) {
+        SystemUser customer = users.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        Reservation reservation = reservations.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())) {
+            throw new IllegalArgumentException("Reservation not found.");
+        }
+        ensureModifiable(reservation);
+        return reservation;
+    }
+
+    public Reservation modifyCustomerReservation(Long reservationId, String username, Long roomId,
+                                                  LocalDate checkIn, LocalDate checkOut, Integer guests) {
+        SystemUser customer = users.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        Reservation reservation = reservations.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())) {
+            throw new IllegalArgumentException("Reservation not found.");
+        }
+        ensureModifiable(reservation);
+        if (payments.sumPaidForReservation(reservationId, PaymentStatus.PAID).signum() > 0) {
+            throw new IllegalStateException("A reservation with recorded payments must be changed by an administrator.");
+        }
+
+        Room room = rooms.findByIdAndActiveTrue(roomId)
+                .orElseThrow(() -> new RoomNotFoundException("This room is not available."));
+        validateDates(checkIn, checkOut);
+        if (guests == null || guests < 1 || guests > room.getCapacity()) {
+            throw new IllegalArgumentException("Guest count must be between 1 and the room capacity.");
+        }
+        if (isUnavailable(roomId, checkIn, checkOut, reservationId)) {
+            throw new IllegalArgumentException("This room is already reserved for some or all of those dates.");
+        }
+
+        int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
+        BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
+        ReservationStatus previousStatus = reservation.getStatus();
+        reservation.modifyStay(room.getId(), room.getRoomCode(), room.getName(), checkIn, checkOut,
+                guests, nights, room.getNightlyRate(), total,
+                stayTimes.checkInTime(), stayTimes.checkOutTime());
+        audit.record(username, "RESERVATION_MODIFIED", "RESERVATION", reservationId.toString(),
+                "Customer changed room/stay details. Previous status: " + previousStatus
+                        + "; updated request now requires approval.");
+        notifications.notifyAdmins("Reservation changed",
+                "Customer " + username + " modified reservation #" + reservationId + ". Review the updated request.",
+                "RESERVATION");
+        return reservation;
+    }
+
+    private void ensureModifiable(Reservation reservation) {
+        if (reservation.getStatus() != ReservationStatus.PENDING
+                && reservation.getStatus() != ReservationStatus.APPROVED) {
+            throw new IllegalStateException("This reservation can no longer be modified online.");
+        }
+        LocalDateTime scheduledCheckIn = reservation.getCheckInDate().atTime(reservation.getCheckInTime());
+        if (!LocalDateTime.now(clock).isBefore(scheduledCheckIn)) {
+            throw new IllegalStateException("Reservations at or after check-in time require administrator assistance.");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<Reservation> customerReservations(String username) {
         SystemUser customer = users.findByUsernameIgnoreCase(username)
