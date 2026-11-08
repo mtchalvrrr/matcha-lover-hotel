@@ -168,7 +168,7 @@ public class PaymentService {
             touchReservation(payment.getReservationId());
             if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
                 if (payMongo == null) throw new IllegalStateException("PayMongo refund processing is unavailable.");
-                payMongo.refund(payment, request.getReason());
+                payMongo.refund(payment, request);
             } else {
                 payment.markRefunded(Instant.now(clock));
             }
