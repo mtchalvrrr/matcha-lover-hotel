@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System Reports | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / ANALYTICS</p><h1>System-wide<br><em>reports.</em></h1><p class="intro">View hotel-wide reservation, occupancy, customer, revenue, payment, and refund performance.</p></section>
+<form class="report-filter" th:action="@{/super-admin/reports}" method="get"><label for="from">From</label><input id="from" type="date" name="from" th:value="${summary.fromDate}" required><label for="to">To</label><input id="to" type="date" name="to" th:value="${summary.toDate}" required><button class="primary-button" type="submit">Apply date range</button></form>
+<div class="action-row"><a class="secondary-link" th:href="@{/super-admin/reports/export.csv(from=${summary.fromDate},to=${summary.toDate})}">Export CSV</a><a class="secondary-link" th:href="@{/super-admin/reports/export.pdf(from=${summary.fromDate},to=${summary.toDate})}">Export PDF</a></div>
+<section class="metric-grid dashboard-metrics">
+<article class="metric-card"><span>Total reservations</span><strong th:text="${summary.totalReservations}">0</strong></article>
+<article class="metric-card"><span>Approved</span><strong th:text="${summary.approvedReservations}">0</strong></article>
+<article class="metric-card"><span>Cancelled</span><strong th:text="${summary.cancelledReservations}">0</strong></article>
+<article class="metric-card"><span>Online bookings</span><strong th:text="${summary.onlineReservations}">0</strong></article>
+<article class="metric-card"><span>Walk-in bookings</span><strong th:text="${summary.walkInReservations}">0</strong></article>
+<article class="metric-card"><span>Actual occupancy</span><strong th:text="${summary.actualOccupancyRate + '%'}">0%</strong></article>
+<article class="metric-card"><span>Gross payments</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0</strong></article>
+<article class="metric-card"><span>Refunded</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.refundedAmount,1,'COMMA',2,'POINT')}">₱0</strong></article>
+<article class="metric-card"><span>Outstanding balance</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.outstandingBalance,1,'COMMA',2,'POINT')}">₱0</strong></article>
+<article class="metric-card"><span>New customers</span><strong th:text="${summary.newCustomers}">0</strong></article>
+<article class="metric-card"><span>Returning customers</span><strong th:text="${summary.returningCustomers}">0</strong></article>
+<article class="metric-card"><span>Actual occupied room nights</span><strong th:text="${summary.actualOccupiedRoomNights}">0</strong></article>
+</section>
+<h2>Room popularity</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Room</th><th>Reservations</th></tr></thead><tbody><tr th:each="entry : ${summary.bookingsByRoom.entrySet()}"><td th:text="${entry.key}">Room</td><td th:text="${entry.value}">0</td></tr></tbody></table></div>
+<h2>Daily reservation creation</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Reservations</th></tr></thead><tbody><tr th:each="entry : ${summary.bookingsByCreatedDate.entrySet()}"><td th:text="${entry.key}">Date</td><td th:text="${entry.value}">0</td></tr></tbody></table></div>
+</main></body></html>
