@@ -50,6 +50,14 @@ public class Room {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cleaning_status", nullable = false, length = 24, columnDefinition = "varchar(24) default 'READY'")
+    private CleaningStatus cleaningStatus = CleaningStatus.READY;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "maintenance_status", nullable = false, length = 24, columnDefinition = "varchar(24) default 'AVAILABLE'")
+    private MaintenanceStatus maintenanceStatus = MaintenanceStatus.AVAILABLE;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -72,6 +80,20 @@ public class Room {
     public String getAmenities() { return amenities; }
     public String getCoverImagePath() { return coverImagePath; }
     public boolean isActive() { return active; }
+    public CleaningStatus getCleaningStatus() { return cleaningStatus; }
+    public MaintenanceStatus getMaintenanceStatus() { return maintenanceStatus; }
+    public boolean isBookable() {
+        return active && cleaningStatus == CleaningStatus.READY
+                && maintenanceStatus == MaintenanceStatus.AVAILABLE;
+    }
+    public void updateOperationalStatus(CleaningStatus cleaningStatus, MaintenanceStatus maintenanceStatus) {
+        if (cleaningStatus == null || maintenanceStatus == null) {
+            throw new IllegalArgumentException("Choose valid housekeeping and maintenance statuses.");
+        }
+        this.cleaningStatus = cleaningStatus;
+        this.maintenanceStatus = maintenanceStatus;
+        this.updatedAt = Instant.now();
+    }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public long getVersion() { return version; }
