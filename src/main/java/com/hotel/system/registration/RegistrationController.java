@@ -67,6 +67,7 @@ public class RegistrationController {
             redirect.addFlashAttribute("success", "A new verification code was sent. It expires in 10 minutes.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("applicationId", applicationId);
+            redirect.addFlashAttribute("email", email);
             redirect.addFlashAttribute("error", ex.getMessage());
         }
         return "redirect:/register/verify";
