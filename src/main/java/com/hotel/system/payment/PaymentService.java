@@ -102,6 +102,36 @@ public class PaymentService {
         return payment;
     }
 
+
+    public void refundPayment(Long paymentId, String adminUsername, String reason) {
+        Payment payment = payments.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
+        String cleanReason = reason == null ? "" : reason.trim();
+        if (cleanReason.isBlank() || cleanReason.length() > 500) {
+            throw new IllegalArgumentException("Enter a refund reason up to 500 characters.");
+        }
+        payment.markRefunded();
+        audit.record(adminUsername, "PAYMENT_REFUNDED", "PAYMENT", paymentId.toString(),
+                "Refunded " + payment.getAmount() + " for reservation #" + payment.getReservationId()
+                        + ". Reason: " + cleanReason);
+        notifications.notifyUser(payment.getCustomerUsername(), "Payment refunded",
+                "Payment " + payment.getTransactionReference() + " was marked as refunded. Contact the hotel for settlement details.",
+                "PAYMENT");
+    }
+
+    public void voidPendingPayment(Long paymentId, String adminUsername, String reason) {
+        Payment payment = payments.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
+        String cleanReason = reason == null ? "" : reason.trim();
+        if (cleanReason.isBlank() || cleanReason.length() > 500) {
+            throw new IllegalArgumentException("Enter a void reason up to 500 characters.");
+        }
+        payment.markVoided();
+        audit.record(adminUsername, "PAYMENT_VOIDED", "PAYMENT", paymentId.toString(),
+                "Voided pending payment for reservation #" + payment.getReservationId()
+                        + ". Reason: " + cleanReason);
+    }
+
     @Transactional(readOnly = true)
     public List<Payment> allPayments() { return payments.findAllByOrderByCreatedAtDesc(); }
 
