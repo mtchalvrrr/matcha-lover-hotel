@@ -111,10 +111,15 @@ public class Payment {
     }
 
     public void markRefunded(Instant refundedAt) {
+        markRefunded(refundedAt, null);
+    }
+
+    public void markRefunded(Instant refundedAt, String refundId) {
         if (status != PaymentStatus.PAID && status != PaymentStatus.REFUND_PENDING) {
             throw new IllegalStateException("Only paid or refund-pending transactions can be refunded.");
         }
         if (refundedAt == null) throw new IllegalArgumentException("A refund timestamp is required.");
+        if (refundId != null && !refundId.isBlank()) this.providerRefundId = refundId;
         status = PaymentStatus.REFUNDED;
         this.providerRefundStatus = "succeeded";
         this.refundedAt = refundedAt;
