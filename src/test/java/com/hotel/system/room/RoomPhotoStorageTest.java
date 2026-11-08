@@ -33,6 +33,18 @@ class RoomPhotoStorageTest {
     }
 
     @Test
+    void deleteCannotEscapeTheRoomPhotoDirectory() throws Exception {
+        RoomPhotoStorage storage = new RoomPhotoStorage(temporaryDirectory.toString());
+        Files.createDirectories(storage.root());
+        Path sentinel = temporaryDirectory.resolve("keep-me.txt");
+        Files.writeString(sentinel, "important");
+        
+        storage.delete("..");
+
+        assertTrue(Files.exists(sentinel));
+    }
+
+    @Test
     void rejectsExtensionAndMimeTypeMismatch() {
         RoomPhotoStorage storage = new RoomPhotoStorage(temporaryDirectory.toString());
         byte[] png = {(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
