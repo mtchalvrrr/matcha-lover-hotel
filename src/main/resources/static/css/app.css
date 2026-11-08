@@ -492,3 +492,23 @@ footer{border-color:rgba(76,105,76,.2);color:#687c69}
  .room-detail-summary{align-items:flex-start;flex-direction:column}
  .room-availability-panel,.room-customer-feedback{padding:19px}
 }
+
+/* Five-photo looping room carousel */
+.room-gallery-large{margin:30px 0 36px}
+.gallery-main-row{grid-template-columns:54px minmax(0,1fr) 54px;gap:14px}
+.gallery-arrow{width:54px;height:54px;border-radius:50%;font-size:34px;line-height:1;transition:background .2s,color .2s,transform .2s}
+.gallery-arrow:hover{background:var(--green);color:#fff;transform:scale(1.05)}
+.gallery-active{height:clamp(360px,58vw,680px);min-height:300px;border-radius:5px;touch-action:pan-y;user-select:none}
+.gallery-active img{pointer-events:none;user-select:none}
+.gallery-carousel-status{margin:12px 0 0;text-align:right;color:var(--muted);font-size:11px;letter-spacing:.04em}
+.gallery-thumbnails{gap:12px;padding:14px 0 4px;scrollbar-width:thin}
+.gallery-thumbnail{width:112px;height:78px;border-radius:3px;opacity:.72;transition:opacity .2s,border-color .2s}
+.gallery-thumbnail:hover,.gallery-thumbnail.is-active{opacity:1}
+.gallery-thumbnail.is-active{border-width:3px}
+.has-sample-photos .gallery-zoom-hint::after{content:" · Sample photo"}
+@media(max-width:600px){
+ .gallery-main-row{grid-template-columns:38px minmax(0,1fr) 38px;gap:7px}
+ .gallery-arrow{width:38px;height:38px;font-size:26px}
+ .gallery-active{height:68vw;min-height:230px}
+ .gallery-thumbnail{width:86px;height:62px}
+}
