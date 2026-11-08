@@ -81,6 +81,22 @@ class SecurityRouteIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "booking-admin", roles = "ADMIN")
+    void adminReportsRenderWithDailyTrendAndCapacityMetrics() throws Exception {
+        mvc.perform(get("/admin/reports"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/reports/index"));
+    }
+
+    @Test
+    @WithMockUser(username = "booking-admin", roles = "ADMIN")
+    void adminHotelSettingsPageRenders() throws Exception {
+        mvc.perform(get("/admin/settings"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/settings"));
+    }
+
+    @Test
     void publicHotelChatCanRedirectGuestsToRoomCatalog() throws Exception {
         mvc.perform(post("/api/chat")
                         .with(csrf())
