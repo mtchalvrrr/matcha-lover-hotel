@@ -29,7 +29,7 @@ class PaymentServiceTest {
         PaymentService service = new PaymentService(payments, reservations, users, audit, "SIMULATED", notifications);
 
         SystemUser customer = new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER);
-        Reservation reservation = new Reservation(1L, "guest", "guest@example.com", 4L,
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 4L,
                 "R-04", "Deluxe Room", LocalDate.of(2026, 11, 10),
                 LocalDate.of(2026, 11, 12), 2, 2,
                 new BigDecimal("1000.00"), new BigDecimal("2000.00"));
