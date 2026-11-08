@@ -35,6 +35,17 @@ Build the complete agreed scope on this branch. Run focused tests during develop
 
 Do not claim the system is bug-free unless the relevant checks have actually passed. Record any unresolved issues clearly.
 
+## Portal authentication (initial implementation)
+- Separate sign-in pages: `/customer/login`, `/admin/login`, and `/super-admin/login`.
+- Database-backed usernames, BCrypt password hashes, active-account checks, role-specific protected dashboards, CSRF-protected forms, and server-side portal-role validation.
+- Both booking administrator accounts use the same `ADMIN` role.
+- No default credentials are committed. The first Super Admin is created only when all three environment variables below are configured and no matching username/email already exists:
+  - `HOTEL_SUPER_ADMIN_USERNAME`
+  - `HOTEL_SUPER_ADMIN_EMAIL`
+  - `HOTEL_SUPER_ADMIN_PASSWORD` (at least 12 characters with uppercase, lowercase, number, and special character)
+- In Codespaces, add these as repository/Codespace secrets or environment variables, restart the app, then use the Super Admin login page. Do not put the password in source code or commit it.
+- Customer and Admin account provisioning, account recovery, and full dashboard functions are not implemented yet. The current dashboards are protected placeholders.
+
 ## Local development
 From the repository root:
 ```bash
