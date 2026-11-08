@@ -20,12 +20,14 @@ public class RoomController {
     private final Clock clock;
     private final RoomPhotoService photos;
     private final HotelStayTimePolicy stayTimes;
+    private final RoomRatingService roomRatings;
 
-    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos, HotelStayTimePolicy stayTimes) {
+    public RoomController(RoomService rooms, Clock clock, RoomPhotoService photos, HotelStayTimePolicy stayTimes, RoomRatingService roomRatings) {
         this.rooms = rooms;
         this.clock = clock;
         this.photos = photos;
         this.stayTimes = stayTimes;
+        this.roomRatings = roomRatings;
     }
 
     @GetMapping("/rooms")
@@ -45,6 +47,7 @@ public class RoomController {
             availabilitySearch = false;
         }
         model.addAttribute("rooms", availableRooms);
+        model.addAttribute("roomRatingSummaries", roomRatings.summaries(availableRooms.stream().map(Room::getId).toList()));
         model.addAttribute("roomPhotos", availableRooms.stream().collect(Collectors.toMap(
                 Room::getId, room -> photos.list(room.getId()))));
         model.addAttribute("roomTypes", rooms.publicRooms().stream()
@@ -66,6 +69,7 @@ public class RoomController {
                               Model model, Authentication authentication) {
         model.addAttribute("room", rooms.getPublicRoom(id));
         model.addAttribute("photos", photos.list(id));
+        model.addAttribute("roomRating", roomRatings.summaries(java.util.List.of(id)).getOrDefault(id, RoomRatingSummary.empty()));
         boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
         model.addAttribute("customerSignedIn", customerSignedIn);
