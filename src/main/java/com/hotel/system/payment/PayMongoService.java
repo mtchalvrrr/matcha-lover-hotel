@@ -266,12 +266,18 @@ public class PayMongoService {
         }
     }
 
-    public String refund(Payment payment, String reason) {
+    public String refund(Payment payment, PaymentRefundRequest refundRequest) {
         requireTestConfiguration();
-        if (payment == null || !"PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())
+        if (payment == null || refundRequest == null
+                || !"PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())
                 || payment.getProviderPaymentId() == null || payment.getProviderPaymentId().isBlank()) {
             throw new IllegalStateException("This payment has no confirmed PayMongo payment reference to refund.");
         }
+        if (refundRequest.getCreatedAt() != null
+                && refundRequest.getCreatedAt().isBefore(Instant.now(clock).minusSeconds(23 * 60 * 60))) {
+            throw new IllegalStateException("This refund request is older than the provider idempotency window. Check the PayMongo dashboard before retrying to avoid a duplicate refund.");
+        }
+        String reason = refundRequest.getReason();
         String notes = reason == null ? "Hotel refund approved by a second administrator" : reason.trim();
         if (notes.length() > 255) notes = notes.substring(0, 255);
         Map<String, Object> attributes = Map.of(
@@ -281,7 +287,10 @@ public class PayMongoService {
                 "notes", notes);
         Map<String, Object> body = Map.of("data", Map.of("attributes", attributes));
         Map<?, ?> response = client.post().uri("/v1/refunds")
-                .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                .headers(headers -> {
+                    headers.setBasicAuth(secretKey, "");
+                    headers.set("Idempotency-Key", "hotel-refund-request-" + refundRequest.getId());
+                })
                 .header("Content-Type", "application/json")
                 .body(body)
                 .retrieve()
