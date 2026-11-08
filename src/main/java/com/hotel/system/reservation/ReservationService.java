@@ -2,6 +2,7 @@ package com.hotel.system.reservation;
 
 import com.hotel.system.account.SystemUser;
 import com.hotel.system.account.SystemUserRepository;
+import com.hotel.system.audit.AuditService;
 import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomNotFoundException;
 import com.hotel.system.room.RoomRepository;
@@ -24,13 +25,15 @@ public class ReservationService {
     private final RoomRepository rooms;
     private final SystemUserRepository users;
     private final Clock clock;
+    private final AuditService audit;
 
     public ReservationService(ReservationRepository reservations, RoomRepository rooms,
-                              SystemUserRepository users, Clock clock) {
+                              SystemUserRepository users, Clock clock, AuditService audit) {
         this.reservations = reservations;
         this.rooms = rooms;
         this.users = users;
         this.clock = clock;
+        this.audit = audit;
     }
 
     public Reservation request(String username, Long roomId, LocalDate checkIn,
@@ -48,9 +51,12 @@ public class ReservationService {
         }
         int nights = Math.toIntExact(ChronoUnit.DAYS.between(checkIn, checkOut));
         BigDecimal total = room.getNightlyRate().multiply(BigDecimal.valueOf(nights));
-        return reservations.save(new Reservation(customer.getId(), customer.getUsername(),
+        Reservation saved = reservations.save(new Reservation(customer.getId(), customer.getUsername(),
             customer.getEmail(), room.getId(), room.getRoomCode(), room.getName(),
             checkIn, checkOut, guests, nights, room.getNightlyRate(), total));
+        audit.record(username, "RESERVATION_REQUESTED", "RESERVATION", saved.getId().toString(),
+            "Room " + room.getRoomCode() + ", stay " + checkIn + " to " + checkOut);
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -77,8 +83,12 @@ public class ReservationService {
                 throw new IllegalStateException("The room dates are no longer available.");
             }
             reservation.changeStatus(ReservationStatus.APPROVED);
+            audit.record("ADMIN", "RESERVATION_APPROVED", "RESERVATION", id.toString(),
+                "Approved reservation for " + reservation.getCustomerUsername());
         } else {
             reservation.changeStatus(ReservationStatus.REJECTED);
+            audit.record("ADMIN", "RESERVATION_REJECTED", "RESERVATION", id.toString(),
+                "Rejected reservation for " + reservation.getCustomerUsername());
         }
     }
 
@@ -98,6 +108,8 @@ public class ReservationService {
             throw new IllegalStateException("Reservations starting today or in the past require admin assistance.");
         }
         reservation.changeStatus(ReservationStatus.CANCELLED);
+        audit.record(username, "RESERVATION_CANCELLED", "RESERVATION", id.toString(),
+            "Customer cancelled reservation.");
     }
 
     private boolean isUnavailable(Long roomId, LocalDate checkIn, LocalDate checkOut) {
