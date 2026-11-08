@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface SystemUserRepository extends JpaRepository<SystemUser, Long> {
+    long countByRole(AccountRole role);
     Optional<SystemUser> findByUsernameIgnoreCase(String username);
     Optional<SystemUser> findByEmailIgnoreCase(String email);
     boolean existsByUsernameIgnoreCase(String username);
