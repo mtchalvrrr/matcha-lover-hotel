@@ -86,6 +86,9 @@ public class ChatAssistantService {
         if (asksToBrowseRooms(normalized)) {
             return new ChatReply("Here are the rooms you can browse. You can view room details, photos, amenities, prices, and date-based availability before signing in.", "/rooms");
         }
+        if (normalized.contains("forgot password") || normalized.contains("reset my password")) {
+            return new ChatReply("You can securely request a password reset using your registered email address.", "/forgot-password");
+        }
         if (!signedIn && asksForPrivateAccountHelp(normalized)) {
             return new ChatReply("Please sign in to access your reservations, payment history, and account details. You can still browse public rooms without an account.", "/customer/login");
         }
@@ -95,6 +98,9 @@ public class ChatAssistantService {
             }
             if (normalized.contains("profile") || normalized.contains("account")) {
                 return new ChatReply("I will take you to your customer profile.", "/customer/profile");
+            }
+            if (normalized.contains("notification")) {
+                return new ChatReply("I will take you to your customer notifications.", "/customer/notifications");
             }
             return new ChatReply("I will take you to your reservations.", "/customer/reservations");
         }
@@ -169,7 +175,7 @@ public class ChatAssistantService {
             return "Our standard check-in time is " + stayTimes.checkInTime()
                     + " and check-out time is " + stayTimes.checkOutTime() + ".";
         }
-        if (message.contains("down payment") || message.contains("deposit") || message.contains("payment") || message.contains("balance")) {
+        if (message.contains("down payment") || message.contains("deposit") || message.contains("payment") || message.contains("pay") || message.contains("balance")) {
             return "A 50% down payment is required after your reservation is approved. The remaining balance must be settled before checkout. The current system may use simulated payments during development.";
         }
         if (message.contains("cancel") || message.contains("refund")) {
