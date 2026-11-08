@@ -59,11 +59,21 @@ public class AuditController {
                 .body(csv.toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    private boolean startsWithSpreadsheetFormula(String value) {
+        int index = 0;
+        while (index < value.length()
+                && (Character.isWhitespace(value.charAt(index))
+                    || Character.isISOControl(value.charAt(index)))) {
+            index++;
+        }
+        return index < value.length() && "=+-@".indexOf(value.charAt(index)) >= 0;
+    }
+
     private void append(StringBuilder csv, Object... values) {
         for (int i = 0; i < values.length; i++) {
             if (i > 0) csv.append(',');
             String value = values[i] == null ? "" : values[i].toString();
-            if (!value.isEmpty() && "=+-@".indexOf(value.charAt(0)) >= 0) {
+            if (startsWithSpreadsheetFormula(value)) {
                 value = "'" + value;
             }
             csv.append('"').append(value.replace("\"", "\"\"")).append('"');
