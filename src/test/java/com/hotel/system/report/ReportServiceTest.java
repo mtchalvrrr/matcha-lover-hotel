@@ -95,6 +95,9 @@ class ReportServiceTest {
         assertEquals(2L, summary.reservedRoomNights(),
                 "The report must not count the nights after the guest actually checked out.");
         assertEquals(new BigDecimal("40.00"), summary.bookedCapacityRate());
+        assertEquals(2L, summary.actualOccupiedRoomNights());
+        assertEquals(new BigDecimal("40.00"), summary.actualOccupancyRate());
+        assertEquals(1L, summary.bookingsByActualStayDate().get(from));
     }
 
     @Test
