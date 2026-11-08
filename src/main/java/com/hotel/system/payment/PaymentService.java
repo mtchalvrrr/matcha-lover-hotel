@@ -209,7 +209,12 @@ public class PaymentService {
             throw new IllegalArgumentException("Enter a void reason up to 500 characters.");
         }
         touchReservation(payment.getReservationId());
-        payment.markVoided();
+        if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
+            if (payMongo == null) throw new IllegalStateException("PayMongo checkout expiration is unavailable.");
+            payMongo.voidPendingCheckout(payment);
+        } else {
+            payment.markVoided();
+        }
         audit.record(adminUsername, "PAYMENT_VOIDED", "PAYMENT", paymentId.toString(),
                 "Voided pending payment for reservation #" + payment.getReservationId()
                         + ". Reason: " + cleanReason);
