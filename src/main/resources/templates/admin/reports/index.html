@@ -29,7 +29,8 @@
 <article class="metric-card"><span>Peak stay day</span><strong th:text="${peakStayDay}">No activity</strong></article>
 <article class="metric-card"><span>Walk-in bookings</span><strong th:text="${summary.walkInReservations}">0</strong></article>
 <article class="metric-card"><span>Reserved room nights</span><strong th:text="${summary.reservedRoomNights}">0</strong></article>
-<article class="metric-card"><span>Booked capacity</span><strong th:text="${summary.bookedCapacityRate + '%'}">0%</strong><small th:text="${summary.reservedRoomNights + ' of ' + summary.availableRoomNights + ' active room-nights'}">0 of 0 room-nights</small></article>
+<article class="metric-card"><span>Scheduled / confirmed capacity</span><strong th:text="${summary.bookedCapacityRate + '%'}">0%</strong><small th:text="${summary.reservedRoomNights + ' of ' + summary.availableRoomNights + ' active room-nights'}">0 of 0 room-nights</small></article>
+<article class="metric-card"><span>Actual occupancy</span><strong th:text="${actualOccupancyRate + '%'}">0%</strong><small th:text="${summary.actualOccupiedRoomNights + ' actual occupied room-nights'}">0 actual room-nights</small></article>
 </section>
 <section class="report-section"><h2>Daily reservation requests</h2><div class="trend-chart">
 <div class="trend-row" th:each="entry : ${summary.bookingsByCreatedDate}">
@@ -45,6 +46,13 @@
 <strong th:text="${entry.value}">0</strong>
 </div>
 </div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByCheckInDate)}">No check-ins were recorded in this date range.</p></section>
+<section class="report-section"><h2>Actual guest stay dates</h2><div class="trend-chart">
+<div class="trend-row" th:each="entry : ${summary.bookingsByActualStayDate}">
+<span th:text="${entry.key}">Date</span>
+<div class="trend-track"><div class="trend-fill" th:style="|width: ${summary.checkedInReservations + summary.checkedOutReservations > 0 ? (entry.value * 100.0 / (summary.checkedInReservations + summary.checkedOutReservations)) : 0}%|"></div></div>
+<strong th:text="${entry.value}">0</strong>
+</div>
+</div><p class="notice" th:if="${#maps.isEmpty(summary.bookingsByActualStayDate)}">No completed or current guest stays were recorded in this date range.</p></section>
 <section class="report-section"><h2>Daily gross payments received</h2><div class="trend-chart">
 <div class="trend-row revenue-trend-row" th:each="entry : ${summary.revenueByPaymentDate}">
 <span th:text="${entry.key}">Date</span>
