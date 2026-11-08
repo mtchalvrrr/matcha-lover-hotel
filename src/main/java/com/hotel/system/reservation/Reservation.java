@@ -185,18 +185,6 @@ public class Reservation {
         this.updatedAt = Instant.now();
     }
 
-    public void extendStay(LocalDate newCheckOutDate, int newNights, BigDecimal newTotalAmount) {
-        if (newCheckOutDate == null || !newCheckOutDate.isAfter(this.checkOutDate)
-                || newNights <= this.nights || newTotalAmount == null
-                || newTotalAmount.compareTo(this.totalAmount) <= 0) {
-            throw new IllegalArgumentException("The extension must increase the checkout date, nights, and total amount.");
-        }
-        this.checkOutDate = newCheckOutDate;
-        this.nights = newNights;
-        this.totalAmount = newTotalAmount;
-        this.updatedAt = Instant.now();
-    }
-
     public void changeStatus(ReservationStatus status) {
         this.status = status;
         this.updatedAt = Instant.now();
