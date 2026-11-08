@@ -1,6 +1,7 @@
 package com.hotel.system.registration;
 
 import jakarta.persistence.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.Instant;
 
 @Entity
@@ -61,12 +62,12 @@ public class RegistrationApplication {
     public String getReviewedBy() { return reviewedBy; }
     public String getReviewReason() { return reviewReason; }
 
-    public boolean verifyOtp(String candidateHash, Instant now) {
+    public boolean verifyOtp(String candidate, PasswordEncoder encoder, Instant now) {
         if (status != RegistrationStatus.PENDING_OTP) throw new IllegalStateException("This OTP is no longer active.");
         if (otpExpiresAt.isBefore(now)) throw new IllegalStateException("OTP expired. Submit a new registration request.");
         if (otpAttempts >= 5) throw new IllegalStateException("OTP attempt limit reached.");
         otpAttempts++;
-        if (!candidateHash.equals(otpHash)) return false;
+        if (!encoder.matches(candidate, otpHash)) return false;
         status = RegistrationStatus.PENDING_REVIEW;
         otpHash = "VERIFIED";
         return true;
