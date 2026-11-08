@@ -214,6 +214,31 @@ public class ReservationService {
     }
 
 
+
+    public void cancelByAdmin(Long id, String adminUsername, String reason) {
+        Reservation reservation = reservations.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (reservation.getStatus() != ReservationStatus.PENDING
+                && reservation.getStatus() != ReservationStatus.APPROVED) {
+            throw new IllegalStateException("Only pending or approved reservations can be cancelled by an administrator.");
+        }
+        String cleanReason = reason == null ? "" : reason.trim();
+        if (cleanReason.isBlank() || cleanReason.length() > 500) {
+            throw new IllegalArgumentException("Enter a cancellation reason up to 500 characters.");
+        }
+        if (payments.sumPaidForReservation(id, PaymentStatus.PAID).signum() > 0) {
+            throw new IllegalStateException("Refund or void recorded payments before cancelling this reservation.");
+        }
+        reservation.changeStatus(ReservationStatus.CANCELLED);
+        audit.record(adminUsername, "RESERVATION_CANCELLED_BY_ADMIN", "RESERVATION", id.toString(),
+                "Cancelled reservation for " + reservation.getGuestName() + ". Reason: " + cleanReason);
+        if (reservation.getSource() == ReservationSource.ONLINE) {
+            notifications.notifyUser(reservation.getCustomerUsername(), "Reservation cancelled",
+                    "Your reservation #" + id + " was cancelled by the hotel. Reason: " + cleanReason,
+                    "RESERVATION");
+        }
+    }
+
     public Reservation createWalkIn(String adminUsername, String guestName, String guestEmail,
                                     Long roomId, LocalDate checkIn, LocalDate checkOut, Integer guests) {
         String name = guestName == null ? "" : guestName.trim();
