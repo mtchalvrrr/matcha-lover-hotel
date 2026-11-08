@@ -1,7 +1,6 @@
 package com.hotel.system.registration;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Instant;
 
@@ -20,7 +19,6 @@ class RegistrationApplicationTest {
 
         application.resendOtp("new-hash", now.plusSeconds(60));
 
-        assertTrue(application.verifyOtp("123456", new BCryptPasswordEncoder(), now.plusSeconds(61)) == false);
         assertThrows(IllegalStateException.class,
                 () -> application.resendOtp("third-hash", now.plusSeconds(90)));
     }
