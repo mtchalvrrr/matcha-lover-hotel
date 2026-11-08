@@ -40,6 +40,7 @@ public class RoomController {
         } catch (IllegalArgumentException ex) {
             model.addAttribute("availabilityError", ex.getMessage());
             availableRooms = rooms.publicRooms();
+            availabilitySearch = false;
         }
         model.addAttribute("rooms", availableRooms);
         model.addAttribute("roomTypes", rooms.publicRooms().stream()
