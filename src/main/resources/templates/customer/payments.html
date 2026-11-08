@@ -7,4 +7,5 @@
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Reservation</th><th>Type</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead><tbody>
 <tr th:each="payment : ${payments}"><td th:text="${payment.transactionReference}">Reference</td><td th:text="${'#' + payment.reservationId}">#1</td><td th:text="${payment.paymentType}">DOWN_PAYMENT</td><td th:text="${'₱' + #numbers.formatDecimal(payment.amount,1,'COMMA',2,'POINT')}">₱0.00</td><td th:text="${payment.paymentMethod}">SIMULATED</td><td th:text="${payment.status}">PAID</td><td th:text="${payment.createdAt}">Date</td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(payments)}">No payment records yet.</p>
-</main></body></html>
+</main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body></html>
