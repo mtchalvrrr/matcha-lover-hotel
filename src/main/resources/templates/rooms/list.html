@@ -6,7 +6,7 @@
 <section class="portal-hero"><p class="eyebrow">ROOM COLLECTION</p><h1>Find your<br><em>place to stay.</em></h1><p class="intro">Explore available room categories, rates, capacity, and amenities. Sign in when you are ready to manage a reservation.</p></section>
 <section class="room-grid">
   <article class="room-card" th:each="room : ${rooms}">
-    <div class="room-image" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><img th:src="@{\${room.coverImagePath}}" th:alt="${room.name}"></div>
+    <div class="room-image" th:if="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><img th:src="${room.coverImagePath}" th:alt="${room.name}"></div>
     <div class="room-image room-image-empty" th:unless="${room.coverImagePath != null and !#strings.isEmpty(room.coverImagePath)}"><span>[HOTEL LOGO]</span></div>
     <div class="room-card-body"><p class="eyebrow" th:text="${room.roomCode + ' / ' + room.roomType}">ROOM / TYPE</p><h2 th:text="${room.name}">Room name</h2><p th:text="${room.description}">Room description</p><div class="room-meta"><span th:text="${room.capacity + ' guests'}">2 guests</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' / night'}">₱1,000 / night</strong></div><a class="primary-link" th:href="@{/rooms/{id}(id=${room.id})}">View room details</a></div>
   </article>
