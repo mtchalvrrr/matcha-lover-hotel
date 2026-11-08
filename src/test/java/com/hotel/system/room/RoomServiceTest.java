@@ -1,0 +1,55 @@
+package com.hotel.system.room;
+
+import com.hotel.system.audit.AuditService;
+import com.hotel.system.config.HotelStayTimePolicy;
+import com.hotel.system.reservation.ReservationRepository;
+import com.hotel.system.reservation.ReservationStatus;
+import org.junit.jupiter.api.Test;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class RoomServiceTest {
+    @Test
+    void refusesToReduceCapacityBelowGuestsOnActiveReservations() {
+        RoomRepository rooms = mock(RoomRepository.class);
+        AuditService audit = mock(AuditService.class);
+        ReservationRepository reservations = mock(ReservationRepository.class);
+        HotelStayTimePolicy stayTimes = mock(HotelStayTimePolicy.class);
+        Room existing = new Room();
+        existing.setRoomCode("R-04");
+        existing.setName("Family Room");
+        existing.setRoomType("Family");
+        existing.setCapacity(4);
+
+        Room update = new Room();
+        update.setRoomCode("R-05");
+        update.setName("Standard Room");
+        update.setRoomType("Standard");
+        update.setCapacity(2);
+
+        when(rooms.findById(4L)).thenReturn(Optional.of(existing));
+        when(rooms.existsByRoomCodeIgnoreCaseAndIdNot("R-05", 4L)).thenReturn(false);
+        when(reservations.existsReservationExceedingCapacity(
+                4L,
+                List.of(ReservationStatus.PENDING, ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN),
+                2)).thenReturn(true);
+
+        RoomService service = new RoomService(rooms, audit, reservations,
+                Clock.fixed(Instant.parse("2026-11-08T04:00:00Z"), ZoneId.of("Asia/Manila")), stayTimes);
+
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> service.update(4L, update, "admin"));
+
+        assertTrue(error.getMessage().contains("cannot be reduced"));
+        assertEquals("R-04", existing.getRoomCode());
+        assertEquals(4, existing.getCapacity());
+        verify(audit, never()).record(anyString(), anyString(), anyString(), anyString(), anyString());
+    }
+}
