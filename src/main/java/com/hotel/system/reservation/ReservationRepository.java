@@ -28,6 +28,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate);
     List<Reservation> findByCheckInDateBetweenOrderByCheckInDateAsc(LocalDate from, LocalDate to);
+    List<Reservation> findByCheckInDateBetweenAndStatusInOrderByCheckInDateAsc(
+            LocalDate from, LocalDate to, Collection<ReservationStatus> statuses);
+    List<Reservation> findByCheckOutDateBetweenAndStatusInOrderByCheckOutDateAsc(
+            LocalDate from, LocalDate to, Collection<ReservationStatus> statuses);
     List<Reservation> findByCheckInDateBeforeAndCheckOutDateAfterAndStatusInOrderByCheckInDateAsc(
         LocalDate checkOutExclusive, LocalDate checkInExclusive, Collection<ReservationStatus> statuses);
 
