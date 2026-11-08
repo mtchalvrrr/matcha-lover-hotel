@@ -41,6 +41,18 @@ public class AccountManagementService {
         return admin;
     }
 
+    public void resetAdminPassword(String actor, Long id, String newPassword) {
+        SystemUser target = users.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found."));
+        if (target.getRole() != AccountRole.ADMIN)
+            throw new IllegalArgumentException("Only Admin account passwords can be reset here.");
+        validateCredentials(target.getUsername(), target.getEmail(), newPassword);
+        target.setPasswordHash(encoder.encode(newPassword));
+        expireSessions(target.getUsername());
+        audit.record(actor, "ADMIN_PASSWORD_RESET", "SYSTEM_USER", id.toString(),
+                "Reset password for Admin account " + target.getUsername() + "; active sessions expired.");
+    }
+
     public void setAccountActive(String actor, Long id, boolean active) {
         SystemUser target = users.findById(id).orElseThrow(() -> new IllegalArgumentException("Account not found."));
         if (target.getRole() == AccountRole.SUPER_ADMIN) {
