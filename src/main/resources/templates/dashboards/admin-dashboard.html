@@ -9,6 +9,8 @@
 <article class="metric-card"><span>Pending requests</span><strong th:text="${summary.pendingReservations}">0</strong></article>
 <article class="metric-card"><span>Approved</span><strong th:text="${summary.approvedReservations}">0</strong></article>
 <article class="metric-card"><span>Currently checked in</span><strong th:text="${summary.checkedInReservations}">0</strong></article>
+<article class="metric-card"><span>Arrivals today</span><strong th:text="${summary.arrivalsToday}">0</strong></article>
+<article class="metric-card"><span>Departures today</span><strong th:text="${summary.departuresToday}">0</strong></article>
 <article class="metric-card"><span>Active rooms</span><strong th:text="${summary.activeRooms}">0</strong></article>
 <article class="metric-card"><span>Recorded paid revenue</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0.00</strong></article>
 </section>
