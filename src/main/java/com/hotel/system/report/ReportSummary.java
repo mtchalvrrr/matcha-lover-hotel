@@ -12,6 +12,11 @@ public record ReportSummary(
     long approvedReservations,
     long rejectedReservations,
     long cancelledReservations,
+    long onlineReservations,
+    long walkInReservations,
+    long reservedRoomNights,
+    long availableRoomNights,
+    BigDecimal bookedCapacityRate,
     BigDecimal paidRevenue,
     Map<String, Long> bookingsByRoom
 ) {}
