@@ -63,6 +63,17 @@ public class ReportService {
                         start, end, PaymentStatus.PAID)
                 .stream().map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal refundedAmount = payments.findByCreatedAtBetweenAndStatusOrderByCreatedAtAsc(
+                        start, end, PaymentStatus.REFUNDED)
+                .stream().map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal outstandingBalance = bookings.stream()
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED
+                        || reservation.getStatus() == ReservationStatus.CHECKED_IN)
+                .map(reservation -> reservation.getTotalAmount()
+                        .subtract(payments.sumPaidForReservation(reservation.getId(), PaymentStatus.PAID))
+                        .max(BigDecimal.ZERO))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Map<String, Long> byRoom = bookings.stream().collect(Collectors.groupingBy(
                 reservation -> reservation.getRoomCode() + " — " + reservation.getRoomName(),
@@ -94,6 +105,8 @@ public class ReportService {
                 availableRoomNights,
                 bookedCapacityRate,
                 revenue,
+                refundedAmount,
+                outstandingBalance,
                 byRoom,
                 byCheckInDate
         );
