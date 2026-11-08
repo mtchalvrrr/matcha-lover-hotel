@@ -179,7 +179,6 @@ public class ReportController {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
                 if (y < 55) {
-                    stream.endText();
                     stream.close();
                     page = new PDPage(PDRectangle.A4);
                     document.addPage(page);
