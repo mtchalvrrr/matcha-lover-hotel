@@ -70,6 +70,7 @@ public class RoomController {
         model.addAttribute("guestCount", guests == null ? 1 : guests);
         model.addAttribute("availabilityChecked", checkIn != null && checkOut != null);
         model.addAttribute("availabilityAvailable", checkIn != null && checkOut != null
+                && (guests == null || (guests >= 1 && guests <= rooms.getPublicRoom(id).getCapacity()))
                 && rooms.isAvailable(id, checkIn, checkOut));
         model.addAttribute("checkInTime", stayTimes.checkInTime());
         model.addAttribute("checkOutTime", stayTimes.checkOutTime());
