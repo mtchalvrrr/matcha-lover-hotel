@@ -1,58 +1,99 @@
 # [HOTEL NAME] — Hotel Reservation and Management System
 
-A new, independent hotel reservation and management system built from scratch.
+A new, independent hotel reservation and management system built on the `new-hotel-system` branch. The `main` branch is kept unchanged.
 
-## Branding placeholders
-Replace these values only after the hotel approves its identity:
-- Hotel name: [HOTEL NAME]
-- Logo: [HOTEL LOGO]
-- Address: [HOTEL ADDRESS]
-- Contact: [HOTEL CONTACT INFORMATION]
+## Branding
 
-Do not use the previous project's Matcha Lover branding in customer-facing pages, assets, metadata, emails, or generated documents.
+Use only approved hotel identity details. Until approval, customer-facing content uses:
+- `[HOTEL NAME]`
+- `[HOTEL LOGO]`
+- `[HOTEL ADDRESS]`
+- `[HOTEL CONTACT INFORMATION]`
 
-## Programs
-The system provides three separately launchable programs backed by one application service and one shared SQLite database:
-1. Customer Program
-2. Admin Program
-3. Super Admin Program
+Do not use the previous project's Matcha Lover branding in this application.
 
-The two Admin accounts (Online Booking Admin and Walk-in Booking Admin) use the same ADMIN role and permissions. Their identities remain distinguishable in audit records. There is no Staff role or Staff Portal.
+## Architecture
 
-## Technology baseline
-- Java 21
-- Spring Boot
-- Maven
-- Thymeleaf, HTML, CSS, JavaScript
-- SQLite
-- Spring Security
-- JPA / Hibernate
+- Java 21, Spring Boot 3.4, Maven, Thymeleaf, HTML/CSS/JavaScript.
+- One shared Spring Boot application service and one shared SQLite database.
+- Three separate portal experiences: Customer, Admin, and Super Admin.
+- Online Booking Admin and Walk-in Booking Admin are separate accounts with the same `ADMIN` role and permissions.
+- There is no Staff Portal or Staff role.
 
-## Development and verification
-This repository root is the new application's project root on the `new-hotel-system` branch. The old application files were removed from this branch only. The `main` branch remains unchanged.
+The three portals are separate entry points within one coordinated backend, not three independent application servers or databases.
 
-Build the complete agreed scope on this branch. Run focused tests during development, then a complete build, automated test suite, database checks, security checks, and end-to-end workflow verification.
+## Implemented modules
 
-Do not claim the system is bug-free unless the relevant checks have actually passed. Record any unresolved issues clearly.
+- Database-backed authentication, role checks, BCrypt password hashing, session invalidation, failed-login tracking, and temporary lockout.
+- Customer registration application with ID upload, email OTP verification, and Super Admin approval/rejection.
+- Customer profile updates, password changes, and expiring password-reset tokens.
+- Public room catalog, room details, filters, sorting, photo galleries, and admin room/photo management.
+- Online reservation requests, shared room-date conflict checks, Admin approval/rejection, walk-in bookings, check-in, checkout, and no-show processing.
+- Configurable hotel check-in/check-out times, including same-day time validation.
+- 50% down payment and balance tracking. The default payment mode is simulated; it does not collect real money.
+- Audited payment refund/void status workflows.
+- In-app notifications and optional SMTP email notifications.
+- Admin reports for reservation status, online versus walk-in bookings, paid revenue, bookings by room, and booked room-night capacity.
+- Hotel profile, contact, stay-time, and cancellation-policy settings.
+- Super Admin account management, customer application review, and audit log.
+- Customer-facing hotel FAQ assistant with optional Groq AI integration, public room-page redirection, and per-session request limiting.
 
-## Portal authentication (initial implementation)
-- Separate sign-in pages: `/customer/login`, `/admin/login`, and `/super-admin/login`.
-- Database-backed usernames, BCrypt password hashes, active-account checks, role-specific protected dashboards, CSRF-protected forms, and server-side portal-role validation.
-- Both booking administrator accounts use the same `ADMIN` role.
-- No default credentials are committed. The first Super Admin is created only when all three environment variables below are configured and no matching username/email already exists:
-  - `HOTEL_SUPER_ADMIN_USERNAME`
-  - `HOTEL_SUPER_ADMIN_EMAIL`
-  - `HOTEL_SUPER_ADMIN_PASSWORD` (at least 12 characters with uppercase, lowercase, number, and special character)
-- In Codespaces, add these as repository/Codespace secrets or environment variables, restart the app, then use the Super Admin login page. Do not put the password in source code or commit it.
-- Customer and Admin account provisioning, account recovery, and full dashboard functions are not implemented yet. The current dashboards are protected placeholders.
+## Configuration
 
-## Local development
+Set secrets as environment variables or Codespaces secrets. Never commit credentials.
+
+Super Admin bootstrap:
+- `HOTEL_SUPER_ADMIN_USERNAME`
+- `HOTEL_SUPER_ADMIN_EMAIL`
+- `HOTEL_SUPER_ADMIN_PASSWORD` — at least 12 characters, including uppercase, lowercase, a number, and a special character.
+
+SMTP email:
+- `MAIL_HOST`
+- `MAIL_PORT` (default 587)
+- `MAIL_USERNAME`
+- `MAIL_PASSWORD`
+
+Optional Groq assistant:
+- `AI_ENABLED=true`
+- `GROQ_API_KEY`
+- `GROQ_API_URL` (defaults to the Groq chat completions endpoint)
+- `GROQ_MODEL` (defaults to `llama-3.3-70b-versatile`)
+
+Without the Groq key and `AI_ENABLED=true`, the assistant uses the built-in hotel FAQ responses. The API key remains server-side.
+
+Hotel stay defaults:
+- `HOTEL_CHECK_IN_TIME` (default `14:00`)
+- `HOTEL_CHECK_OUT_TIME` (default `12:00`)
+
+Database and file storage:
+- SQLite: `HOTEL_DB_URL` (default `jdbc:sqlite:./data/hotel-reservation-system.db`)
+- Upload directory: `HOTEL_STORAGE_LOCATION` (default `./data/uploads`)
+
+## Run locally or in Codespaces
+
 From the repository root:
+
 ```bash
+mkdir -p data
 mvn clean verify
 mvn spring-boot:run
 ```
 
-When Spring Boot finishes starting on a computer with a desktop browser, it automatically opens the Customer, Admin, and Super Admin programs in three browser tabs at `http://localhost:8080/customer`, `/admin`, and `/super-admin`. The tabs use the same application process and shared SQLite database.
+On a local desktop, the launcher attempts to open the three portal pages in separate browser tabs. In Codespaces, open the forwarded application URL and use the three portal links; a remote Maven process cannot force tabs to open in your local browser.
 
-GitHub Codespaces runs the application remotely and cannot launch tabs in the user's local browser from the remote Maven process. In Codespaces, the application logs the three forwarded URLs; open each URL in a tab in the same browser window.
+## Scope exclusions
+
+Do not add:
+- Staff Portal, staff accounts, or staff management.
+- Separate independent databases for each portal.
+- Reservation extension requests.
+- Reservation rating or review system.
+- Housekeeping, room cleaning, inspection, readiness, or maintenance modules.
+
+## Remaining completion and release work
+
+The modules above are implemented to varying levels and are not yet a release-complete system. Before calling the project complete, continue implementing and verifying the remaining agreed workflows, including reservation modification/history policies, customer account deactivation requests, advanced payment reconciliation and real gateway integration (if enabled), printable receipts and report exports, complete operational dashboards, full email delivery verification, and comprehensive end-to-end/security testing.
+
+## Verification policy
+
+GitHub Actions runs `mvn clean verify` on branch updates. A passing build confirms compilation and automated tests only; it does not replace browser-based, real database, payment-provider, email-provider, or full security testing. Do not describe the system as bug-free until the complete verification plan has passed.
