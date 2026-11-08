@@ -66,11 +66,15 @@ public class RegistrationService {
         if (users.existsByUsernameIgnoreCase(user) || applications.existsByUsernameIgnoreCaseAndStatusIn(user, ACTIVE_APPLICATIONS))
             throw new IllegalArgumentException("An account or active application already uses this username.");
 
-        String documentHash = fingerprint(idFile);
-        if (applications.existsByDocumentHashAndStatusIn(documentHash, DOCUMENT_HASH_BLOCKING_STATUSES)) {
-            throw new IllegalArgumentException("This ID document has already been submitted with another application.");
+        String documentHash = null;
+        String path = "";
+        if (idFile != null && !idFile.isEmpty()) {
+            documentHash = fingerprint(idFile);
+            if (applications.existsByDocumentHashAndStatusIn(documentHash, DOCUMENT_HASH_BLOCKING_STATUSES)) {
+                throw new IllegalArgumentException("This ID document has already been submitted with another application.");
+            }
+            path = documents.store(idFile);
         }
-        String path = documents.store(idFile);
         String otp = String.format("%06d", random.nextInt(1_000_000));
         RegistrationApplication application;
         try {
@@ -78,7 +82,9 @@ public class RegistrationService {
                     address, user, encoder.encode(password), path, documentHash, encoder.encode(otp),
                     Instant.now(clock).plus(Duration.ofMinutes(5))));
         } catch (RuntimeException ex) {
-            try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            if (!path.isBlank()) {
+                try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            }
             throw ex;
         }
         try {
@@ -91,7 +97,9 @@ public class RegistrationService {
             mail.send(message);
         } catch (RuntimeException ex) {
             applications.delete(application);
-            try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            if (!path.isBlank()) {
+                try { documents.delete(path); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            }
             throw new IllegalStateException("We could not send the verification code. Email delivery must be configured before registration.", ex);
         }
         audit.record(user, "CUSTOMER_REGISTRATION_SUBMITTED", "REGISTRATION", application.getId().toString(),
@@ -137,10 +145,16 @@ public class RegistrationService {
         if (otp == null) return false;
         boolean verified = app.verifyOtp(otp.trim(), encoder, Instant.now(clock));
         if (verified) {
-            audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
-                "Email OTP verified; awaiting Super Admin review.");
-            notifications.notifySuperAdmins("Customer application awaiting review",
-                "Verified email application #" + id + " is awaiting identity review.", "REGISTRATION");
+            if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail())) {
+                throw new IllegalStateException("A matching account already exists. Please contact the hotel.");
+            }
+            users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(),
+                    app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
+            app.review(true, "SYSTEM", "Automatically activated after email verification (temporary testing mode).");
+            notifications.notifyUser(app.getUsername(), "Customer account activated",
+                    "Your email has been verified and your customer account is now active. You can sign in.", "ACCOUNT");
+            audit.record(app.getUsername(), "CUSTOMER_REGISTRATION_AUTO_APPROVED", "REGISTRATION", id.toString(),
+                "Customer account automatically activated after successful email OTP verification.");
         }
         return verified;
     }
@@ -201,7 +215,11 @@ public class RegistrationService {
     }
 
     public java.nio.file.Path documentPath(Long id) {
-        return documents.resolve(get(id).getIdDocumentPath());
+        String storedPath = get(id).getIdDocumentPath();
+        if (storedPath == null || storedPath.isBlank()) {
+            throw new IllegalArgumentException("No ID document was submitted with this application.");
+        }
+        return documents.resolve(storedPath);
     }
 
     public java.nio.file.Path approvedDocumentPath(Long id) {
