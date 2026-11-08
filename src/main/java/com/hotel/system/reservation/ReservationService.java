@@ -206,6 +206,9 @@ public class ReservationService {
         if (!LocalDateTime.now(clock).isBefore(scheduledCheckIn)) {
             throw new IllegalStateException("Reservations at or after check-in time require admin assistance to cancel.");
         }
+        if (payments.sumPaidForReservation(id, PaymentStatus.PAID).signum() > 0) {
+            throw new IllegalStateException("A reservation with recorded payments requires administrator assistance for cancellation and refund review.");
+        }
         reservation.changeStatus(ReservationStatus.CANCELLED);
         audit.record(username, "RESERVATION_CANCELLED", "RESERVATION", id.toString(),
             "Customer cancelled reservation.");
