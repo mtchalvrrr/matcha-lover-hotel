@@ -46,6 +46,9 @@ public class ReportController {
         append(csv, "Summary", "Cancelled reservations", summary.cancelledReservations());
         append(csv, "Summary", "Online reservations", summary.onlineReservations());
         append(csv, "Summary", "Walk-in reservations", summary.walkInReservations());
+        append(csv, "Summary", "Unique customers", summary.uniqueCustomers());
+        append(csv, "Summary", "New customers", summary.newCustomers());
+        append(csv, "Summary", "Returning customers", summary.returningCustomers());
         append(csv, "Summary", "Reserved room nights", summary.reservedRoomNights());
         append(csv, "Summary", "Available room nights", summary.availableRoomNights());
         append(csv, "Summary", "Booked capacity percent", summary.bookedCapacityRate());
@@ -56,6 +59,11 @@ public class ReportController {
         append(csv, "Bookings by room", "Room", "Reservations");
         for (Map.Entry<String, Long> entry : summary.bookingsByRoom().entrySet()) {
             append(csv, "Bookings by room", entry.getKey(), entry.getValue());
+        }
+        append(csv, "", "", "");
+        append(csv, "Daily reservation requests", "Creation date", "Reservations");
+        for (Map.Entry<LocalDate, Long> entry : summary.bookingsByCreatedDate().entrySet()) {
+            append(csv, "Daily reservation requests", entry.getKey(), entry.getValue());
         }
         append(csv, "", "", "");
         append(csv, "Daily check-in trend", "Date", "Reservations");
