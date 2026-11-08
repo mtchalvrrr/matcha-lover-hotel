@@ -48,6 +48,35 @@ public class ReservationController {
         return "customer/reservations";
     }
 
+    @GetMapping("/customer/reservations/{id}/modify")
+    public String modifyForm(@PathVariable Long id, Authentication authentication, Model model) {
+        try {
+            model.addAttribute("reservation", reservations.customerReservationForModification(id, authentication.getName()));
+            model.addAttribute("rooms", rooms.publicRooms());
+            model.addAttribute("minimumDate", LocalDate.now());
+            return "customer/reservation-modify";
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            model.addAttribute("error", ex.getMessage());
+            model.addAttribute("reservations", reservations.customerReservations(authentication.getName()));
+            return "customer/reservations";
+        }
+    }
+
+    @PostMapping("/customer/reservations/{id}/modify")
+    public String modifyReservation(@PathVariable Long id, @RequestParam Long roomId,
+                                    @RequestParam LocalDate checkIn, @RequestParam LocalDate checkOut,
+                                    @RequestParam Integer guests, Authentication authentication,
+                                    RedirectAttributes redirect) {
+        try {
+            reservations.modifyCustomerReservation(id, authentication.getName(), roomId, checkIn, checkOut, guests);
+            redirect.addFlashAttribute("success", "Reservation changes submitted. The updated request is pending administrator approval.");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/customer/reservations/" + id + "/modify";
+        }
+        return "redirect:/customer/reservations";
+    }
+
     @PostMapping("/customer/reservations/{id}/cancel")
     public String cancelReservation(@PathVariable Long id, Authentication authentication,
                                     RedirectAttributes redirect) {
