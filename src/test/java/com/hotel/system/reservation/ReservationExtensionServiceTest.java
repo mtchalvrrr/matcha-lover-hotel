@@ -7,6 +7,7 @@ import com.hotel.system.audit.AuditService;
 import com.hotel.system.notification.NotificationService;
 import com.hotel.system.payment.PaymentRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -29,6 +30,8 @@ class ReservationExtensionServiceTest {
     private final Clock clock = Clock.fixed(Instant.parse("2026-11-08T03:00:00Z"), ZoneId.of("Asia/Manila"));
 
     private ReservationExtensionService service() {
+        when(extensions.save(any(ReservationExtensionRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         return new ReservationExtensionService(extensions, reservations, users, payments,
                 audit, notifications, clock);
     }
@@ -38,6 +41,7 @@ class ReservationExtensionServiceTest {
                 "A-03", "Matcha Suite", LocalDate.of(2026, 11, 10),
                 LocalDate.of(2026, 11, 12), 2, 2,
                 new BigDecimal("1500.00"), new BigDecimal("3000.00"));
+        ReflectionTestUtils.setField(reservation, "id", 44L);
         reservation.changeStatus(ReservationStatus.APPROVED);
         return reservation;
     }
