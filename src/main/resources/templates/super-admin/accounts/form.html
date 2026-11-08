@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Create Admin | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell narrow"><header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/accounts}">Back to accounts</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / ACCESS CONTROL</p><h1>Create Admin<br><em>account.</em></h1><p class="intro">Create an Online Booking Admin or Walk-in Booking Admin identity. Both receive the same ADMIN permissions; use a distinct username for audit tracking.</p></section>
+<p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<form class="auth-card wide-form" th:action="@{/super-admin/accounts}" method="post">
+<label for="username">Admin username</label><input id="username" name="username" minlength="4" maxlength="80" required>
+<label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" required>
+<label for="password">Temporary password</label><input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
+<p class="form-help">Use at least 12 characters with uppercase, lowercase, a number, and a special character. Give the credentials to the intended administrator securely.</p>
+<div class="action-row"><button class="primary-button" type="submit">Create Admin</button><a class="secondary-link" th:href="@{/super-admin/accounts}">Cancel</a></div>
+</form></main></body></html>
