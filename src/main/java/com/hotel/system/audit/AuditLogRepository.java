@@ -9,6 +9,8 @@ import java.time.Instant;
 import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+    java.util.Optional<AuditLog> findTop1ByOrderByIdDesc();
+    java.util.List<AuditLog> findAllByOrderByIdAsc();
     List<AuditLog> findTop5ByOrderByCreatedAtDesc();
     List<AuditLog> findByTargetTypeAndTargetIdOrderByCreatedAtDesc(String targetType, String targetId);
     List<AuditLog> findTop500ByOrderByCreatedAtDesc();
