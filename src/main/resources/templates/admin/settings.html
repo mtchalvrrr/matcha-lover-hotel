@@ -9,7 +9,7 @@
 <body>
 <main class="shell narrow">
     <header class="topbar">
-        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
         <a class="back-link" th:href="@{/admin/dashboard}">Admin dashboard</a>
     </header>
     <section class="portal-hero compact-hero">
