@@ -176,7 +176,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
                         "/api/chat", "/register", "/register/**", "/registration/status",
                         "/forgot-password", "/reset-password", "/rooms", "/rooms/**",
-                        "/css/**", "/images/**", "/room-images/**", "/favicon.ico", "/error")
+                        "/css/**", "/images/**", "/room-images/**", "/webhooks/paymongo", "/favicon.ico", "/error")
                 .permitAll()
                 .anyRequest().authenticated());
         applySecurityHeaders(http);
