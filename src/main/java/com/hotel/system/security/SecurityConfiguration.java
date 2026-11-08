@@ -1,7 +1,14 @@
 package com.hotel.system.security;
 
+import jakarta.servlet.http.HttpSessionListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.session.MapSessionRepository;
+import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
+import org.springframework.session.web.http.SessionEventHttpSessionListenerAdapter;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -9,22 +16,41 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.web.http.HttpSessionIdResolver;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
+@EnableSpringHttpSession
 public class SecurityConfiguration {
+    @Bean
+    MapSessionRepository sessionRepository() {
+        MapSessionRepository repository = new MapSessionRepository(new ConcurrentHashMap<>());
+        repository.setDefaultMaxInactiveInterval(Duration.ofMinutes(20));
+        return repository;
+    }
+
+    @Bean
+    HttpSessionIdResolver httpSessionIdResolver(
+            @Value("${server.servlet.session.cookie.secure:false}") boolean secure) {
+        return new PortalSessionIdResolver(secure);
+    }
+
     @Bean
     SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
     }
 
     @Bean
-    HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
+    SessionEventHttpSessionListenerAdapter sessionEventHttpSessionListenerAdapter() {
+        List<HttpSessionListener> listeners = List.of(new HttpSessionEventPublisher());
+        return new SessionEventHttpSessionListenerAdapter(listeners);
     }
 
     @Bean
@@ -41,64 +67,134 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain applicationSecurity(HttpSecurity http,
-                                             PortalAuthenticationSuccessHandler successHandler,
-                                             PortalAuthenticationFailureHandler failureHandler,
-                                             SessionRegistry sessionRegistry,
-                                             LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
-        http
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.deny())
-                .contentTypeOptions(Customizer.withDefaults())
-                .referrerPolicy(referrer -> referrer.policy(
-                        ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                .cacheControl(Customizer.withDefaults())
-                .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
-                        "camera=(), microphone=(), geolocation=()"))
-            )
+    @Order(1)
+    SecurityFilterChain customerSecurity(HttpSecurity http,
+                                         PortalAuthenticationSuccessHandler successHandler,
+                                         PortalAuthenticationFailureHandler failureHandler,
+                                         SessionRegistry sessionRegistry,
+                                         LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
+        http.securityMatcher("/customer/**")
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/customer", "/admin", "/super-admin",
-                        "/customer/login", "/admin/login", "/super-admin/login", "/api/chat", "/register", "/register/**", "/registration/status", "/forgot-password", "/reset-password",
-                        "/rooms", "/rooms/**", "/css/**", "/images/**", "/room-images/**", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/customer/**").hasRole("CUSTOMER")
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
-                .anyRequest().authenticated()
-            )
+                .requestMatchers("/customer/login").permitAll()
+                .anyRequest().hasRole("CUSTOMER"))
             .formLogin(form -> form
                 .loginPage("/customer/login")
-                .loginProcessingUrl("/authenticate")
+                .loginProcessingUrl("/customer/authenticate")
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .successHandler(successHandler)
                 .failureHandler(failureHandler)
-                .permitAll()
-            )
+                .permitAll())
             .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
+                .logoutUrl("/customer/logout")
+                .logoutSuccessUrl("/customer/login?logout")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
+                .permitAll())
             .exceptionHandling(exceptions -> exceptions
-                .defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/customer/login"),
-                    request -> request.getRequestURI().startsWith("/customer/"))
-                .defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/admin/login"),
-                    request -> request.getRequestURI().startsWith("/admin/"))
-                .defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/super-admin/login"),
-                    request -> request.getRequestURI().startsWith("/super-admin/"))
-            )
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/customer/login")))
             .sessionManagement(session -> session
                 .sessionFixation(fixation -> fixation.migrateSession())
-                .maximumSessions(1).sessionRegistry(sessionRegistry)
-            );
-
+                .maximumSessions(3).sessionRegistry(sessionRegistry));
+        applySecurityHeaders(http);
         return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    SecurityFilterChain adminSecurity(HttpSecurity http,
+                                      PortalAuthenticationSuccessHandler successHandler,
+                                      PortalAuthenticationFailureHandler failureHandler,
+                                      SessionRegistry sessionRegistry,
+                                      LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
+        http.securityMatcher("/admin/**")
+            .authenticationProvider(authenticationProvider)
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/admin/login").permitAll()
+                .anyRequest().hasRole("ADMIN"))
+            .formLogin(form -> form
+                .loginPage("/admin/login")
+                .loginProcessingUrl("/admin/authenticate")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .successHandler(successHandler)
+                .failureHandler(failureHandler)
+                .permitAll())
+            .logout(logout -> logout
+                .logoutUrl("/admin/logout")
+                .logoutSuccessUrl("/admin/login?logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .permitAll())
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/admin/login")))
+            .sessionManagement(session -> session
+                .sessionFixation(fixation -> fixation.migrateSession())
+                .maximumSessions(3).sessionRegistry(sessionRegistry));
+        applySecurityHeaders(http);
+        return http.build();
+    }
+
+    @Bean
+    @Order(3)
+    SecurityFilterChain superAdminSecurity(HttpSecurity http,
+                                           PortalAuthenticationSuccessHandler successHandler,
+                                           PortalAuthenticationFailureHandler failureHandler,
+                                           SessionRegistry sessionRegistry,
+                                           LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
+        http.securityMatcher("/super-admin/**")
+            .authenticationProvider(authenticationProvider)
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/super-admin/login").permitAll()
+                .anyRequest().hasRole("SUPER_ADMIN"))
+            .formLogin(form -> form
+                .loginPage("/super-admin/login")
+                .loginProcessingUrl("/super-admin/authenticate")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .successHandler(successHandler)
+                .failureHandler(failureHandler)
+                .permitAll())
+            .logout(logout -> logout
+                .logoutUrl("/super-admin/logout")
+                .logoutSuccessUrl("/super-admin/login?logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .permitAll())
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/super-admin/login")))
+            .sessionManagement(session -> session
+                .sessionFixation(fixation -> fixation.migrateSession())
+                .maximumSessions(3).sessionRegistry(sessionRegistry));
+        applySecurityHeaders(http);
+        return http.build();
+    }
+
+    @Bean
+    @Order(4)
+    SecurityFilterChain publicSecurity(HttpSecurity http,
+                                       LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
+        http.authenticationProvider(authenticationProvider)
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/", "/customer", "/admin", "/super-admin",
+                        "/api/chat", "/register", "/register/**", "/registration/status",
+                        "/forgot-password", "/reset-password", "/rooms", "/rooms/**",
+                        "/css/**", "/images/**", "/room-images/**", "/favicon.ico", "/error")
+                .permitAll()
+                .anyRequest().authenticated());
+        applySecurityHeaders(http);
+        return http.build();
+    }
+
+    private void applySecurityHeaders(HttpSecurity http) throws Exception {
+        http.headers(headers -> headers
+            .frameOptions(frame -> frame.deny())
+            .contentTypeOptions(Customizer.withDefaults())
+            .referrerPolicy(referrer -> referrer.policy(
+                    ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+            .cacheControl(Customizer.withDefaults())
+            .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
+                    "camera=(), microphone=(), geolocation=()")));
     }
 }
