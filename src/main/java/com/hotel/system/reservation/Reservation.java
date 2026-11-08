@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "hotel_reservations", indexes = {
@@ -113,6 +115,14 @@ public class Reservation {
     public Instant getUpdatedAt() { return updatedAt; }
     public Instant getCheckedInAt() { return checkedInAt; }
     public Instant getCheckedOutAt() { return checkedOutAt; }
+    public String getCheckedInAtDisplay() {
+        return checkedInAt == null ? "" : DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                .withZone(ZoneId.of("Asia/Manila")).format(checkedInAt);
+    }
+    public String getCheckedOutAtDisplay() {
+        return checkedOutAt == null ? "" : DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                .withZone(ZoneId.of("Asia/Manila")).format(checkedOutAt);
+    }
 
     public void recordCheckIn(Instant at) {
         this.checkedInAt = at;
