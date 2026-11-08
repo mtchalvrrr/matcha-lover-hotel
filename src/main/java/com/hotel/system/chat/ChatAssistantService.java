@@ -51,6 +51,15 @@ public class ChatAssistantService {
         if (!signedIn && asksForPrivateAccountHelp(normalized)) {
             return new ChatReply("Please sign in to access your reservations, payment history, and account details. You can still browse public rooms without an account.", "/customer/login");
         }
+        if (signedIn && asksForPrivateAccountHelp(normalized)) {
+            if (normalized.contains("payment")) {
+                return new ChatReply("I will take you to your payment history.", "/customer/payments");
+            }
+            if (normalized.contains("profile") || normalized.contains("account")) {
+                return new ChatReply("I will take you to your customer profile.", "/customer/profile");
+            }
+            return new ChatReply("I will take you to your reservations.", "/customer/reservations");
+        }
 
         if (aiEnabled && apiKey != null && !apiKey.isBlank()) {
             try {
