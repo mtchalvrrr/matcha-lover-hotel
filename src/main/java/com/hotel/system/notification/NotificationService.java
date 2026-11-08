@@ -39,8 +39,21 @@ public class NotificationService {
     }
 
     public void notifyUser(String username, String title, String message, String category) {
+        saveAndDeliver(username, title, message, category, null);
+    }
+
+    public void notifyUserOnce(String username, String title, String message, String category, String eventKey) {
+        if (eventKey == null || eventKey.isBlank()) {
+            notifyUser(username, title, message, category);
+            return;
+        }
+        saveAndDeliver(username, title, message, category, eventKey);
+    }
+
+    private void saveAndDeliver(String username, String title, String message, String category, String eventKey) {
         if (username == null || username.isBlank()) return;
-        notifications.save(new Notification(username, title, message, category));
+        if (eventKey != null && notifications.existsByEventKey(eventKey)) return;
+        notifications.save(new Notification(username, title, message, category, eventKey));
         users.findByUsernameIgnoreCase(username).ifPresent(user -> sendEmailIfConfigured(user, title, message));
     }
 
@@ -52,6 +65,12 @@ public class NotificationService {
     public void notifySuperAdmins(String title, String message, String category) {
         users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.SUPER_ADMIN))
                 .forEach(admin -> notifyUser(admin.getUsername(), title, message, category));
+    }
+
+    public void notifyAdminsOnce(String title, String message, String category, String eventKey) {
+        users.findByRoleInOrderByCreatedAtDesc(List.of(AccountRole.ADMIN))
+                .forEach(admin -> notifyUserOnce(admin.getUsername(), title, message, category,
+                        eventKey + ":" + admin.getUsername().toLowerCase(java.util.Locale.ROOT)));
     }
 
     @Transactional(readOnly = true)
