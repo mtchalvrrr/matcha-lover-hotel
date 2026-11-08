@@ -616,3 +616,12 @@ body.availability-modal-open{overflow:hidden}
  #roomAvailabilityDialog:target .room-occupancy-list li{align-items:flex-start;flex-direction:column}
  #roomAvailabilityDialog:target .room-occupancy-list li strong{text-align:left}
 }
+
+
+/* Six-digit email OTP entry */
+.otp-entry{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 12px repeat(3,minmax(0,1fr));gap:10px;align-items:center;margin-top:10px;max-width:480px}
+.otp-entry .otp-digit{width:100%;min-width:0;height:62px;padding:0;text-align:center;border:1px solid var(--line);border-radius:10px;background:#fcfcf9;color:var(--green);font:600 25px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:0;transition:border-color .15s,box-shadow .15s,background .15s}
+.otp-entry .otp-digit:focus{outline:none;border-color:#718b70;background:#fff;box-shadow:0 0 0 4px rgba(113,139,112,.16)}
+.otp-entry .otp-separator{width:8px;height:2px;justify-self:center;background:#aab5a6;border-radius:2px}
+.otp-help{margin:10px 0 0}
+@media(max-width:480px){.otp-entry{gap:6px;grid-template-columns:repeat(3,minmax(0,1fr)) 8px repeat(3,minmax(0,1fr))}.otp-entry .otp-digit{height:54px;font-size:22px;border-radius:8px}}
