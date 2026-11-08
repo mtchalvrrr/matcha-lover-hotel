@@ -18,8 +18,8 @@ public class LoginAttemptAuthenticationProvider extends DaoAuthenticationProvide
     public LoginAttemptAuthenticationProvider(UserDetailsService userDetailsService,
                                                PasswordEncoder passwordEncoder,
                                                LoginAttemptService loginAttempts) {
-        super(userDetailsService);
-        setPasswordEncoder(passwordEncoder);
+        super(passwordEncoder);
+        setUserDetailsService(userDetailsService);
         this.loginAttempts = loginAttempts;
     }
 
