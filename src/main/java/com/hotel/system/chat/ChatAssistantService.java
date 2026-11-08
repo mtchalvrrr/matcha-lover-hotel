@@ -191,9 +191,9 @@ public class ChatAssistantService {
     }
 
     private boolean containsSensitiveData(String message) {
-        return message.matches("(?is).*\${c}(password|passcode|otp|one[- ]time code)\${c}*(is|:|=)\${c}*\\S+.*")
-                || message.matches("(?is).*\${c}[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\${c}.*")
-                || message.matches("(?s).*\${c}(?:\${c}[ -]*?){13,19}\${c}.*");
+        return message.matches("(?is).*\\b(password|passcode|otp|one[- ]time code)\\s*(is|:|=)\\s*\\S+.*")
+                || message.matches("(?is).*\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b.*")
+                || message.matches("(?s).*\\b(?:\\d[ -]*?){13,19}\\b.*");
     }
 
     private boolean asksToBrowseRooms(String message) {
