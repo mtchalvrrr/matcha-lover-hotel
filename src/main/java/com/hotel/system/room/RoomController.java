@@ -27,23 +27,50 @@ public class RoomController {
     }
 
     @GetMapping("/rooms")
-    public String browseRooms(Model model) {
+    public String browseRooms(@RequestParam(required = false) LocalDate checkIn,
+                              @RequestParam(required = false) LocalDate checkOut,
+                              @RequestParam(required = false) Integer guests,
+                              Model model) {
         var availableRooms = rooms.publicRooms();
+        boolean availabilitySearch = checkIn != null || checkOut != null || guests != null;
+        try {
+            if (availabilitySearch) {
+                availableRooms = rooms.searchAvailable(checkIn, checkOut, guests == null ? 1 : guests);
+            }
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("availabilityError", ex.getMessage());
+            availableRooms = rooms.publicRooms();
+        }
         model.addAttribute("rooms", availableRooms);
-        model.addAttribute("roomTypes", availableRooms.stream()
+        model.addAttribute("roomTypes", rooms.publicRooms().stream()
                 .map(Room::getRoomType).filter(java.util.Objects::nonNull)
                 .distinct().sorted(String.CASE_INSENSITIVE_ORDER).toList());
+        model.addAttribute("availabilitySearch", availabilitySearch && checkIn != null && checkOut != null);
+        model.addAttribute("checkIn", checkIn);
+        model.addAttribute("checkOut", checkOut);
+        model.addAttribute("guestCount", guests == null ? 1 : guests);
+        model.addAttribute("minimumDate", LocalDate.now(clock));
         return "rooms/list";
     }
 
     @GetMapping("/rooms/{id}")
-    public String roomDetails(@PathVariable Long id, Model model, Authentication authentication) {
+    public String roomDetails(@PathVariable Long id,
+                              @RequestParam(required = false) LocalDate checkIn,
+                              @RequestParam(required = false) LocalDate checkOut,
+                              @RequestParam(required = false) Integer guests,
+                              Model model, Authentication authentication) {
         model.addAttribute("room", rooms.getPublicRoom(id));
         model.addAttribute("photos", photos.list(id));
         boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
         model.addAttribute("customerSignedIn", customerSignedIn);
         model.addAttribute("minimumDate", LocalDate.now(clock));
+        model.addAttribute("checkIn", checkIn);
+        model.addAttribute("checkOut", checkOut);
+        model.addAttribute("guestCount", guests == null ? 1 : guests);
+        model.addAttribute("availabilityChecked", checkIn != null && checkOut != null);
+        model.addAttribute("availabilityAvailable", checkIn != null && checkOut != null
+                && rooms.isAvailable(id, checkIn, checkOut));
         model.addAttribute("checkInTime", stayTimes.checkInTime());
         model.addAttribute("checkOutTime", stayTimes.checkOutTime());
         return "rooms/detail";
