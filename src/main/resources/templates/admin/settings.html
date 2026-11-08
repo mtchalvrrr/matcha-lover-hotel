@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Settings | [HOTEL NAME]</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="shell narrow">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <a class="back-link" th:href="@{/admin/dashboard}">Admin dashboard</a>
+    </header>
+    <section class="portal-hero compact-hero">
+        <p class="eyebrow">ADMIN / HOTEL CONFIGURATION</p>
+        <h1>Hotel<br><em>settings.</em></h1>
+        <p class="intro">Maintain the hotel profile, guest information, stay schedule, and cancellation policy.</p>
+    </section>
+    <p class="notice" th:if="${success}" th:text="${success}"></p>
+    <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+    <form class="auth-card wide-form" th:action="@{/admin/settings}" method="post">
+        <label for="hotelName">Hotel name</label>
+        <input id="hotelName" name="hotelName" type="text" maxlength="120" th:value="${settings.hotelName}" required>
+        <label for="address">Hotel address</label>
+        <input id="address" name="address" type="text" maxlength="500" th:value="${settings.address}">
+        <label for="contactInformation">Contact information</label>
+        <input id="contactInformation" name="contactInformation" type="text" maxlength="500" th:value="${settings.contactInformation}">
+        <div class="settings-time-grid">
+            <div><label for="checkInTime">Standard check-in time</label><input id="checkInTime" name="checkInTime" type="time" th:value="${settings.checkInTime}" required></div>
+            <div><label for="checkOutTime">Standard check-out time</label><input id="checkOutTime" name="checkOutTime" type="time" th:value="${settings.checkOutTime}" required></div>
+        </div>
+        <label for="cancellationPolicy">Cancellation and refund policy</label>
+        <textarea id="cancellationPolicy" name="cancellationPolicy" rows="6" maxlength="3000" th:text="${settings.cancellationPolicy}"></textarea>
+        <div class="notice">The reservation payment rule is fixed at a 50% down payment. Payment mode remains SIMULATED until a verified payment gateway is configured.</div>
+        <button class="primary-button" type="submit">Save hotel settings</button>
+    </form>
+</main>
+</body>
+</html>
