@@ -79,8 +79,6 @@ public class PayMongoService {
 
         Optional<Payment> existing = payments.findFirstByReservationIdAndPaymentMethodAndStatusOrderByCreatedAtDesc(
                 reservationId, "PAYMONGO", PaymentStatus.PENDING);
-        if (existing.isPresent() && existing.get().getCheckoutUrl() != null)
-            return existing.get().getCheckoutUrl();
 
         BigDecimal paid = paidAmountForReservation(reservationId);
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
@@ -89,6 +87,16 @@ public class PayMongoService {
         BigDecimal amount = paid.signum() == 0
                 ? reservation.getTotalAmount().multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP)
                 : due;
+        if (existing.isPresent() && existing.get().getCheckoutUrl() != null) {
+            Payment prior = existing.get();
+            if (prior.getAmount().compareTo(amount) == 0) return prior.getCheckoutUrl();
+            try {
+                expireAbandonedSession(prior);
+            } catch (RuntimeException ex) {
+                throw new IllegalStateException("A previous checkout is still being processed. Wait for its payment result before creating another checkout.");
+            }
+            if (prior.getStatus() == PaymentStatus.PENDING) return prior.getCheckoutUrl();
+        }
         String reference = "HOTEL-" + reservationId + "-" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
         // Force the reservation's optimistic version check before creating an external checkout.
         reservation.touchForPayment();
