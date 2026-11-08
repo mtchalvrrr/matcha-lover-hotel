@@ -144,6 +144,10 @@ public class PaymentService {
         if (request.getStatus() != RefundRequestStatus.PENDING) {
             throw new IllegalStateException("This refund request has already been reviewed.");
         }
+        if (reviewer == null || reviewer.isBlank()
+                || reviewer.equalsIgnoreCase(request.getRequestedBy())) {
+            throw new IllegalArgumentException("A different administrator must authorize this refund.");
+        }
         Payment payment = payments.findById(request.getPaymentId())
                 .orElseThrow(() -> new IllegalArgumentException("Payment record not found."));
         if (approve) {
