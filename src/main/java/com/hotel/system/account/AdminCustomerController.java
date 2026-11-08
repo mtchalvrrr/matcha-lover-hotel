@@ -5,6 +5,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.nio.file.Files;
 
 @Controller
+@PreAuthorize("@adminPermissionService.isEnabled('CUSTOMER_MANAGE')")
 public class AdminCustomerController {
     private final AccountManagementService accounts;
     private final RegistrationService registrations;
