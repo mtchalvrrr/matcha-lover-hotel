@@ -80,14 +80,14 @@
     if (/reject/.test(combined)) {
       return { title: "Reject this request?", message: "This decision will be recorded. Please make sure the rejection reason is accurate before continuing.", confirmLabel: "Reject" };
     }
+    if (/refund|void/.test(combined)) {
+      return { title: "Confirm payment action?", message: "This action affects a financial record. Verify the amount, transaction, and authorization before continuing.", confirmLabel: "Continue" };
+    }
     if (/approve|authorize/.test(combined)) {
       return { title: "Approve this request?", message: "This decision may change the reservation, account, or payment record. Please verify the details before continuing.", confirmLabel: "Approve" };
     }
     if (/cancel/.test(combined)) {
       return { title: "Cancel this reservation or request?", message: "This action may not be reversible. Please review the record and reason before continuing.", confirmLabel: "Confirm cancellation" };
-    }
-    if (/refund|void/.test(combined)) {
-      return { title: "Confirm payment action?", message: "This action affects a financial record. Verify the amount, transaction, and authorization before continuing.", confirmLabel: "Continue" };
     }
     if (/deactivation/.test(action) || /deactivation request/.test(label)) { return { title: "Submit account deactivation request?", message: "Your request will be sent for Super Admin review. Your account remains active until it is approved.", confirmLabel: "Submit request" }; }
     if (/deactivat|suspend|reactivat|activate|status|enable|disable|readiness/.test(combined)) {
@@ -99,7 +99,7 @@
     if (/reservation|booking/.test(combined) && /create|submit|save|continue/.test(combined)) {
       return { title: "Submit reservation changes?", message: "Please review the reservation details, dates, room, guest information, and total before submitting.", confirmLabel: "Submit" };
     }
-    if (/save hotel settings|save room|save profile|change password|reset password|save reservation changes|create admin|create booking|upload photo|set as cover|backup/.test(combined)) {
+    if (/save hotel settings|save room|save profile|change password|reset password|save reservation changes|create admin|create booking|upload photo|set as cover/.test(combined)) {
       return { title: "Save these changes?", message: "Please review the information before submitting this change.", confirmLabel: "Save changes" };
     }
     return null;
