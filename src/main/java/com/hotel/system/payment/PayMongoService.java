@@ -87,7 +87,7 @@ public class PayMongoService {
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
         if (initialReservationCheckout && paid.signum() > 0)
             throw new IllegalStateException("A new reservation checkout cannot be started after a payment has already been recorded.");
-        PaymentType type = PaymentType.FULL_PAYMENT;
+        PaymentType type = paid.signum() == 0 ? PaymentType.FULL_PAYMENT : PaymentType.BALANCE;
         BigDecimal amount = due;
         if (existing.isPresent() && existing.get().getCheckoutUrl() != null) {
             Payment prior = existing.get();
