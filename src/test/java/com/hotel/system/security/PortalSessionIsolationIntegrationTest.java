@@ -25,7 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.datasource.url=jdbc:sqlite:./target/portal-session-isolation-test.db",
         "hotel.storage.location=./target/portal-session-isolation-uploads",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.mail.host="
+        "spring.mail.host=",
+        "captcha.enabled=false"
 })
 @AutoConfigureMockMvc
 class PortalSessionIsolationIntegrationTest {
@@ -92,6 +93,9 @@ class PortalSessionIsolationIntegrationTest {
                         .param("portal", portal))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
+        assertNotNull(result.getResponse().getRedirectedUrl());
+        assertTrue(result.getResponse().getRedirectedUrl().endsWith("/" + portal + "/dashboard"),
+                "Login should reach the authenticated portal dashboard.");
         return result.getResponse().getHeaders("Set-Cookie").stream()
                 .filter(value -> value.startsWith(cookieName + "="))
                 .map(value -> value.substring(cookieName.length() + 1, value.indexOf(';')))
