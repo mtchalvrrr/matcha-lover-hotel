@@ -60,6 +60,17 @@ public class ReservationController {
         }
     }
 
+    @PostMapping("/customer/reservations/{id}/checkout")
+    public String continuePaymentCheckout(@PathVariable Long id, Authentication authentication,
+                                          RedirectAttributes redirect) {
+        try {
+            return "redirect:" + payMongo.createCheckout(id, authentication.getName());
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/customer/reservations";
+        }
+    }
+
     @GetMapping("/customer/reservations/{id}/history")
     public String customerReservationHistory(@PathVariable Long id, Authentication authentication,
                                              Model model, RedirectAttributes redirect) {
