@@ -93,10 +93,13 @@ public class XenditService {
         if (initial && paid.signum() > 0)
             throw new IllegalStateException("A new reservation checkout cannot be started after a payment has already been recorded.");
 
-        if (existing.isPresent() && existing.get().getCheckoutUrl() != null) {
+        if (existing.isPresent()) {
             Payment prior = existing.get();
-            if (prior.getAmount().compareTo(due) == 0) return prior.getCheckoutUrl();
-            throw new IllegalStateException("A previous Xendit checkout is still active. Wait for it to expire or finish before creating another checkout.");
+            if (prior.getCheckoutUrl() != null && prior.getAmount().compareTo(due) == 0)
+                return prior.getCheckoutUrl();
+            if (prior.getProviderCheckoutSessionId() != null)
+                throw new IllegalStateException("A previous Xendit checkout is still active. Wait for it to expire or finish before creating another checkout.");
+            prior.markFailedFromProvider(null);
         }
 
         PaymentType type = paid.signum() == 0 ? PaymentType.FULL_PAYMENT : PaymentType.BALANCE;
