@@ -40,11 +40,39 @@ public class PendingReservationExpiryScheduler {
     @Transactional
     public void expireStalePendingReservations() {
         Instant now = Instant.now(clock);
+        java.time.LocalDateTime localNow = java.time.LocalDateTime.now(clock);
         Instant cutoff = now.minus(Duration.ofHours(expiryHours));
+
+        // Check the actual check-in deadline first. A paid reservation that is still
+        // PENDING when its scheduled check-in time arrives is VOID, not merely stale.
+        List<Reservation> dueForCheckIn = reservations
+                .findByStatusAndCheckInDateLessThanEqualOrderByCheckInDateAsc(
+                        ReservationStatus.PENDING, localNow.toLocalDate());
+        for (Reservation reservation : dueForCheckIn) {
+            if (reservation.getStatus() != ReservationStatus.PENDING) continue;
+            java.time.LocalDateTime checkInAt = reservation.getCheckInDate()
+                    .atTime(reservation.getCheckInTime());
+            if (!localNow.isBefore(checkInAt)) {
+                reservation.voidAtCheckIn(now);
+                String id = reservation.getId().toString();
+                audit.record("SYSTEM", "RESERVATION_VOIDED_AT_CHECK_IN", "RESERVATION", id,
+                        "Reservation became VOID because scheduled check-in arrived before Admin review.");
+                if (reservation.getSource() == ReservationSource.ONLINE) {
+                    notifications.notifyUser(reservation.getCustomerUsername(), "Reservation marked VOID",
+                            "Reservation #" + id + " was marked VOID because its check-in time arrived before the hotel Admin reviewed it.",
+                            "RESERVATION");
+                }
+            }
+        }
+
+        // Requests that have been pending too long may expire before check-in.
         List<Reservation> stale = reservations.findByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc(
                 ReservationStatus.PENDING, cutoff);
         for (Reservation reservation : stale) {
             if (reservation.getStatus() != ReservationStatus.PENDING) continue;
+            java.time.LocalDateTime checkInAt = reservation.getCheckInDate()
+                    .atTime(reservation.getCheckInTime());
+            if (!localNow.isBefore(checkInAt)) continue; // handled as VOID above
             reservation.expire(now);
             String id = reservation.getId().toString();
             audit.record("SYSTEM", "RESERVATION_EXPIRED", "RESERVATION", id,
