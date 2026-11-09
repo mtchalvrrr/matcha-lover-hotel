@@ -13,6 +13,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.hotel.system.security.CaptchaService;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.nio.file.Files;
+import jakarta.servlet.http.HttpSession;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class RegistrationController {
@@ -28,24 +31,79 @@ public class RegistrationController {
     @GetMapping("/register")
     public String register() { return "registration/form"; }
 
-    @PostMapping("/register")
-    public String submit(@RequestParam String firstName, @RequestParam String lastName,
-        @RequestParam String email, @RequestParam String username, @RequestParam String password,
-        @RequestParam(required = false) MultipartFile idDocument, RedirectAttributes redirect) {
+
+    @PostMapping("/register/send-otp")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> sendOtp(@RequestParam String firstName,
+            @RequestParam String lastName, @RequestParam String email, @RequestParam String password,
+            HttpSession session) {
         try {
-            if (captcha != null && captcha.isEnabled()) {
-                var attributes = RequestContextHolder.getRequestAttributes();
-                if (!(attributes instanceof ServletRequestAttributes servlet)
-                        || !captcha.verify(servlet.getRequest().getParameter("g-recaptcha-response"),
-                                servlet.getRequest().getRemoteAddr())) {
-                    throw new IllegalStateException("CAPTCHA verification failed. Please try again.");
-                }
-            }
-            RegistrationApplication app = registrations.submit(firstName, lastName, email, username, password, idDocument);
-            redirect.addFlashAttribute("applicationId", app.getId());
-            redirect.addFlashAttribute("email", app.getEmail());
-            redirect.addFlashAttribute("success", "Verification code sent to your email. Verify it to activate your customer account.");
-            return "redirect:/register/verify";
+            String username = "guest" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+            RegistrationApplication app = registrations.submit(firstName, lastName, email, username, password, null);
+            session.setAttribute("registrationApplicationId", app.getId());
+            session.setAttribute("registrationEmail", app.getEmail());
+            session.setAttribute("registrationOtpVerified", false);
+            return ResponseEntity.ok(Map.of("success", true, "message", "A six-digit OTP was sent to your email. It expires in five minutes."));
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/register/resend-otp")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> resendOtp(HttpSession session) {
+        try {
+            Long id = (Long) session.getAttribute("registrationApplicationId");
+            String email = (String) session.getAttribute("registrationEmail");
+            if (id == null || email == null) throw new IllegalStateException("Send an OTP first.");
+            registrations.resendOtp(id, email);
+            return ResponseEntity.ok(Map.of("success", true, "message", "A new six-digit OTP was sent."));
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/register/verify-email-otp")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> verifyEmailOtp(@RequestParam String otp, HttpSession session) {
+        try {
+            Long id = (Long) session.getAttribute("registrationApplicationId");
+            String email = (String) session.getAttribute("registrationEmail");
+            if (id == null || email == null) throw new IllegalStateException("Send an OTP first.");
+            if (!registrations.verify(id, email, otp))
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "The OTP is incorrect. Check the six digits and try again."));
+            session.setAttribute("registrationOtpVerified", true);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Email verified successfully."));
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/register/identity")
+    public String submitIdentity(@RequestParam String idType, @RequestParam MultipartFile idFront,
+            @RequestParam MultipartFile idBack, @RequestParam(required = false) String privacyAcknowledged,
+            HttpSession session, RedirectAttributes redirect) {
+        try {
+            Long id = (Long) session.getAttribute("registrationApplicationId");
+            String email = (String) session.getAttribute("registrationEmail");
+            Boolean verified = (Boolean) session.getAttribute("registrationOtpVerified");
+            if (id == null || email == null || !Boolean.TRUE.equals(verified))
+                throw new IllegalStateException("Complete email verification before submitting registration.");
+            if (!"yes".equals(privacyAcknowledged))
+                throw new IllegalStateException("Acknowledge the Privacy Notice before submitting.");
+            if (captcha == null || !captcha.isEnabled())
+                throw new IllegalStateException("reCAPTCHA is not configured. Registration cannot be submitted.");
+            var attributes = RequestContextHolder.getRequestAttributes();
+            if (!(attributes instanceof ServletRequestAttributes servlet)
+                    || !captcha.verify(servlet.getRequest().getParameter("g-recaptcha-response"),
+                            servlet.getRequest().getRemoteAddr()))
+                throw new IllegalStateException("Complete the reCAPTCHA check before submitting.");
+            registrations.attachIdentityDocuments(id, email, idType, idFront, idBack);
+            session.removeAttribute("registrationApplicationId");
+            session.removeAttribute("registrationEmail");
+            session.removeAttribute("registrationOtpVerified");
+            redirect.addFlashAttribute("success", "Registration submitted. Your verified email and ID documents are awaiting review.");
+            return "redirect:/";
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/register";
