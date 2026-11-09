@@ -66,7 +66,7 @@
       thumbnail.setAttribute("aria-current", active ? "true" : "false");
     });
     if (status) {
-      status.textContent = `${activeIndex + 1} / ${photos.length}${usingSamples ? " · Includes sample photos" : ""}`;
+      status.textContent = `${activeIndex + 1} / ${photos.length}`;
     }
     if (restartAutoplay) startAutoplay();
   }
@@ -80,12 +80,15 @@
   function startAutoplay() {
     stopAutoplay();
     if (photos.length < 2 || document.hidden || lightbox?.open) return;
-    autoplayTimer = window.setInterval(nextPhoto, 5000);
+    autoplayTimer = window.setInterval(nextPhoto, 4000);
   }
 
   thumbnails.forEach((thumbnail, index) => {
     thumbnail.addEventListener("click", () => showPhoto(index));
   });
+
+  document.getElementById("galleryPrevious")?.addEventListener("click", previousPhoto);
+  document.getElementById("galleryNext")?.addEventListener("click", nextPhoto);
 
   gallery.addEventListener("mouseenter", stopAutoplay);
   gallery.addEventListener("mouseleave", startAutoplay);
