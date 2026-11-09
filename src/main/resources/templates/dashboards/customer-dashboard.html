@@ -6,9 +6,14 @@
     <title>Customer Dashboard | [HOTEL NAME]</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <style>
-        .customer-shortcuts{display:flex;flex-wrap:wrap;gap:.65rem;margin:1.25rem 0 2rem}
-        .customer-shortcuts a,.customer-shortcuts button{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.75rem 1.1rem;border:1px solid var(--line,#d9e4dc);border-radius:999px;background:var(--surface,#fff);color:var(--text,#20352a);font:inherit;font-weight:650;text-decoration:none;cursor:pointer}
-        .customer-shortcuts .current{background:var(--primary,#315c45);border-color:var(--primary,#315c45);color:#fff}
+        .customer-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:1rem;min-width:0}
+        .customer-shortcuts{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem}
+        .customer-shortcuts a,.customer-shortcuts button{display:inline-flex;align-items:center;justify-content:center;padding:.65rem .8rem;border:0;border-radius:999px;background:transparent;color:var(--green,#294a35);font:inherit;font-size:.82rem;font-weight:650;text-decoration:none;white-space:nowrap;cursor:pointer}
+        .customer-shortcuts a:hover,.customer-shortcuts button:hover{background:#edf2e9}
+        .customer-shortcuts .current{background:#edf2e9;color:var(--green,#294a35)}
+        .customer-header-actions form{flex:0 0 auto}
+        @media(max-width:760px){.topbar{align-items:flex-start;flex-wrap:wrap;gap:.75rem}.customer-header-actions{width:100%;justify-content:space-between;flex-wrap:wrap}.customer-shortcuts{gap:.1rem}.customer-shortcuts a,.customer-shortcuts button{padding:.6rem .55rem;font-size:.76rem}}
+        @media(max-width:430px){.customer-header-actions{align-items:flex-start}.customer-shortcuts{flex:1 1 100%;order:2}.customer-header-actions form{margin-left:auto;order:1}}
         .stay-section{margin-top:1.5rem}
         .stay-card{padding:1.25rem;border:1px solid var(--line,#d9e4dc);border-radius:18px;background:var(--surface,#fff);margin:1rem 0}
         .stay-card h2{margin:.25rem 0 .4rem}
@@ -26,20 +31,16 @@
 <main class="shell narrow">
     <header class="topbar">
         <a class="brand" th:href="@{/customer/dashboard}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
-        <form th:action="@{/customer/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form>
+        <div class="customer-header-actions">
+            <nav class="customer-shortcuts" aria-label="Customer navigation">
+                <a th:href="@{/rooms}">Browse rooms</a>
+                <a class="current" th:href="@{/customer/dashboard}" aria-current="page">Dashboard</a>
+                <a th:href="@{/customer/notifications}">Notifications</a>
+                <button type="button" id="openCustomerSupport">Customer support</button>
+            </nav>
+            <form th:action="@{/customer/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form>
+        </div>
     </header>
-
-    <nav class="customer-shortcuts" aria-label="Customer navigation">
-        <a th:href="@{/rooms}">Browse rooms</a>
-        <a class="current" th:href="@{/customer/dashboard}" aria-current="page">Dashboard</a>
-        <a th:href="@{/customer/notifications}">Notifications</a>
-        <button type="button" id="openCustomerSupport">Customer support</button>
-    </nav>
-
-    <section class="portal-hero">
-        <p class="eyebrow">CUSTOMER PORTAL</p>
-        <h1>Your stay</h1>
-    </section>
 
     <section class="stay-section" aria-labelledby="stayHeading">
         <h2 id="stayHeading">Your approved stays</h2>
