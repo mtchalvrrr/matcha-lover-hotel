@@ -1,9 +1,9 @@
 name: Build and test
 on:
   push:
-    branches: [new-hotel-system]
+    branches: [new-hotel-system, 'spec-alignment/complete-system-cycle']
   pull_request:
-    branches: [main]
+    branches: [main, new-hotel-system]
     paths:
       - 'pom.xml'
       - 'src/**'
