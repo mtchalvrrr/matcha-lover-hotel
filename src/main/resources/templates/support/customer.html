@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customer Support | [HOTEL NAME]</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="shell">
+    <div th:replace="~{fragments/customer-header :: customerHeader('support')}"></div>
+    <p class="notice" th:if="${success}" th:text="${success}"></p>
+    <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+
+    <section class="support-compose">
+        <h1>Contact the manager</h1>
+        <form th:action="@{/customer/support}" method="post">
+            <div class="support-form-grid">
+                <div>
+                    <label for="supportCategory">Category</label>
+                    <select id="supportCategory" name="category" required>
+                        <option value="GENERAL">General inquiry</option>
+                        <option value="RESERVATION">Reservation</option>
+                        <option value="PAYMENT">Payment</option>
+                        <option value="ROOM">Room</option>
+                        <option value="ACCOUNT">Account</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="supportSubject">Subject</label>
+                    <input id="supportSubject" name="subject" maxlength="120" required>
+                </div>
+            </div>
+            <label for="supportMessage">Message</label>
+            <textarea id="supportMessage" name="message" rows="4" maxlength="2000" required placeholder="How can the hotel help you?"></textarea>
+            <button class="primary-button" type="submit">Send to manager</button>
+        </form>
+    </section>
+
+    <section class="support-threads">
+        <h2>Your conversations</h2>
+        <p class="notice" th:if="${#lists.isEmpty(threads)}">You have not contacted the manager yet.</p>
+        <article class="support-thread" th:each="thread : ${threads}" th:id="${'case-' + thread.supportCase.id}">
+            <header class="support-thread-heading">
+                <div>
+                    <p class="eyebrow" th:text="${thread.supportCase.category}">CATEGORY</p>
+                    <h3 th:text="${thread.supportCase.subject}">Subject</h3>
+                    <small th:text="${'Request #' + thread.supportCase.id + ' · Updated ' + #temporals.format(thread.supportCase.updatedAt, 'MMM d, yyyy h:mm a')}">Request details</small>
+                </div>
+                <span class="support-status" th:classappend="${thread.supportCase.status.name() == 'RESOLVED' ? ' resolved' : ''}" th:text="${thread.supportCase.status}">OPEN</span>
+            </header>
+            <div class="support-message-list">
+                <div class="support-message" th:each="item : ${thread.messages}" th:classappend="${item.senderRole == 'CUSTOMER' ? ' from-customer' : ' from-manager'}">
+                    <div class="support-message-meta">
+                        <strong th:text="${item.senderRole == 'CUSTOMER' ? 'You' : 'Hotel Manager'}">Sender</strong>
+                        <time th:text="${#temporals.format(item.createdAt, 'MMM d, yyyy h:mm a')}">Date</time>
+                    </div>
+                    <p th:text="${item.message}">Message</p>
+                </div>
+            </div>
+            <form class="support-reply-form" th:action="@{/customer/support/{id}/reply(id=${thread.supportCase.id})}" method="post">
+                <label th:for="${'reply-' + thread.supportCase.id}">Reply</label>
+                <textarea th:id="${'reply-' + thread.supportCase.id}" name="message" rows="2" maxlength="2000" required placeholder="Write a reply..."></textarea>
+                <button class="secondary-button" type="submit">Send reply</button>
+            </form>
+        </article>
+    </section>
+</main>
+<div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+</body>
+</html>
