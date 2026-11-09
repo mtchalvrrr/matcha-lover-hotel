@@ -179,16 +179,14 @@ public class RegistrationService {
         try {
             frontPath = documents.store(front);
             backPath = documents.store(back);
-            app.attachIdentityDocuments(type, frontPath, backPath, combinedHash);
             if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail()))
                 throw new IllegalStateException("A matching account already exists. Please contact the hotel.");
-            users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(),
-                    app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
-            app.review(true, "SYSTEM", "Automatically activated after verified email and identity submission (temporary testing mode).");
-            notifications.notifyUser(app.getUsername(), "Customer account activated",
-                    "Your email and identity documents have been verified. Your customer account is now active.", "ACCOUNT");
-            audit.record(app.getUsername(), "CUSTOMER_REGISTRATION_AUTO_APPROVED", "REGISTRATION",
-                id.toString(), "Customer account automatically activated after email OTP and ID submission.");
+            app.attachIdentityDocuments(type, frontPath, backPath, combinedHash);
+            notifications.notifySuperAdmins("Customer registration pending review",
+                    "A customer registration application (#" + id + ") has verified its email and submitted both sides of a government-issued ID. Review the application before activating the account.",
+                    "REGISTRATION");
+            audit.record(app.getUsername(), "CUSTOMER_REGISTRATION_IDENTITY_SUBMITTED", "REGISTRATION",
+                id.toString(), "Email verified and both ID images submitted; awaiting Super Admin review.");
         } catch (RuntimeException ex) {
             if (!frontPath.isBlank()) try { documents.delete(frontPath); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
             if (!backPath.isBlank()) try { documents.delete(backPath); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
