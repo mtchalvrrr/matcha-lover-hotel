@@ -227,6 +227,30 @@ public class XenditService {
                     "Xendit Test Mode confirmed full payment; provider payment ID " + paymentId);
             submitPaidHoldToManagerReview(payment);
             sendPaymentReceipt(payment);
+            Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
+            if (linkedReservation == null
+                    || (linkedReservation.getStatus() != ReservationStatus.PENDING
+                        && linkedReservation.getStatus() != ReservationStatus.APPROVED
+                        && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
+                notifications.notifyAdminsInAppOnly("Payment received for inactive reservation",
+                        "Xendit confirmed payment #" + payment.getId()
+                                + " for a reservation that is no longer active. Review and refund if required.",
+                        "PAYMENT", "XENDIT-INACTIVE-RESERVATION-" + payment.getId());
+            } else {
+                BigDecimal paidIncludingThis = paidAmountForReservation(payment.getReservationId());
+                BigDecimal paidBefore = paidIncludingThis.subtract(payment.getAmount()).max(BigDecimal.ZERO);
+                BigDecimal expectedAmount = linkedReservation.getTotalAmount().subtract(paidBefore)
+                        .max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+                if (expectedAmount.compareTo(payment.getAmount()) != 0) {
+                    audit.record("XENDIT_WEBHOOK", "PAYMENT_AMOUNT_STALE", "PAYMENT",
+                            payment.getId().toString(),
+                            "The provider payment succeeded but the reservation amount changed after checkout creation.");
+                    notifications.notifyAdminsInAppOnly("Payment needs reservation reconciliation",
+                            "Xendit confirmed payment #" + payment.getId()
+                                    + " but the reservation total changed after checkout creation. Review the balance or refund.",
+                            "PAYMENT", "XENDIT-STALE-AMOUNT-" + payment.getId());
+                }
+            }
         }
         processedEvents.save(new ProcessedXenditEvent(eventKey, event));
     }
