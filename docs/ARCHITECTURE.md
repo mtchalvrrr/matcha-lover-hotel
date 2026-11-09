@@ -51,6 +51,12 @@ Online Booking Admin and Walk-in Booking Admin are two distinct ADMIN accounts w
 - Reservation rating and review system
 - Housekeeping, cleaning, inspection, readiness, or maintenance modules
 
+## Requirements still to complete
+
+The uploaded Matcha Lover Hotel specification includes a full reservation-extension workflow. The current branch does not yet implement extension request persistence, customer submission/status screens, Admin review, additional-charge Xendit checkout, webhook confirmation, or extension notifications. The entity-level checkout-date helper is not a substitute for that end-to-end workflow.
+
+The specification also distinguishes the two Admin accounts as Online Booking Admin and Walk-in Booking Admin. The current implementation limits the number of ADMIN accounts to two and gives them identical permissions, but still needs an explicit operational designation stored and shown in audit records.
+
 ## Verification strategy
 - Unit tests for domain rules and validation
 - Repository and persistence tests against SQLite
