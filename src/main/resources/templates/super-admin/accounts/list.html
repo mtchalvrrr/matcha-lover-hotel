@@ -7,4 +7,5 @@
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Action</th></tr></thead><tbody>
 <tr th:each="account : ${accounts}"><td th:text="${account.username}">username</td><td th:text="${account.email}">email</td><td th:text="${account.role}">ADMIN</td><td th:text="${account.active ? 'Active' : 'Suspended'}">Active</td><td th:text="${account.createdAt}">Date</td><td><form th:action="@{/super-admin/accounts/{id}/status(id=${account.id})}" method="post"><input type="hidden" name="active" th:value="${!account.active}"><button class="text-button" type="submit" th:text="${account.active ? 'Suspend' : 'Reactivate'}">Suspend</button></form><form th:if="${account.role.name() == 'ADMIN'}" th:action="@{/super-admin/accounts/{id}/reset-password(id=${account.id})}" method="post"><input type="password" name="password" minlength="12" maxlength="100" autocomplete="new-password" placeholder="New strong password" required><button class="text-button" type="submit">Reset password</button></form></td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(accounts)}">No Admin or Customer accounts have been created yet.</p>
-</main></body></html>
+</main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>
