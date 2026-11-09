@@ -259,9 +259,10 @@ public class ReservationController {
 
     @PostMapping("/admin/reservations/{id}/review")
     public String reviewReservation(@PathVariable Long id, @RequestParam boolean approve,
+                                    @RequestParam(required = false) String reason,
                                     Authentication authentication, RedirectAttributes redirect) {
         try {
-            reservations.review(id, approve, authentication.getName());
+            reservations.review(id, approve, authentication.getName(), reason);
             redirect.addFlashAttribute("success", approve ? "Reservation approved." : "Reservation rejected.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
