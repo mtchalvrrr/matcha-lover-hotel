@@ -1,6 +1,7 @@
 package com.hotel.system.reservation;
 
 public enum ReservationStatus {
+    PAYMENT_PENDING,
     PENDING,
     APPROVED,
     REJECTED,
