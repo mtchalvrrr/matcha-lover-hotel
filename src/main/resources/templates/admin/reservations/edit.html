@@ -13,4 +13,5 @@
 <label for="guests">Number of guests</label><input id="guests" name="guests" type="number" min="1" max="20" th:value="${reservation.guests}" required>
 <p class="notice">Current status: <strong th:text="${reservation.status}">PENDING</strong>. Status is preserved after a successful Admin edit.</p>
 <div class="action-row"><button class="primary-button" type="submit">Save reservation changes</button><a class="secondary-link" th:href="@{/admin/reservations}">Cancel</a></div>
-</form></main></body></html>
+</form></main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>
