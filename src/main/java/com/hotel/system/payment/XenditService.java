@@ -172,6 +172,33 @@ public class XenditService {
         }
     }
 
+    public void reconcilePendingCheckouts() {
+        if (!isConfigured()) return;
+        List<Payment> pending = payments.findByPaymentMethodAndStatusAndProviderCheckoutSessionIdIsNotNull(
+                "XENDIT", PaymentStatus.PENDING);
+        for (Payment payment : pending) {
+            try {
+                Map<?, ?> response = client.get()
+                        .uri("/sessions/{id}", payment.getProviderCheckoutSessionId())
+                        .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                        .retrieve().body(Map.class);
+                if (response == null) continue;
+                JsonNode session = mapper.valueToTree(response);
+                if (!payment.getTransactionReference().equals(session.path("reference_id").asText(""))
+                        || !payment.getProviderCheckoutSessionId().equals(
+                                session.path("payment_session_id").asText(""))) continue;
+                String status = session.path("status").asText("");
+                if ("COMPLETED".equals(status)) {
+                    processCompletedSession(session, "payment_session.completed");
+                } else if ("EXPIRED".equals(status)) {
+                    processExpiredSession(session, "payment_session.expired");
+                }
+            } catch (RuntimeException ex) {
+                // Leave the payment pending; the next scheduled reconciliation or provider webhook can resolve it.
+            }
+        }
+    }
+
     private void processCompletedSession(JsonNode data, String event) {
         String sessionId = data.path("payment_session_id").asText("");
         String reference = data.path("reference_id").asText("");
