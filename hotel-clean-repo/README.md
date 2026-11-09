@@ -38,14 +38,29 @@ The application reads secrets from environment variables; never commit real cred
 - `RECAPTCHA_SITE_KEY` — public reCAPTCHA v2 checkbox site key
 - `RECAPTCHA_SECRET_KEY` — private reCAPTCHA verification key
 - `GROQ_API_KEY` — Groq API key for the chatbot
+- `HOTEL_MANAGER_EMAIL` — email for the initial manager account (required to seed it)
+- `HOTEL_MANAGER_PASSWORD` — initial manager password (required to seed it; use a strong, unique password)
+- `HOTEL_MANAGER_NAME` — optional display name for the initial manager (defaults to `Hotel Manager`)
 
 For local development, register `localhost` as an allowed domain in Google reCAPTCHA. Login and registration intentionally fail CAPTCHA verification when valid keys are not configured.
 
-## Demo account and security warning
+## Manager account provisioning
 
-The current `DataSeeder` creates a demo manager account with credentials defined in source code. This is for local capstone testing only. **Keep this repository private until those demo credentials are moved to environment-based configuration and the default password is changed.** Do not expose this app to the internet or use real customer data as-is.
+The application does not contain a default manager email or password in source code.
+To create the first manager account, set both `HOTEL_MANAGER_EMAIL` and
+`HOTEL_MANAGER_PASSWORD` in your local environment before starting Spring Boot.
+You may also set `HOTEL_MANAGER_NAME`. If the email and password are not both
+configured, the room inventory is seeded but no manager account is created.
 
-Passwords are BCrypt-hashed, CSRF protection is enabled, manager routes require the manager role, and server-side input validation is used. Before real deployment, add rate limiting, safer manager account provisioning, audit logging, robust email/OTP abuse controls, and database backup/restore procedures.
+If a manager password was ever committed to a public repository, change it
+immediately. Removing it from the current source file does not remove it from
+Git history; rotate the credential and do not reuse it.
+
+Passwords are BCrypt-hashed, CSRF protection is enabled, and manager routes
+require the manager role. Before real deployment, add rate limiting, audit
+logging, email/OTP verification if required, and database backup/restore
+procedures. This application currently uses Spring Security form-login sessions,
+not JWT authentication.
 
 ## Photography credits
 
