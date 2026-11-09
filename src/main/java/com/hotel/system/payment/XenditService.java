@@ -243,6 +243,9 @@ public class XenditService {
 
         Payment payment = payments.findByProviderPaymentId(providerPaymentId)
                 .orElseThrow(() -> new IllegalArgumentException("No matching hotel payment was found for this refund."));
+        if (!"PHP".equals(data.path("currency").asText(""))
+                || data.path("amount").decimalValue().compareTo(payment.getAmount()) != 0)
+            throw new IllegalArgumentException("The Xendit refund amount or currency does not match the original payment.");
         if (payment.getProviderRefundId() != null
                 && !payment.getProviderRefundId().equals(refundId))
             throw new IllegalArgumentException("The refund ID does not match the pending hotel refund.");
@@ -362,5 +365,7 @@ public class XenditService {
     private void requireTestConfiguration() {
         if (!isConfigured())
             throw new IllegalStateException("Xendit Test Mode is not fully configured. No payment was taken.");
+        if (!publicBaseUrl.startsWith("https://"))
+            throw new IllegalStateException("Set HOTEL_PUBLIC_BASE_URL to the public HTTPS Codespaces URL before starting Xendit checkout.");
     }
 }
