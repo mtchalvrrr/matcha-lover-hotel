@@ -11,15 +11,20 @@ import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+
+import java.net.http.HttpClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -49,7 +54,14 @@ public class XenditService {
             @Value("${payment.xendit.webhook-token:}") String webhookToken,
             @Value("${hotel.public-base-url:http://localhost:8080}") String publicBaseUrl,
             @Value("${hotel.name:[HOTEL NAME]}") String hotelName, Clock clock) {
-        this.client = builder.baseUrl("https://api.xendit.co").build();
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(Duration.ofSeconds(20));
+        this.client = builder.requestFactory(requestFactory)
+                .baseUrl("https://api.xendit.co")
+                .build();
         this.mapper = mapper;
         this.payments = payments;
         this.processedEvents = processedEvents;
@@ -124,15 +136,22 @@ public class XenditService {
         body.put("metadata", Map.of("reservation_id", reservationId.toString(),
                 "hotel_payment_id", payment.getId().toString()));
 
-        Map<?, ?> response = client.post().uri("/sessions")
-                .headers(headers -> headers.setBasicAuth(secretKey, ""))
-                .header("Content-Type", "application/json")
-                .body(body)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, result) -> {
-                    throw new IllegalStateException("Xendit could not create checkout. Check the Test Mode API key and dashboard settings.");
-                })
-                .body(Map.class);
+        Map<?, ?> response;
+        try {
+            response = client.post().uri("/sessions")
+                    .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                    .header("Content-Type", "application/json")
+                    .body(body)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, result) -> {
+                        throw new IllegalStateException("Xendit could not create checkout. Check the Test Mode API key and dashboard settings.");
+                    })
+                    .body(Map.class);
+        } catch (RestClientException ex) {
+            throw new IllegalStateException(
+                    "Xendit checkout could not be reached within the allowed time. No payment was confirmed. Please try again.",
+                    ex);
+        }
 
         if (response == null || !(response.get("payment_session_id") instanceof String sessionId)
                 || !(response.get("payment_link_url") instanceof String checkoutUrl)
