@@ -92,18 +92,19 @@ public class XenditService {
         if (!Objects.equals(customer.getId(), reservation.getCustomerId()))
             throw new IllegalArgumentException("Reservation not found.");
 
-        boolean initial = reservation.getStatus() == ReservationStatus.PAYMENT_PENDING;
-        if (!initial && reservation.getStatus() != ReservationStatus.APPROVED
-                && reservation.getStatus() != ReservationStatus.CHECKED_IN)
-            throw new IllegalStateException("Payment is available only for a new unpaid booking or an approved stay.");
+        // The system requires 100% payment before Admin review. Standard reservation
+        // checkout is therefore available only while the reservation is PAYMENT_PENDING.
+        // Additional charges (such as an approved extension) must use their own payment flow.
+        if (reservation.getStatus() != ReservationStatus.PAYMENT_PENDING)
+            throw new IllegalStateException("Full payment is required during the initial reservation checkout. Balance collection is not supported.");
 
         Optional<Payment> existing = payments.findFirstByReservationIdAndPaymentMethodAndStatusOrderByCreatedAtDesc(
                 reservationId, "XENDIT", PaymentStatus.PENDING);
         BigDecimal paid = paidAmountForReservation(reservationId);
-        BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
-        if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
-        if (initial && paid.signum() > 0)
-            throw new IllegalStateException("A new reservation checkout cannot be started after a payment has already been recorded.");
+        if (paid.signum() > 0)
+            throw new IllegalStateException("This reservation already has a recorded payment. A second standard reservation payment is not allowed.");
+        BigDecimal due = reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
+        if (due.signum() <= 0) throw new IllegalStateException("The reservation total must be greater than zero.");
 
         if (existing.isPresent()) {
             Payment prior = existing.get();
@@ -114,7 +115,7 @@ public class XenditService {
             prior.markFailedFromProvider(null);
         }
 
-        PaymentType type = paid.signum() == 0 ? PaymentType.FULL_PAYMENT : PaymentType.BALANCE;
+        PaymentType type = PaymentType.FULL_PAYMENT;
         String reference = "HOTEL-" + reservationId + "-" +
                 UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
         reservation.touchForPayment();
