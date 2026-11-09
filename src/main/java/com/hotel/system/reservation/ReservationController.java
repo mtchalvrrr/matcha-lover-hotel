@@ -64,7 +64,7 @@ public class ReservationController {
     public String continuePaymentCheckout(@PathVariable Long id, Authentication authentication,
                                           RedirectAttributes redirect) {
         try {
-            return "redirect:" + payMongo.createCheckout(id, authentication.getName());
+            return "redirect:" + xendit.createCheckout(id, authentication.getName());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/customer/reservations";
