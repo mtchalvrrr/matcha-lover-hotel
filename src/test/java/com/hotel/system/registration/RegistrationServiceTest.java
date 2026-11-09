@@ -101,7 +101,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void successfulEmailVerificationActivatesCustomerWithoutSuperAdminReview() {
+    void successfulEmailVerificationDoesNotActivateCustomerBeforeIdentityReview() {
         RegistrationRepository applications = mock(RegistrationRepository.class);
         SystemUserRepository users = mock(SystemUserRepository.class);
         RegistrationApplication application = mock(RegistrationApplication.class);
@@ -110,12 +110,6 @@ class RegistrationServiceTest {
                 .thenReturn(java.util.Optional.of(application));
         when(application.verifyOtp(eq("123456"), any(), any())).thenReturn(true);
         when(application.getUsername()).thenReturn("guest-user");
-        when(application.getEmail()).thenReturn("guest@example.com");
-        when(application.getFirstName()).thenReturn("Guest");
-        when(application.getLastName()).thenReturn("User");
-        when(application.getPasswordHash()).thenReturn("encoded-password");
-        when(users.existsByUsernameIgnoreCase("guest-user")).thenReturn(false);
-        when(users.existsByEmailIgnoreCase("guest@example.com")).thenReturn(false);
 
         RegistrationService service = new RegistrationService(applications, users,
                 mock(RegistrationDocumentStorage.class), new BCryptPasswordEncoder(),
@@ -124,12 +118,42 @@ class RegistrationServiceTest {
                 mock(AuditService.class), "noreply@example.com", notifications);
 
         assertTrue(service.verify(42L, "guest@example.com", "123456"));
-        verify(users).save(any(com.hotel.system.account.SystemUser.class));
-        verify(application).review(true, "SYSTEM",
-                "Automatically activated after email verification (temporary testing mode).");
-        verify(notifications).notifyUser(eq("guest-user"), eq("Customer account activated"),
-                contains("now active"), eq("ACCOUNT"));
+        verify(users, never()).save(any(com.hotel.system.account.SystemUser.class));
+        verify(application, never()).review(anyBoolean(), anyString(), anyString());
+        verify(notifications, never()).notifyUser(anyString(), anyString(), anyString(), anyString());
         verify(notifications, never()).notifySuperAdmins(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void identitySubmissionWaitsForSuperAdminReview() {
+        RegistrationRepository applications = mock(RegistrationRepository.class);
+        SystemUserRepository users = mock(SystemUserRepository.class);
+        RegistrationDocumentStorage documents = mock(RegistrationDocumentStorage.class);
+        RegistrationApplication application = mock(RegistrationApplication.class);
+        NotificationService notifications = mock(NotificationService.class);
+        when(applications.findByIdAndEmailIgnoreCase(42L, "guest@example.com"))
+                .thenReturn(java.util.Optional.of(application));
+        when(application.isEmailVerified()).thenReturn(true);
+        when(application.getUsername()).thenReturn("guest-user");
+        when(application.getEmail()).thenReturn("guest@example.com");
+        when(documents.store(any())).thenReturn("front.png", "back.png");
+
+        RegistrationService service = new RegistrationService(applications, users, documents,
+                new BCryptPasswordEncoder(), mock(JavaMailSender.class),
+                Clock.fixed(Instant.parse("2026-11-08T00:00:00Z"), ZoneId.of("Asia/Manila")),
+                mock(AuditService.class), "noreply@example.com", notifications);
+        MockMultipartFile front = new MockMultipartFile("front", "front.png", "image/png",
+                new byte[]{1, 2, 3, 4, 5});
+        MockMultipartFile back = new MockMultipartFile("back", "back.png", "image/png",
+                new byte[]{6, 7, 8, 9, 10});
+
+        service.attachIdentityDocuments(42L, "guest@example.com", "Passport", front, back);
+
+        verify(application).attachIdentityDocuments(eq("Passport"), eq("front.png"), eq("back.png"), anyString());
+        verify(users, never()).save(any(com.hotel.system.account.SystemUser.class));
+        verify(application, never()).review(anyBoolean(), anyString(), anyString());
+        verify(notifications).notifySuperAdmins(eq("Customer registration pending review"),
+                contains("application (#42)"), eq("REGISTRATION"));
     }
 
 }
