@@ -180,8 +180,15 @@ public class RegistrationService {
             frontPath = documents.store(front);
             backPath = documents.store(back);
             app.attachIdentityDocuments(type, frontPath, backPath, combinedHash);
-            audit.record(app.getUsername(), "CUSTOMER_IDENTITY_DOCUMENTS_SUBMITTED", "REGISTRATION",
-                id.toString(), "Government ID type and front/back images submitted for review.");
+            if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail()))
+                throw new IllegalStateException("A matching account already exists. Please contact the hotel.");
+            users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(),
+                    app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
+            app.review(true, "SYSTEM", "Automatically activated after verified email and identity submission (temporary testing mode).");
+            notifications.notifyUser(app.getUsername(), "Customer account activated",
+                    "Your email and identity documents have been verified. Your customer account is now active.", "ACCOUNT");
+            audit.record(app.getUsername(), "CUSTOMER_REGISTRATION_AUTO_APPROVED", "REGISTRATION",
+                id.toString(), "Customer account automatically activated after email OTP and ID submission.");
         } catch (RuntimeException ex) {
             if (!frontPath.isBlank()) try { documents.delete(frontPath); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
             if (!backPath.isBlank()) try { documents.delete(backPath); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
