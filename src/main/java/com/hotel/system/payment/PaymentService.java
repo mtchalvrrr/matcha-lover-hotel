@@ -157,9 +157,11 @@ public class PaymentService {
                 throw new IllegalStateException("The payment is no longer eligible for refund.");
             }
             touchReservation(payment.getReservationId());
-            if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
+            if ("NEXUSPAY".equalsIgnoreCase(payment.getPaymentMethod())) {
                 if (nexusPay == null) throw new IllegalStateException("NexusPay refund processing is unavailable.");
                 nexusPay.refund(payment, request);
+            } else if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
+                throw new IllegalStateException("This is a legacy Xendit payment. Review and process its refund manually in the provider dashboard.");
             } else if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
                 throw new IllegalStateException("This is a legacy PayMongo payment. Review it manually in the provider dashboard.");
             } else {
@@ -205,8 +207,10 @@ public class PaymentService {
             throw new IllegalArgumentException("Enter a void reason up to 500 characters.");
         }
         touchReservation(payment.getReservationId());
-        if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
-            throw new IllegalStateException("NexusPay checkout sessions expire automatically. Do not void locally before NexusPay confirms the session is expired.");
+        if ("NEXUSPAY".equalsIgnoreCase(payment.getPaymentMethod())) {
+            throw new IllegalStateException("NexusPay checkout payments expire automatically. Do not void locally before NexusPay confirms the payment is expired.");
+        } else if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
+            throw new IllegalStateException("This is a legacy Xendit checkout. Confirm its status in the provider dashboard before changing it.");
         } else if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
             throw new IllegalStateException("Legacy PayMongo checkout voiding is disabled after the provider migration.");
         } else {
