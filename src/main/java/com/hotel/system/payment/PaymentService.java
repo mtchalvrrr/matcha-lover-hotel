@@ -76,7 +76,7 @@ public class PaymentService {
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
 
-        PaymentType type = PaymentType.FULL_PAYMENT;
+        PaymentType type = paid.signum() == 0 ? PaymentType.FULL_PAYMENT : PaymentType.BALANCE;
         BigDecimal amount = due;
 
         reservation.touchForPayment();
