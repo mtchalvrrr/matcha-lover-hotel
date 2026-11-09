@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.net.http.HttpClient;
 
@@ -144,10 +145,28 @@ public class XenditService {
                     .header("Content-Type", "application/json")
                     .body(body)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (request, result) -> {
-                        throw new IllegalStateException("Xendit could not create checkout. Check the Test Mode API key and dashboard settings.");
-                    })
                     .body(Map.class);
+        } catch (RestClientResponseException ex) {
+            // Preserve Xendit's safe error details so a rejected API request can be diagnosed
+            // from the application message without exposing the secret API key.
+            String providerDetail = "HTTP " + ex.getStatusCode().value();
+            try {
+                JsonNode error = mapper.readTree(ex.getResponseBodyAsString());
+                String errorCode = error.path("error_code").asText("");
+                String errorMessage = error.path("message").asText("");
+                if (!errorCode.isBlank()) providerDetail += " [" + errorCode + "]";
+                if (!errorMessage.isBlank()) {
+                    String safeMessage = errorMessage.replaceAll("[\\r\\n\\t]", " ").trim();
+                    if (safeMessage.length() > 240) safeMessage = safeMessage.substring(0, 240);
+                    providerDetail += ": " + safeMessage;
+                }
+            } catch (Exception ignored) {
+                // The HTTP status remains useful even when Xendit returns a non-JSON error body.
+            }
+            throw new IllegalStateException(
+                    "Xendit rejected the checkout request (" + providerDetail
+                            + "). Check that the Test Mode API key and enabled payment channels are correct.",
+                    ex);
         } catch (RestClientException ex) {
             throw new IllegalStateException(
                     "Xendit checkout could not be reached within the allowed time. No payment was confirmed. Please try again.",
