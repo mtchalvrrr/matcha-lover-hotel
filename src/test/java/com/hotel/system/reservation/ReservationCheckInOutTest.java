@@ -36,12 +36,12 @@ class ReservationCheckInOutTest {
     }
 
     @Test
-    void checkInStoresActualTimeAfterDepositIsPaid() {
+    void checkInStoresActualTimeAfterFullPaymentIsPaid() {
         Reservation reservation = reservation();
         reservation.setStayTimes(java.time.LocalTime.of(10, 0), java.time.LocalTime.NOON);
         reservation.changeStatus(ReservationStatus.APPROVED);
         when(reservations.findById(91L)).thenReturn(Optional.of(reservation));
-        when(payments.sumPaidForReservation(91L, PaymentStatus.PAID)).thenReturn(new BigDecimal("1000.00"));
+        when(payments.sumPaidForReservation(91L, PaymentStatus.PAID)).thenReturn(new BigDecimal("2000.00"));
 
         service().checkIn(91L, "admin");
 
