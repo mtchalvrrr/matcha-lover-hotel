@@ -222,6 +222,13 @@ public class RegistrationService {
         return documents.resolve(storedPath);
     }
 
+    public java.nio.file.Path documentPath(Long id, String side) {
+        RegistrationApplication app = get(id);
+        String storedPath = "back".equalsIgnoreCase(side) ? app.getIdDocumentBackPath() : app.getIdDocumentPath();
+        if (storedPath == null || storedPath.isBlank()) throw new IllegalArgumentException("Requested ID image was not submitted.");
+        return documents.resolve(storedPath);
+    }
+
     public java.nio.file.Path approvedDocumentPath(Long id) {
         RegistrationApplication application = get(id);
         if (application.getStatus() != RegistrationStatus.APPROVED)
