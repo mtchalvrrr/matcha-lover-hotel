@@ -174,11 +174,14 @@ public class PaymentService {
                         + (approve ? "; provider refund status: " + payment.getStatus() + "."
                                    : "; review reason: " + (reviewReason == null ? "" : reviewReason.trim())));
         String message = approve
-                ? (payment.getStatus() == PaymentStatus.REFUND_PENDING
-                    ? "Your refund for payment " + payment.getTransactionReference()
-                        + " was accepted by the hotel and is being processed by Xendit. We will notify you when the provider confirms the result."
-                    : "Your refund for payment " + payment.getTransactionReference()
-                        + " has been confirmed by the payment provider.")
+                ? ("failed".equalsIgnoreCase(payment.getProviderRefundStatus())
+                    ? "Xendit could not complete the refund for payment " + payment.getTransactionReference()
+                        + ". The payment remains recorded as paid while administrators review the failure."
+                    : payment.getStatus() == PaymentStatus.REFUND_PENDING
+                        ? "Your refund for payment " + payment.getTransactionReference()
+                            + " was accepted by the hotel and is being processed by Xendit. We will notify you when the provider confirms the result."
+                        : "Your refund for payment " + payment.getTransactionReference()
+                            + " has been confirmed by the payment provider.")
                 : "Your refund request for payment " + payment.getTransactionReference()
                     + " was rejected. Reason: " + (reviewReason == null ? "" : reviewReason.trim());
         if (payment.getCustomerUsername().startsWith("WALK-IN (")) {
