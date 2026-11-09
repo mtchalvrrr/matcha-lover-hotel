@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css(v=8)}"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${room.name + ' | [HOTEL NAME]'}">Room details</title><link rel="stylesheet" th:href="@{/css/app.css(v=9)}"></head>
 <body><main class="shell room-detail-shell">
 <div th:if="${customerSignedIn}" th:replace="~{fragments/customer-header :: customerHeader('rooms')}"></div><header class="topbar" th:unless="${customerSignedIn}"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/rooms}">Back to rooms</a></header>
 <section class="room-detail-heading">
@@ -9,17 +9,19 @@
 </section>
 <section class="room-gallery-viewer room-gallery-large" id="roomGallery" aria-label="Room photo carousel">
 <div class="gallery-main-row">
+<button type="button" class="gallery-arrow" id="galleryPrevious" aria-label="Previous photo">‹</button>
 <button type="button" class="gallery-active" id="galleryOpenLightbox" aria-label="Open photo zoom">
 <img id="galleryActiveImage" th:alt="${room.name + ' photo'}" alt="Room photo">
 <span class="gallery-zoom-hint">Click to enlarge</span>
 </button>
+<button type="button" class="gallery-arrow" id="galleryNext" aria-label="Next photo">›</button>
 </div>
-<div class="gallery-carousel-status" id="galleryCarouselStatus" aria-live="polite">1 / 5 · Sample room photos</div>
-<div class="gallery-thumbnails" id="galleryThumbnails">
+<div class="gallery-carousel-status" id="galleryCarouselStatus" aria-live="polite">1 / 5</div>
+<div class="gallery-photo-sources" id="galleryThumbnails" aria-hidden="true">
 <button type="button" class="gallery-thumbnail" th:each="photo,stat : ${photos}"
  th:classappend="${stat.index == 0 ? 'is-active' : ''}"
- th:attr="data-photo-src=${photo.publicPath},aria-label=${'Show photo ' + stat.count}">
-<img th:src="${photo.publicPath}" th:alt="${room.name + ' thumbnail'}">
+ th:attr="data-photo-src=${photo.publicPath},aria-label=${'Photo ' + stat.count}">
+<img th:src="${photo.publicPath}" th:alt="${room.name + ' photo ' + stat.count}">
 </button>
 </div>
 </section>
@@ -32,6 +34,18 @@
 <p class="room-rating-display room-detail-rating" th:if="${roomRating.count > 0}"><span aria-hidden="true">★</span> <strong th:text="${#numbers.formatDecimal(roomRating.average,1,'POINT',1,'POINT')}">5.0</strong> / 5 <span th:text="${'· Based on ' + roomRating.count + ' customer ratings'}">· Based on customer ratings</span></p>
 <p class="room-rating-display room-rating-empty room-detail-rating" th:if="${roomRating.count == 0}">☆ No customer ratings yet</p>
 <div class="room-meta"><span th:text="${room.capacity + ' guests maximum'}">2 guests maximum</span><strong th:text="${'₱' + #numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT') + ' per night'}">₱1,000 per night</strong></div>
+<section class="booking-request room-booking-inline" th:if="${customerSignedIn}">
+<form class="auth-card wide-form" th:action="@{/customer/reservations}" method="post">
+<input type="hidden" name="roomId" th:value="${room.id}">
+<div class="room-booking-fields">
+<div><label for="checkIn">Check-in date</label><input id="checkIn" type="date" name="checkIn" th:attr="min=${minimumDate}" th:value="${checkIn}" required></div>
+<div><label for="checkOut">Check-out date</label><input id="checkOut" type="date" name="checkOut" th:attr="min=${minimumDate}" th:value="${checkOut}" required></div>
+<div><label for="guests">Number of guests</label><input id="guests" type="number" name="guests" min="1" th:attr="max=${room.capacity}" th:value="${guestCount}" required></div>
+</div>
+<button class="primary-button" type="submit" th:disabled="${availabilityChecked and !availabilityAvailable}">Continue with reservation</button>
+<p class="form-help">Your reservation is reviewed by the hotel before payment. Once approved, you can pay the 50% deposit securely through the configured PayMongo checkout.</p>
+</form>
+</section>
 <div class="room-availability-dialog" id="roomAvailabilityDialog" role="dialog" aria-modal="true" aria-labelledby="roomAvailabilityTitle" tabindex="-1">
 <section class="room-availability-panel" id="roomAvailability">
 <a class="availability-dialog-close" href="#" aria-label="Close">×</a>
@@ -65,20 +79,10 @@
 </section>
 <p class="notice" th:if="${success}" th:text="${success}"></p>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
-<section class="booking-request" th:if="${customerSignedIn}">
-<h2>Request this room</h2>
-<form class="auth-card wide-form" th:action="@{/customer/reservations}" method="post">
-<input type="hidden" name="roomId" th:value="${room.id}">
-<label for="checkIn">Check-in date</label><input id="checkIn" type="date" name="checkIn" th:attr="min=${minimumDate}" th:value="${checkIn}" required>
-<label for="checkOut">Check-out date</label><input id="checkOut" type="date" name="checkOut" th:attr="min=${minimumDate}" th:value="${checkOut}" required>
-<label for="guests">Number of guests</label><input id="guests" type="number" name="guests" min="1" th:attr="max=${room.capacity}" th:value="${guestCount}" required>
-<button class="primary-button" type="submit" th:disabled="${availabilityChecked and !availabilityAvailable}">Submit reservation request</button>
-<p class="form-help">Your request will be pending until reviewed by an administrator. The final amount is based on the room's saved nightly rate and the number of nights.</p>
-</form>
-</section>
+
 <div class="action-row" th:unless="${customerSignedIn}"><a class="primary-link" th:href="@{/customer/login}">Sign in to reserve</a><a class="secondary-link" th:href="@{/rooms}">Browse other rooms</a></div>
 </section><footer><span th:text="${hotelSettings.address}">[HOTEL ADDRESS]</span><span th:text="${hotelSettings.contactInformation}">[HOTEL CONTACT INFORMATION]</span></footer>
-<script th:src="@{/js/room-gallery.js(v=5)}" defer></script>
+<script th:src="@{/js/room-gallery.js(v=6)}" defer></script>
 
 </main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body></html>
