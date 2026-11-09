@@ -159,13 +159,35 @@ public class HotelController {
         if (r == null || !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
             flash.addFlashAttribute("error", "Reservation not found."); return "redirect:/customer/reservations";
         }
-        if (!r.getStatus().equals("PENDING") && !r.getStatus().equals("APPROVED")) {
+        if (!"PENDING".equals(r.getStatus()) && !"APPROVED".equals(r.getStatus())) {
             flash.addFlashAttribute("error", "This reservation cannot be cancelled in its current status.");
         } else {
-            r.setStatusBeforeCancellation(r.getStatus());
-            r.setStatus("CANCELLATION_REQUESTED");
-            reservations.save(r);
-            flash.addFlashAttribute("success", "Cancellation request sent to the manager.");
+            java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+            java.time.LocalTime checkInTime = r.getCheckInTime() == null
+                    ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+            java.time.LocalDateTime checkInAt = r.getCheckIn().atTime(checkInTime);
+            java.time.LocalDateTime now = java.time.LocalDateTime.now(hotelZone).withNano(0);
+
+            if (!now.isBefore(checkInAt)) {
+                // A pending request that reached check-in without manager review is VOID.
+                // An approved stay cannot be cancelled after check-in through the normal
+                // cancellation flow; early checkout requests are intentionally not supported.
+                if ("PENDING".equals(r.getStatus())) {
+                    r.setStatus("VOID");
+                    r.setStatusBeforeCancellation(null);
+                    reservations.save(r);
+                    flash.addFlashAttribute("error",
+                            "The reservation has expired and was marked VOID because check-in time has arrived.");
+                } else {
+                    flash.addFlashAttribute("error",
+                            "Check-in time has arrived. This reservation can no longer be cancelled through the standard cancellation process.");
+                }
+            } else {
+                r.setStatusBeforeCancellation(r.getStatus());
+                r.setStatus("CANCELLATION_REQUESTED");
+                reservations.save(r);
+                flash.addFlashAttribute("success", "Cancellation request sent to the manager.");
+            }
         }
         return "redirect:/customer/reservations";
     }
@@ -215,12 +237,13 @@ public class HotelController {
                         ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
                 java.time.LocalTime outTime = r.getCheckOutTime() == null
                         ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                // The public calendar needs occupied intervals only. Do not expose
+                // internal reservation statuses or any customer-identifying information.
                 return java.util.Map.of(
                     "checkIn", r.getCheckIn().toString(),
                     "checkOut", r.getCheckOut().toString(),
                     "checkInTime", inTime.toString(),
-                    "checkOutTime", outTime.toString(),
-                    "status", r.getStatus()
+                    "checkOutTime", outTime.toString()
                 );
             })
             .toList();
@@ -457,7 +480,11 @@ public class HotelController {
 
 
     private boolean isProcessedHistory(Reservation r) {
-        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED").contains(r.getStatus());
+        // Only terminal states belong in processed history. APPROVED reservations may
+        // still be upcoming or occupied and must remain on the active reservations page.
+        return r.isHistoryVisible() &&
+                java.util.List.of("REJECTED", "CANCELLED", "VOID", "COMPLETED")
+                        .contains(r.getStatus());
     }
 
     @PostMapping("/manager/history/{id}/delete")
