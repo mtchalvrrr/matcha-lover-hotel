@@ -12,17 +12,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PaymentController {
     private final PaymentService payments;
     private final AuditService audit;
+    private final XenditService xendit;
 
-    public PaymentController(PaymentService payments, AuditService audit) {
+    public PaymentController(PaymentService payments, AuditService audit, XenditService xendit) {
         this.payments = payments;
         this.audit = audit;
+        this.xendit = xendit;
     }
 
     @PostMapping("/customer/reservations/{id}/pay")
     public String pay(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
         try {
-            Payment payment = payments.payNextDue(id, authentication.getName());
-            redirect.addFlashAttribute("success", "Simulated payment recorded. Reference: " + payment.getTransactionReference());
+            return "redirect:" + xendit.createCheckout(id, authentication.getName());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
