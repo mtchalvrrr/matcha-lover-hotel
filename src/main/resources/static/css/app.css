@@ -985,3 +985,44 @@ footer{border-color:#dce2d7;color:#718071}
   .support-status-form{justify-content:flex-start}
   .support-message{max-width:100%}
 }
+
+
+/* Room detail: clean carousel controls and a single booking form beside the room price. */
+.room-gallery-large .gallery-main-row{
+  display:grid!important;
+  grid-template-columns:54px minmax(0,1fr) 54px!important;
+  align-items:center!important;
+  gap:14px!important;
+}
+.room-gallery-large .gallery-arrow{
+  display:grid!important;place-items:center;width:54px;height:54px;
+  padding:0;border:1px solid #d8e2d3;border-radius:50%;
+  background:#fffdf8;color:var(--green);font-size:34px;line-height:1;
+  cursor:pointer;transition:background .18s,color .18s,transform .18s;
+}
+.room-gallery-large .gallery-arrow:hover{
+  background:var(--green);color:#fff;transform:scale(1.05);
+}
+.room-gallery-large .gallery-active{width:100%!important;min-width:0}
+.gallery-photo-sources{display:none!important}
+.room-gallery-large .gallery-carousel-status{margin-top:10px;text-align:center}
+.room-booking-inline{
+  margin:22px 0 34px;padding:22px;
+  border:1px solid #e0e7dc;border-radius:16px;background:#fffdf8;
+}
+.room-booking-inline .auth-card{display:grid;gap:14px;padding:0;border:0;background:transparent;box-shadow:none}
+.room-booking-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.room-booking-fields>div{display:grid;gap:7px}
+.room-booking-fields label{font-size:11px;font-weight:750;color:#526b55}
+.room-booking-fields input{
+  width:100%;min-width:0;min-height:44px;padding:10px 12px;
+  border:1px solid #d8e0d4;border-radius:10px;background:#fffefa;color:#304c39;
+}
+.room-booking-inline .primary-button{justify-self:start}
+.room-booking-inline .form-help{margin:0;line-height:1.6}
+@media(max-width:760px){
+  .room-gallery-large .gallery-main-row{grid-template-columns:40px minmax(0,1fr) 40px!important;gap:7px!important}
+  .room-gallery-large .gallery-arrow{width:40px;height:40px;font-size:27px}
+  .room-booking-fields{grid-template-columns:1fr}
+  .room-booking-inline{padding:16px}
+}
