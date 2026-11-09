@@ -29,18 +29,7 @@
 </head>
 <body>
 <main class="shell narrow">
-    <header class="topbar">
-        <a class="brand" th:href="@{/customer/dashboard}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
-        <div class="customer-header-actions">
-            <nav class="customer-shortcuts" aria-label="Customer navigation">
-                <a th:href="@{/rooms}">Browse rooms</a>
-                <a class="current" th:href="@{/customer/dashboard}" aria-current="page">Dashboard</a>
-                <a th:href="@{/customer/notifications}">Notifications</a>
-                <button type="button" id="openCustomerSupport">Customer support</button>
-            </nav>
-            <form th:action="@{/customer/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form>
-        </div>
-    </header>
+    <div th:replace="~{fragments/customer-header :: customerHeader('dashboard')}"></div>
 
     <section class="stay-section" aria-labelledby="stayHeading">
         <h2 id="stayHeading">Your approved stays</h2>
@@ -90,13 +79,6 @@
             event.preventDefault();
         }
     });
-    const supportButton = document.getElementById("openCustomerSupport");
-    if (supportButton) {
-        supportButton.addEventListener("click", function () {
-            const chatToggle = document.getElementById("chatToggle");
-            if (chatToggle) chatToggle.click();
-        });
-    }
 })();
 </script>
 </body>
