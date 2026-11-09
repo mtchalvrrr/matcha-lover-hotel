@@ -48,6 +48,7 @@ public class PortalController {
 
     @GetMapping("/customer/dashboard")
     public String customerDashboard(Authentication authentication, Model model) {
+        model.addAttribute("hotelSettings", hotelSettings.current());
         var customerReservations = reservations.customerReservations(authentication.getName());
         model.addAttribute("hasReservations", !customerReservations.isEmpty());
         model.addAttribute("approvedStays", customerReservations.stream()
