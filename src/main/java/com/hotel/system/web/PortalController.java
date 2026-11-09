@@ -1,6 +1,9 @@
 package com.hotel.system.web;
 
 import com.hotel.system.dashboard.DashboardService;
+import com.hotel.system.reservation.Reservation;
+import com.hotel.system.reservation.ReservationService;
+import com.hotel.system.reservation.ReservationStatus;
 import com.hotel.system.settings.HotelSettingsService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -10,10 +13,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PortalController {
     private final DashboardService dashboards;
+    private final ReservationService reservations;
     private final HotelSettingsService hotelSettings;
 
-    public PortalController(DashboardService dashboards, HotelSettingsService hotelSettings) {
+    public PortalController(DashboardService dashboards, ReservationService reservations, HotelSettingsService hotelSettings) {
         this.dashboards = dashboards;
+        this.reservations = reservations;
         this.hotelSettings = hotelSettings;
     }
 
@@ -43,7 +48,12 @@ public class PortalController {
 
     @GetMapping("/customer/dashboard")
     public String customerDashboard(Authentication authentication, Model model) {
-        model.addAttribute("summary", dashboards.customerSummary(authentication.getName()));
+        var customerReservations = reservations.customerReservations(authentication.getName());
+        model.addAttribute("hasReservations", !customerReservations.isEmpty());
+        model.addAttribute("approvedStays", customerReservations.stream()
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED
+                        || reservation.getStatus() == ReservationStatus.CHECKED_IN)
+                .toList());
         return "dashboards/customer-dashboard";
     }
 
