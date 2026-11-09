@@ -45,7 +45,7 @@ public class SupportService {
     }
 
     public Long createCase(String username, String category, String subject, String message) {
-        requireActiveUser(username, AccountRole.CUSTOMER);
+        SystemUser customer = requireActiveUser(username, AccountRole.CUSTOMER);
         String cleanCategory = category == null ? "" : category.trim().toUpperCase(Locale.ROOT);
         String cleanSubject = clean(subject, 120, "Enter a subject up to 120 characters.");
         String cleanMessage = clean(message, 2000, "Enter a message up to 2,000 characters.");
@@ -53,7 +53,11 @@ public class SupportService {
             throw new IllegalArgumentException("Choose a valid support category.");
         }
 
-        SupportCase supportCase = cases.saveAndFlush(new SupportCase(username, cleanCategory, cleanSubject));
+        String customerName = ((customer.getFirstName() == null ? "" : customer.getFirstName()) + " "
+                + (customer.getLastName() == null ? "" : customer.getLastName())).trim();
+        if (customerName.isBlank()) customerName = customer.getUsername();
+        SupportCase supportCase = cases.saveAndFlush(new SupportCase(customer.getId(), customerName,
+                customer.getEmail(), username, cleanCategory, cleanSubject));
         SupportMessage firstMessage = messages.save(new SupportMessage(
                 supportCase.getId(), username, "CUSTOMER", cleanMessage));
         notifications.notifyAdminsInAppOnly("New customer support request",
@@ -105,8 +109,8 @@ public class SupportService {
                 messages.findBySupportCaseIdOrderByCreatedAtAsc(supportCase.getId()));
     }
 
-    private void requireActiveUser(String username, AccountRole role) {
-        SystemUser user = users.findByUsernameIgnoreCase(username)
+    private SystemUser requireActiveUser(String username, AccountRole role) {
+        return users.findByUsernameIgnoreCase(username)
                 .filter(SystemUser::isActive)
                 .filter(account -> account.getRole() == role)
                 .orElseThrow(() -> new IllegalArgumentException("Your account is not allowed to use this support action."));
