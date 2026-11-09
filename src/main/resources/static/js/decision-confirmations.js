@@ -89,7 +89,8 @@
     if (/refund|void/.test(combined)) {
       return { title: "Confirm payment action?", message: "This action affects a financial record. Verify the amount, transaction, and authorization before continuing.", confirmLabel: "Continue" };
     }
-    if (/deactivation/.test(action) || /deactivation request/.test(label)) { return { title: "Submit account deactivation request?", message: "Your request will be sent for Super Admin review. Your account remains active until it is approved.", confirmLabel: "Submit request" }; }\n    if (/deactivat|suspend|reactivat|activate|status|enable|disable|readiness/.test(combined)) {
+    if (/deactivation/.test(action) || /deactivation request/.test(label)) { return { title: "Submit account deactivation request?", message: "Your request will be sent for Super Admin review. Your account remains active until it is approved.", confirmLabel: "Submit request" }; }
+    if (/deactivat|suspend|reactivat|activate|status|enable|disable|readiness/.test(combined)) {
       return { title: "Change account or room status?", message: "This will change whether the account or room is active and may affect access or availability.", confirmLabel: "Confirm change" };
     }
     if (/delete|remove/.test(combined)) {
