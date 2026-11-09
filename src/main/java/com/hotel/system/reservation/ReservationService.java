@@ -250,8 +250,9 @@ public class ReservationService {
             }
             notifications.notifyUser(reservation.getCustomerUsername(), "Reservation rejected",
                 paidPayments.isEmpty()
-                    ? "Your reservation #" + id + " was rejected. Contact the hotel for details."
-                    : "Your reservation #" + id + " was rejected. A full refund request has been submitted for separate administrator authorization. We will notify you when it is reviewed.",
+                    ? "Your reservation #" + id + " was rejected. Reason: " + cleanRejectionReason
+                    : "Your reservation #" + id + " was rejected. Reason: " + cleanRejectionReason
+                            + ". A full refund request has been submitted for separate administrator authorization. We will notify you when it is reviewed.",
                 "RESERVATION");
         }
     }
