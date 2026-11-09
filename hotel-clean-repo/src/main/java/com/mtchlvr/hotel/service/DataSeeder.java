@@ -31,12 +31,18 @@ public class DataSeeder {
                     ? "" : managerEmail.trim().toLowerCase(java.util.Locale.ROOT);
             if (!normalizedManagerEmail.isBlank() &&
                     managerPassword != null && !managerPassword.isBlank()) {
-                if (!users.existsByEmailIgnoreCase(normalizedManagerEmail)) {
-                    users.save(new AppUser(normalizedManagerEmail,
+                AppUser manager = users.findByEmailIgnoreCase(normalizedManagerEmail).orElse(null);
+                if (manager == null) {
+                    manager = new AppUser(normalizedManagerEmail,
                         encoder.encode(managerPassword),
                         managerName == null || managerName.isBlank() ? "Hotel Manager" : managerName.trim(),
-                        "MANAGER", true));
+                        "MANAGER", true);
+                } else {
+                    // Re-provision the configured manager on startup so a previously
+                    // exposed demo password is replaced in the existing local database.
+                    manager.setPasswordHash(encoder.encode(managerPassword));
                 }
+                users.save(manager);
             }
         };
     }
