@@ -57,6 +57,7 @@ public class SupportController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/support")
     public String managerSupport(Model model) {
+        model.addAttribute("hotelSettings", hotelSettings.current());
         model.addAttribute("threads", support.managerThreads());
         model.addAttribute("statuses", SupportStatus.values());
         return "support/manager";
