@@ -1,0 +1,7 @@
+{
+  // Keep the Java language server from reserving a large heap in Codespaces.
+  // This is especially important when multiple VS Code windows are open.
+  "java.jdt.ls.vmargs": "-Xms128m -Xmx768m -XX:+UseG1GC -XX:+UseStringDeduplication",
+  "java.autobuild.enabled": false,
+  "java.configuration.updateBuildConfiguration": "interactive"
+}
