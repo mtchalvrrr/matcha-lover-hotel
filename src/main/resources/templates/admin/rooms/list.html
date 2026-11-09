@@ -17,4 +17,5 @@
 <form th:action="@{/admin/rooms/{id}/status(id=${room.id})}" method="post"><input type="hidden" name="active" th:value="${!room.active}"><button class="text-button" type="submit" th:text="${room.active ? 'Deactivate' : 'Activate'}">Deactivate</button></form></td></tr>
 </tbody></table></div>
 <p class="notice" th:if="${#lists.isEmpty(rooms)}">No room records yet. Use Add a room to create the first room.</p>
-</main></body></html>
+</main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>
