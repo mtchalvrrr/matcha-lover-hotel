@@ -195,6 +195,14 @@ public class ReservationService {
 
 
     public void review(Long id, boolean approve, String adminUsername) {
+        review(id, approve, adminUsername, approve ? null : "Reservation rejected by the hotel.");
+    }
+
+    public void review(Long id, boolean approve, String adminUsername, String rejectionReason) {
+        String cleanRejectionReason = rejectionReason == null ? "" : rejectionReason.trim();
+        if (!approve && (cleanRejectionReason.isBlank() || cleanRejectionReason.length() > 500)) {
+            throw new IllegalArgumentException("Enter a rejection reason up to 500 characters.");
+        }
         Reservation reservation = reservations.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
         if (reservation.getStatus() != ReservationStatus.PENDING) {
@@ -213,7 +221,8 @@ public class ReservationService {
         } else {
             reservation.changeStatus(ReservationStatus.REJECTED);
             audit.record(adminUsername, "RESERVATION_REJECTED", "RESERVATION", id.toString(),
-                "Rejected reservation for " + reservation.getCustomerUsername());
+                "Rejected reservation for " + reservation.getCustomerUsername()
+                        + ". Reason: " + cleanRejectionReason);
 
             // A paid reservation rejection must never trigger an automatic refund.
             // Queue each eligible paid transaction for a different administrator to authorize.
@@ -227,7 +236,8 @@ public class ReservationService {
                 }
                 PaymentRefundRequest refundRequest = refundRequests.save(new PaymentRefundRequest(
                         payment.getId(), adminUsername,
-                        "Reservation #" + id + " was rejected. Full payment refund requires authorization by a different administrator."));
+                        "Reservation #" + id + " was rejected. Reason: " + cleanRejectionReason
+                                + ". Full payment refund requires authorization by a different administrator."));
                 audit.record(adminUsername, "PAYMENT_REFUND_REQUESTED", "PAYMENT",
                         payment.getId().toString(),
                         "Refund request #" + refundRequest.getId() + " automatically created after reservation rejection #" + id
