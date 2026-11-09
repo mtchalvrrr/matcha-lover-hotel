@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.hotel.system.payment.PaymentService;
-import com.hotel.system.payment.XenditService;
+import com.hotel.system.payment.NexusPayService;
 import com.hotel.system.room.RoomService;
 
 import java.time.LocalDate;
@@ -17,18 +17,18 @@ import java.time.Clock;
 public class ReservationController {
     private final ReservationService reservations;
     private final PaymentService payments;
-    private final XenditService xendit;
+    private final NexusPayService nexusPay;
     private final WalkInBookingService walkInBookings;
     private final RoomService rooms;
     private final Clock clock;
     private final ReservationHistoryService history;
 
     public ReservationController(ReservationService reservations, PaymentService payments,
-                                 XenditService xendit, WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
+                                 NexusPayService nexusPay, WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
                                  ReservationHistoryService history) {
         this.reservations = reservations;
         this.payments = payments;
-        this.xendit = xendit;
+        this.nexusPay = nexusPay;
         this.walkInBookings = walkInBookings;
         this.rooms = rooms;
         this.clock = clock;
@@ -45,7 +45,7 @@ public class ReservationController {
         Reservation hold = null;
         try {
             hold = reservations.request(authentication.getName(), roomId, checkIn, checkOut, guests);
-            String checkoutUrl = xendit.createCheckout(hold.getId(), authentication.getName());
+            String checkoutUrl = nexusPay.createCheckout(hold.getId(), authentication.getName());
             return "redirect:" + checkoutUrl;
         } catch (RuntimeException ex) {
             if (hold != null) {
@@ -61,7 +61,7 @@ public class ReservationController {
     public String continuePaymentCheckout(@PathVariable Long id, Authentication authentication,
                                           RedirectAttributes redirect) {
         try {
-            return "redirect:" + xendit.createCheckout(id, authentication.getName());
+            return "redirect:" + nexusPay.createCheckout(id, authentication.getName());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/customer/reservations";
