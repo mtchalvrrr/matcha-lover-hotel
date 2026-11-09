@@ -3,15 +3,18 @@ package com.hotel.system.account;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
- * Creates an explicitly requested local customer account for manual testing.
- * No account is created unless HOTEL_TEST_CUSTOMER_PASSWORD is supplied.
+ * Creates or refreshes a dedicated customer account only when the explicit
+ * test-account Spring profile is active. Never activate this profile in a live
+ * environment.
  */
 @Component
+@Profile("test-account")
 public class CustomerTestAccountBootstrap implements ApplicationRunner {
     private final SystemUserRepository users;
     private final PasswordEncoder passwordEncoder;
@@ -22,9 +25,9 @@ public class CustomerTestAccountBootstrap implements ApplicationRunner {
     public CustomerTestAccountBootstrap(
             SystemUserRepository users,
             PasswordEncoder passwordEncoder,
-            @Value("${HOTEL_TEST_CUSTOMER_PASSWORD:}") String password,
-            @Value("${HOTEL_TEST_CUSTOMER_USERNAME:customer_test}") String username,
-            @Value("${HOTEL_TEST_CUSTOMER_EMAIL:customer.test@matchalover.local}") String email) {
+            @Value("${HOTEL_TEST_CUSTOMER_PASSWORD:pass}") String password,
+            @Value("${HOTEL_TEST_CUSTOMER_USERNAME:cedih}") String username,
+            @Value("${HOTEL_TEST_CUSTOMER_EMAIL:cedih.test@matchalover.local}") String email) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.password = password;
@@ -34,20 +37,25 @@ public class CustomerTestAccountBootstrap implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (!StringUtils.hasText(password)) {
+        if (!StringUtils.hasText(password) || !StringUtils.hasText(username) || !StringUtils.hasText(email)) {
+            throw new IllegalStateException("Test customer username, password, and email must not be blank.");
+        }
+
+        SystemUser existing = users.findByUsernameIgnoreCase(username).orElse(null);
+        if (existing != null) {
+            if (existing.getRole() != AccountRole.CUSTOMER) {
+                throw new IllegalStateException("The configured test username already belongs to a non-customer account.");
+            }
+            existing.setPasswordHash(passwordEncoder.encode(password));
+            existing.setActive(true);
+            users.save(existing);
             return;
         }
-        if (password.length() < 12
-                || !password.matches(".*[A-Z].*")
-                || !password.matches(".*[a-z].*")
-                || !password.matches(".*\\d.*")
-                || !password.matches(".*[^A-Za-z0-9].*")) {
-            throw new IllegalStateException(
-                    "HOTEL_TEST_CUSTOMER_PASSWORD must be at least 12 characters and include uppercase, lowercase, a number, and a special character.");
+
+        if (users.existsByEmailIgnoreCase(email)) {
+            throw new IllegalStateException("The configured test customer email is already used by another account.");
         }
-        if (users.existsByUsernameIgnoreCase(username) || users.existsByEmailIgnoreCase(email)) {
-            return;
-        }
+
         users.save(new SystemUser("Test", "Customer", username, email,
                 passwordEncoder.encode(password), AccountRole.CUSTOMER));
     }
