@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.hotel.system.payment.PaymentService;
-import com.hotel.system.payment.PayMongoService;
+import com.hotel.system.payment.XenditService;
 import com.hotel.system.room.RoomService;
 import com.hotel.system.room.RoomRatingService;
 
@@ -18,7 +18,7 @@ import java.time.Clock;
 public class ReservationController {
     private final ReservationService reservations;
     private final PaymentService payments;
-    private final PayMongoService payMongo;
+    private final XenditService xendit;
     private final WalkInBookingService walkInBookings;
     private final RoomService rooms;
     private final Clock clock;
@@ -26,11 +26,11 @@ public class ReservationController {
     private final RoomRatingService roomRatings;
 
     public ReservationController(ReservationService reservations, PaymentService payments,
-                                 PayMongoService payMongo, WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
+                                 XenditService xendit, WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
                                  ReservationHistoryService history, RoomRatingService roomRatings) {
         this.reservations = reservations;
         this.payments = payments;
-        this.payMongo = payMongo;
+        this.xendit = xendit;
         this.walkInBookings = walkInBookings;
         this.rooms = rooms;
         this.clock = clock;
@@ -48,7 +48,7 @@ public class ReservationController {
         Reservation hold = null;
         try {
             hold = reservations.request(authentication.getName(), roomId, checkIn, checkOut, guests);
-            String checkoutUrl = payMongo.createCheckout(hold.getId(), authentication.getName());
+            String checkoutUrl = xendit.createCheckout(hold.getId(), authentication.getName());
             return "redirect:" + checkoutUrl;
         } catch (RuntimeException ex) {
             if (hold != null) {
