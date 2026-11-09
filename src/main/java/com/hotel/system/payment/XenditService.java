@@ -114,7 +114,7 @@ public class XenditService {
         body.put("reference_id", reference);
         body.put("session_type", "PAY");
         body.put("mode", "PAYMENT_LINK");
-        body.put("amount", due.setScale(2, RoundingMode.HALF_UP).doubleValue());
+        body.put("amount", due.setScale(2, RoundingMode.HALF_UP));
         body.put("currency", "PHP");
         body.put("country", "PH");
         body.put("capture_method", "AUTOMATIC");
