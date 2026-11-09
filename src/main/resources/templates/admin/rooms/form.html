@@ -15,4 +15,5 @@
 <label for="amenities">Amenities (separate with commas)</label><textarea id="amenities" th:field="*{amenities}" rows="3" maxlength="1000"></textarea>
 
 <div class="action-row"><button class="primary-button" type="submit">Save room</button><a class="secondary-link" th:href="@{/admin/rooms}">Cancel</a></div>
-</form></main></body></html>
+</form></main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>
