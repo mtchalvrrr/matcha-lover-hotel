@@ -56,7 +56,7 @@
 <ul th:unless="${#lists.isEmpty(roomOccupancy)}">
 <li th:each="booking : ${roomOccupancy}">
 <span class="occupancy-status"
- th:text="${booking.status == T(com.hotel.system.reservation.ReservationStatus).PENDING ? 'Pending reservation' : (booking.status == T(com.hotel.system.reservation.ReservationStatus).CHECKED_IN ? 'Currently checked in' : 'Approved reservation')}"
+ th:text="${booking.status == T(com.hotel.system.reservation.ReservationStatus).PAYMENT_PENDING ? 'Awaiting payment' : (booking.status == T(com.hotel.system.reservation.ReservationStatus).PENDING ? 'Pending reservation' : (booking.status == T(com.hotel.system.reservation.ReservationStatus).CHECKED_IN ? 'Currently checked in' : 'Approved reservation'))}"
  th:classappend="${' occupancy-' + #strings.toLowerCase(booking.status.name())}">Pending reservation</span>
 <strong th:text="${#temporals.format(booking.checkInDate, 'MMM d, yyyy') + ' – ' + #temporals.format(booking.checkOutDate, 'MMM d, yyyy')}">Nov 8 – Nov 10</strong>
 </li>
