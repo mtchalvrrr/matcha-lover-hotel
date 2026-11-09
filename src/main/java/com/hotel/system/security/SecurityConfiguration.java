@@ -174,7 +174,7 @@ public class SecurityConfiguration {
     @Order(4)
     SecurityFilterChain publicSecurity(HttpSecurity http,
                                        LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/webhooks/xendit"))
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/webhooks/nexuspay"))
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
