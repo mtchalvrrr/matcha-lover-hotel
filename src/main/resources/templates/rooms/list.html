@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Explore Rooms | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body><main class="shell room-browser-shell">
-<div th:replace="~{fragments/customer-header :: customerHeader('rooms')}"></div>
+<div th:if="${customerSignedIn}" th:replace="~{fragments/customer-header :: customerHeader('rooms')}"></div><header class="topbar" th:unless="${customerSignedIn}"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer}">Customer portal</a></header>
 <section class="room-filter-bar" aria-label="Filter rooms">
 <div class="room-filter-heading"><span class="eyebrow">FIND YOUR ROOM</span><button type="button" class="secondary-button" id="clearRoomFilters">Reset filters</button></div>
 <div class="room-filter-controls">
