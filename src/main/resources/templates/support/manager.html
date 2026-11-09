@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customer Support | Admin</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/admin/dashboard}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <a class="back-link" th:href="@{/admin/dashboard}">Dashboard</a>
+    </header>
+    <section class="support-threads">
+        <h1>Customer support</h1>
+        <p class="intro">Respond to customer inquiries and manage open requests.</p>
+        <p class="notice" th:if="${success}" th:text="${success}"></p>
+        <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+        <p class="notice" th:if="${#lists.isEmpty(threads)}">There are no customer support requests.</p>
+        <article class="support-thread" th:each="thread : ${threads}" th:id="${'case-' + thread.supportCase.id}">
+            <header class="support-thread-heading">
+                <div>
+                    <p class="eyebrow" th:text="${thread.supportCase.category}">CATEGORY</p>
+                    <h2 th:text="${thread.supportCase.subject}">Subject</h2>
+                    <small th:text="${'Request #' + thread.supportCase.id + ' · Customer: ' + thread.supportCase.customerUsername}">Customer</small>
+                    <small th:text="${'Opened ' + #temporals.format(thread.supportCase.createdAt, 'MMM d, yyyy h:mm a')}">Date</small>
+                </div>
+                <form th:action="@{/admin/support/{id}/status(id=${thread.supportCase.id})}" method="post" class="support-status-form">
+                    <select name="status" aria-label="Support request status">
+                        <option th:each="status : ${statuses}" th:value="${status}" th:selected="${status == thread.supportCase.status}" th:text="${status}">OPEN</option>
+                    </select>
+                    <button class="secondary-button" type="submit">Update status</button>
+                </form>
+            </header>
+            <div class="support-message-list">
+                <div class="support-message" th:each="item : ${thread.messages}" th:classappend="${item.senderRole == 'CUSTOMER' ? ' from-customer' : ' from-manager'}">
+                    <div class="support-message-meta">
+                        <strong th:text="${item.senderRole == 'CUSTOMER' ? thread.supportCase.customerUsername : 'You · Manager'}">Sender</strong>
+                        <time th:text="${#temporals.format(item.createdAt, 'MMM d, yyyy h:mm a')}">Date</time>
+                    </div>
+                    <p th:text="${item.message}">Message</p>
+                </div>
+            </div>
+            <form class="support-reply-form" th:action="@{/admin/support/{id}/reply(id=${thread.supportCase.id})}" method="post">
+                <label th:for="${'manager-reply-' + thread.supportCase.id}">Reply to customer</label>
+                <textarea th:id="${'manager-reply-' + thread.supportCase.id}" name="message" rows="2" maxlength="2000" required placeholder="Write a reply..."></textarea>
+                <button class="primary-button" type="submit">Send reply</button>
+            </form>
+        </article>
+    </section>
+</main>
+</body>
+</html>
