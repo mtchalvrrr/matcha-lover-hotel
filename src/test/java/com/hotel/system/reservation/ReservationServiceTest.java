@@ -161,7 +161,17 @@ class ReservationServiceTest {
         when(rooms.findByIdAndActiveTrue(9L)).thenReturn(Optional.of(room));
         when(reservations.existsOverlappingReservation(eq(9L), anyCollection(),
                 eq(LocalDate.of(2026, 11, 12)), eq(LocalDate.of(2026, 11, 14)), isNull())).thenReturn(false);
-        when(reservations.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(reservations.save(any(Reservation.class))).thenAnswer(invocation -> {
+            Reservation saved = invocation.getArgument(0);
+            try {
+                java.lang.reflect.Field id = Reservation.class.getDeclaredField("id");
+                id.setAccessible(true);
+                id.set(saved, 55L);
+            } catch (ReflectiveOperationException ex) {
+                throw new IllegalStateException(ex);
+            }
+            return saved;
+        });
 
         Reservation hold = service().request("guest", 9L,
                 LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14), 2);
