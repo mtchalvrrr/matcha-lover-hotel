@@ -24,6 +24,12 @@ public class RegistrationApplication {
     private String passwordHash;
     @Column(name = "id_document_path", nullable = false, length = 500)
     private String idDocumentPath;
+    @Column(name = "id_document_back_path", length = 500)
+    private String idDocumentBackPath;
+    @Column(name = "id_document_type", length = 80)
+    private String idDocumentType;
+    @Column(name = "email_verified", nullable = false, columnDefinition = "boolean default false")
+    private boolean emailVerified;
     @Column(name = "document_hash", length = 64)
     private String documentHash;
     @Column(name = "otp_hash", nullable = false, length = 100)
@@ -64,6 +70,18 @@ public class RegistrationApplication {
     public String getUsername() { return username; }
     public String getPasswordHash() { return passwordHash; }
     public String getIdDocumentPath() { return idDocumentPath; }
+    public String getIdDocumentBackPath() { return idDocumentBackPath; }
+    public String getIdDocumentType() { return idDocumentType; }
+    public boolean isEmailVerified() { return emailVerified; }
+    public void attachIdentityDocuments(String type, String frontPath, String backPath, String hash) {
+        if (!emailVerified || status != RegistrationStatus.PENDING_OTP)
+            throw new IllegalStateException("Verify the email address before submitting identity documents.");
+        this.idDocumentType = type;
+        this.idDocumentPath = frontPath;
+        this.idDocumentBackPath = backPath;
+        this.documentHash = hash;
+        this.status = RegistrationStatus.PENDING_REVIEW;
+    }
     public RegistrationStatus getStatus() { return status; }
     public Instant getSubmittedAt() { return submittedAt; }
     public Instant getReviewedAt() { return reviewedAt; }
@@ -71,7 +89,7 @@ public class RegistrationApplication {
     public String getReviewReason() { return reviewReason; }
 
     public void resendOtp(String newOtpHash, Instant now) {
-        if (status != RegistrationStatus.PENDING_OTP) {
+        if (status != RegistrationStatus.PENDING_OTP || emailVerified) {
             throw new IllegalStateException("This registration no longer needs email verification.");
         }
         if (otpSentAt != null && otpSentAt.plusSeconds(60).isAfter(now)) {
@@ -88,12 +106,13 @@ public class RegistrationApplication {
     }
 
     public boolean verifyOtp(String candidate, PasswordEncoder encoder, Instant now) {
+        if (emailVerified) return true;
         if (status != RegistrationStatus.PENDING_OTP) throw new IllegalStateException("This OTP is no longer active.");
         if (!otpExpiresAt.isAfter(now)) throw new IllegalStateException("OTP expired. Submit a new registration request.");
         if (otpAttempts >= 5) throw new IllegalStateException("OTP attempt limit reached.");
         otpAttempts++;
         if (!encoder.matches(candidate, otpHash)) return false;
-        status = RegistrationStatus.PENDING_REVIEW;
+        emailVerified = true;
         otpHash = "VERIFIED";
         return true;
     }
