@@ -66,7 +66,7 @@ public class RegistrationController {
                 return "redirect:/register/verify";
             }
             redirect.addFlashAttribute("success", "Email verified. Your customer account is now active. You can sign in.");
-            return "redirect:/customer/login?registration=success";
+            return "redirect:/";
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("applicationId", applicationId);
             redirect.addFlashAttribute("email", email);
