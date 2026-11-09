@@ -6,20 +6,37 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import java.math.BigDecimal;
 
 @Configuration
 public class DataSeeder {
-    @Bean CommandLineRunner seed(RoomRepository rooms, UserRepository users, PasswordEncoder encoder) {
+    @Bean
+    CommandLineRunner seed(
+            RoomRepository rooms,
+            UserRepository users,
+            PasswordEncoder encoder,
+            @Value("${HOTEL_MANAGER_EMAIL:}") String managerEmail,
+            @Value("${HOTEL_MANAGER_PASSWORD:}") String managerPassword,
+            @Value("${HOTEL_MANAGER_NAME:Hotel Manager}") String managerName) {
         return args -> {
             // Seed each missing room independently so a partially populated database is repaired.
             addType(rooms, "Standard", "1", new BigDecimal("1800"), 2);
             addType(rooms, "Deluxe", "2", new BigDecimal("2600"), 2);
             addType(rooms, "Suite", "3", new BigDecimal("4200"), 2);
             addType(rooms, "Family", "4", new BigDecimal("3500"), 4);
-            if (!users.existsByEmailIgnoreCase("cedihmatchalover@gmail.com")) {
-                users.save(new AppUser("cedihmatchalover@gmail.com", encoder.encode("5201314"),
-                    "Hotel Manager", "MANAGER", true));
+            // Never ship a known manager email/password in source control.
+            // Provision the first manager only when the operator supplies both secrets.
+            String normalizedManagerEmail = managerEmail == null
+                    ? "" : managerEmail.trim().toLowerCase(java.util.Locale.ROOT);
+            if (!normalizedManagerEmail.isBlank() &&
+                    managerPassword != null && !managerPassword.isBlank()) {
+                if (!users.existsByEmailIgnoreCase(normalizedManagerEmail)) {
+                    users.save(new AppUser(normalizedManagerEmail,
+                        encoder.encode(managerPassword),
+                        managerName == null || managerName.isBlank() ? "Hotel Manager" : managerName.trim(),
+                        "MANAGER", true));
+                }
             }
         };
     }
