@@ -48,6 +48,35 @@ class PendingReservationExpirySchedulerTest {
 
 
     @Test
+    void marksPendingReservationVoidWhenCheckInTimeArrivesBeforeAdminReview() {
+        ReservationRepository reservations = mock(ReservationRepository.class);
+        AuditService audit = mock(AuditService.class);
+        NotificationService notifications = mock(NotificationService.class);
+        Instant now = Instant.parse("2026-11-08T03:30:00Z"); // 11:30 AM in Manila
+        Clock clock = Clock.fixed(now, ZoneId.of("Asia/Manila"));
+        Reservation due = new Reservation(5L, "guest", "guest@example.com", 8L,
+                "A-08", "Garden Room", LocalDate.of(2026, 11, 8),
+                LocalDate.of(2026, 11, 9), 1, 1,
+                new BigDecimal("1500.00"), new BigDecimal("1500.00"));
+        due.setStayTimes(java.time.LocalTime.of(10, 0), java.time.LocalTime.NOON);
+        ReflectionTestUtils.setField(due, "id", 90L);
+        when(reservations.findByStatusAndCheckInDateLessThanEqualOrderByCheckInDateAsc(
+                ReservationStatus.PENDING, LocalDate.of(2026, 11, 8))).thenReturn(List.of(due));
+
+        PendingReservationExpiryScheduler scheduler = new PendingReservationExpiryScheduler(
+                reservations, audit, notifications, clock, 24);
+        scheduler.expireStalePendingReservations();
+
+        assertEquals(ReservationStatus.VOID, due.getStatus());
+        assertEquals(now, due.getUpdatedAt());
+        verify(audit).record("SYSTEM", "RESERVATION_VOIDED_AT_CHECK_IN", "RESERVATION", "90",
+                "Reservation became VOID because scheduled check-in arrived before Admin review.");
+        verify(notifications).notifyUser("guest", "Reservation marked VOID",
+                "Reservation #90 was marked VOID because its check-in time arrived before the hotel Admin reviewed it.",
+                "RESERVATION");
+    }
+
+    @Test
     void doesNotExpireRecentlyModifiedPendingRequestBasedOnItsOriginalCreationDate() {
         ReservationRepository reservations = mock(ReservationRepository.class);
         AuditService audit = mock(AuditService.class);
