@@ -279,6 +279,41 @@ class ReservationServiceTest {
     }
 
     @Test
+    void managerCannotCancelApprovedReservationAfterCheckInTime() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(reservation.getStatusBeforeCancellation()).thenReturn("APPROVED");
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(reservation.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findById(31L)).thenReturn(Optional.of(reservation));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+            () -> service.updateStatus(31L, "CANCELLED"));
+
+        assertTrue(error.getMessage().contains("reached check-in"));
+        verify(reservations, never()).save(any(Reservation.class));
+    }
+
+    @Test
+    void managerDecisionVoidsPendingCancellationThatReachedCheckIn() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(reservation.getStatusBeforeCancellation()).thenReturn("PENDING");
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(reservation.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findById(32L)).thenReturn(Optional.of(reservation));
+        when(reservations.save(reservation)).thenReturn(reservation);
+
+        assertSame(reservation, service.updateStatus(32L, "CANCELLED"));
+
+        verify(reservation).setStatus("VOID");
+        verify(reservation).setStatusBeforeCancellation(null);
+        verify(reservations).save(reservation);
+    }
+
+    @Test
     void doesNotVoidApprovedReservations() {
         Reservation approved = mock(Reservation.class);
 
