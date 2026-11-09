@@ -137,7 +137,21 @@ public class ReservationService {
 
         if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
             if ("CANCELLED".equals(status)) {
-                nextStatus = "CANCELLED";
+                String previousStatus = reservation.getStatusBeforeCancellation();
+                LocalDateTime now = LocalDateTime.now(
+                    java.time.ZoneId.of("Asia/Manila")
+                ).withNano(0);
+
+                if ("APPROVED".equals(previousStatus) && !now.isBefore(start(reservation))) {
+                    throw new IllegalArgumentException(
+                        "This approved reservation has reached check-in and cannot be cancelled through the standard cancellation process."
+                    );
+                }
+
+                // If a pending request reaches check-in while its cancellation is awaiting
+                // manager review, preserve the no-show rule instead of marking it cancelled.
+                nextStatus = "PENDING".equals(previousStatus) && !now.isBefore(start(reservation))
+                        ? "VOID" : "CANCELLED";
             } else if ("APPROVED".equals(status)) {
                 String previousStatus = reservation.getStatusBeforeCancellation();
 
