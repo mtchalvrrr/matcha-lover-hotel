@@ -3,7 +3,7 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Modify Reservation | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
 <body>
 <main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/customer/reservations}">My reservations</a></header>
+<div th:replace="~{fragments/customer-header :: customerHeader('dashboard')}"></div>
 <section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / RESERVATION CHANGE</p><h1>Update your<br><em>stay details.</em></h1><p class="intro">Changes are checked against current availability. If your request was already approved, the updated reservation returns to pending review.</p></section>
 <p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
 <form class="auth-card wide-form" th:action="@{/customer/reservations/{id}/modify(id=${reservation.id})}" method="post">
