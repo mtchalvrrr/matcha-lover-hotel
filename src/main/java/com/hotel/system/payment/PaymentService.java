@@ -31,7 +31,7 @@ public class PaymentService {
     private final String paymentMode;
     private final NotificationService notifications;
     private final Clock clock;
-    private final XenditService xendit;
+    private final NexusPayService nexusPay;
 
     public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
                           ReservationRepository reservations, SystemUserRepository users, AuditService audit,
@@ -44,7 +44,7 @@ public class PaymentService {
     public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
                           ReservationRepository reservations, SystemUserRepository users, AuditService audit,
                           @Value("${payment.mode:SIMULATED}") String paymentMode,
-                          NotificationService notifications, Clock clock, XenditService xendit) {
+                          NotificationService notifications, Clock clock, NexusPayService nexusPay) {
         this.payments = payments;
         this.refundRequests = refundRequests;
         this.reservations = reservations;
@@ -53,7 +53,7 @@ public class PaymentService {
         this.paymentMode = paymentMode;
         this.notifications = notifications;
         this.clock = clock;
-        this.xendit = xendit;
+        this.nexusPay = nexusPay;
     }
 
     public Payment payNextDue(Long reservationId, String username) {
@@ -158,8 +158,8 @@ public class PaymentService {
             }
             touchReservation(payment.getReservationId());
             if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
-                if (xendit == null) throw new IllegalStateException("Xendit refund processing is unavailable.");
-                xendit.refund(payment, request);
+                if (nexusPay == null) throw new IllegalStateException("NexusPay refund processing is unavailable.");
+                nexusPay.refund(payment, request);
             } else if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
                 throw new IllegalStateException("This is a legacy PayMongo payment. Review it manually in the provider dashboard.");
             } else {
@@ -175,13 +175,13 @@ public class PaymentService {
                                    : "; review reason: " + (reviewReason == null ? "" : reviewReason.trim())));
         String message = approve
                 ? ("failed".equalsIgnoreCase(payment.getProviderRefundStatus())
-                    ? "Xendit could not complete the refund for payment " + payment.getTransactionReference()
+                    ? "NexusPay could not complete the refund for payment " + payment.getTransactionReference()
                         + ". The payment remains recorded as paid while administrators review the failure."
                     : payment.getStatus() == PaymentStatus.REFUND_PENDING
                         ? "Your refund for payment " + payment.getTransactionReference()
-                            + " was accepted by the hotel and is being processed by Xendit. We will notify you when the provider confirms the result."
+                            + " was accepted by the hotel and is being processed by NexusPay. We will notify you when the provider confirms the result."
                         : "Your refund for payment " + payment.getTransactionReference()
-                            + " has been confirmed by the payment provider.")
+                            + " has been confirmed by NexusPay.")
                 : "Your refund request for payment " + payment.getTransactionReference()
                     + " was rejected. Reason: " + (reviewReason == null ? "" : reviewReason.trim());
         if (payment.getCustomerUsername().startsWith("WALK-IN (")) {
@@ -206,7 +206,7 @@ public class PaymentService {
         }
         touchReservation(payment.getReservationId());
         if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
-            throw new IllegalStateException("Xendit checkout sessions expire automatically. Do not void locally before Xendit confirms the session is expired.");
+            throw new IllegalStateException("NexusPay checkout sessions expire automatically. Do not void locally before NexusPay confirms the session is expired.");
         } else if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
             throw new IllegalStateException("Legacy PayMongo checkout voiding is disabled after the provider migration.");
         } else {
