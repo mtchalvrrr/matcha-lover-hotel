@@ -30,4 +30,5 @@
 <span th:if="${reservation.status.name() == 'CHECKED_OUT' or reservation.status.name() == 'REJECTED' or reservation.status.name() == 'CANCELLED' or reservation.status.name() == 'NO_SHOW'}">—</span>
 </div></td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(reservations)}">No reservation requests have been submitted.</p>
-</main></body></html>
+</main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>
