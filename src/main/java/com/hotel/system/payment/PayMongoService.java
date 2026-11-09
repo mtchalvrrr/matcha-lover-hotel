@@ -243,7 +243,6 @@ public class PayMongoService {
         Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
         StringBuilder receipt = new StringBuilder()
                 .append("Your payment has been confirmed. This email is your hotel payment receipt.\n\n")
-                .append("Hotel: ").append("[HOTEL NAME]").append("\n")
                 .append("Receipt number: PAY-").append(payment.getId()).append("\n")
                 .append("Payment reference: ").append(payment.getTransactionReference()).append("\n")
                 .append("Payment method: ").append(payment.getPaymentMethod()).append("\n")
