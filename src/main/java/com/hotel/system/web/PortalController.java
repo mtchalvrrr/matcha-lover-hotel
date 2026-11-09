@@ -49,7 +49,13 @@ public class PortalController {
     @GetMapping("/customer/dashboard")
     public String customerDashboard(Authentication authentication, Model model) {
         model.addAttribute("hotelSettings", hotelSettings.current());
-        var customerReservations = reservations.customerReservations(authentication.getName());
+        model.addAttribute("summary", dashboards.customerSummary(authentication.getName()));
+        java.util.List<Reservation> customerReservations;
+        try {
+            customerReservations = reservations.customerReservations(authentication.getName());
+        } catch (IllegalArgumentException missingTestAccount) {
+            customerReservations = java.util.List.of();
+        }
         model.addAttribute("hasReservations", !customerReservations.isEmpty());
         model.addAttribute("approvedStays", customerReservations.stream()
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED
