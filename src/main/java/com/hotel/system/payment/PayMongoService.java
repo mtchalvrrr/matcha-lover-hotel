@@ -577,9 +577,8 @@ public class PayMongoService {
         payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
         audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
                 "Verified PayMongo payment.paid event; provider payment " + providerPaymentId);
-        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
-                "Your PayMongo payment for reservation #" + payment.getReservationId() + " has been confirmed.",
-                "PAYMENT");
+        submitPaidHoldToManagerReview(payment, "PAYMONGO_WEBHOOK");
+        sendPaymentReceipt(payment);
     }
 
     private void processFailedPaymentWebhook(JsonNode resource) {
