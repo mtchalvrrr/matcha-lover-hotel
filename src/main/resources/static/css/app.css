@@ -1026,3 +1026,19 @@ footer{border-color:#dce2d7;color:#718071}
   .room-booking-fields{grid-template-columns:1fr}
   .room-booking-inline{padding:16px}
 }
+
+
+/* Accessible shared confirmation and validation dialog. */
+.decision-dialog{width:min(92vw,460px);max-width:460px;padding:0;border:1px solid var(--line,#dfe3d9);border-radius:18px;background:var(--white,#fff);color:var(--ink,#202a24);box-shadow:0 24px 80px rgba(20,30,22,.24)}
+.decision-dialog::backdrop{background:rgba(18,27,21,.56);backdrop-filter:blur(3px)}
+.decision-dialog-panel{padding:28px}
+.decision-dialog-kicker{margin:0 0 10px;color:#71836f;font-size:10px;font-weight:800;letter-spacing:.16em}
+.decision-dialog h2{margin:0 0 12px;font-family:Georgia,"Times New Roman",serif;font-size:29px;font-weight:400;line-height:1.15}
+.decision-dialog p:not(.decision-dialog-kicker){margin:0;color:var(--muted,#727c73);font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.decision-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:26px;flex-wrap:wrap}
+.decision-dialog-actions button{min-height:42px;padding:10px 16px;border:1px solid var(--line,#dfe3d9);border-radius:8px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.decision-dialog-cancel{background:#fff;color:var(--ink,#202a24)}
+.decision-dialog-confirm{background:var(--green,#344c3c);border-color:var(--green,#344c3c)!important;color:#fff}
+.decision-dialog-close{min-width:90px}
+.decision-dialog-actions button:focus-visible{outline:3px solid #91a28e;outline-offset:3px}
+@media(max-width:480px){.decision-dialog-panel{padding:22px}.decision-dialog-actions{flex-direction:column-reverse}.decision-dialog-actions button{width:100%}}
