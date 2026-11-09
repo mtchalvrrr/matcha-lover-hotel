@@ -98,9 +98,6 @@
     if (/reservation|booking/.test(combined) && /create|submit|save|continue/.test(combined)) {
       return { title: "Submit reservation changes?", message: "Please review the reservation details, dates, room, guest information, and total before submitting.", confirmLabel: "Submit" };
     }
-    if (/deactivation/.test(action) || /deactivation request/.test(label)) {
-      return { title: "Submit account deactivation request?", message: "Your request will be sent for Super Admin review. Your account remains active until it is approved.", confirmLabel: "Submit request" };
-    }
     if (/save hotel settings|save room|save profile|change password|reset password|save reservation changes|create admin|create booking|upload photo|set as cover|backup/.test(combined)) {
       return { title: "Save these changes?", message: "Please review the information before submitting this change.", confirmLabel: "Save changes" };
     }
