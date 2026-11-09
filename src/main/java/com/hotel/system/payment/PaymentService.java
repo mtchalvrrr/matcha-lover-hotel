@@ -31,7 +31,7 @@ public class PaymentService {
     private final String paymentMode;
     private final NotificationService notifications;
     private final Clock clock;
-    private final PayMongoService payMongo;
+    private final XenditService xendit;
 
     public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
                           ReservationRepository reservations, SystemUserRepository users, AuditService audit,
@@ -44,7 +44,7 @@ public class PaymentService {
     public PaymentService(PaymentRepository payments, PaymentRefundRequestRepository refundRequests,
                           ReservationRepository reservations, SystemUserRepository users, AuditService audit,
                           @Value("${payment.mode:SIMULATED}") String paymentMode,
-                          NotificationService notifications, Clock clock, PayMongoService payMongo) {
+                          NotificationService notifications, Clock clock, XenditService xendit) {
         this.payments = payments;
         this.refundRequests = refundRequests;
         this.reservations = reservations;
@@ -53,7 +53,7 @@ public class PaymentService {
         this.paymentMode = paymentMode;
         this.notifications = notifications;
         this.clock = clock;
-        this.payMongo = payMongo;
+        this.xendit = xendit;
     }
 
     public Payment payNextDue(Long reservationId, String username) {
@@ -157,9 +157,11 @@ public class PaymentService {
                 throw new IllegalStateException("The payment is no longer eligible for refund.");
             }
             touchReservation(payment.getReservationId());
-            if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
-                if (payMongo == null) throw new IllegalStateException("PayMongo refund processing is unavailable.");
-                payMongo.refund(payment, request);
+            if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
+                if (xendit == null) throw new IllegalStateException("Xendit refund processing is unavailable.");
+                xendit.refund(payment, request);
+            } else if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
+                throw new IllegalStateException("This is a legacy PayMongo payment. Review it manually in the provider dashboard.");
             } else {
                 payment.markRefunded(Instant.now(clock));
             }
@@ -174,7 +176,7 @@ public class PaymentService {
         String message = approve
                 ? (payment.getStatus() == PaymentStatus.REFUND_PENDING
                     ? "Your refund for payment " + payment.getTransactionReference()
-                        + " was accepted by the hotel and is being processed by PayMongo. We will notify you when the provider confirms the result."
+                        + " was accepted by the hotel and is being processed by Xendit. We will notify you when the provider confirms the result."
                     : "Your refund for payment " + payment.getTransactionReference()
                         + " has been confirmed by the payment provider.")
                 : "Your refund request for payment " + payment.getTransactionReference()
@@ -200,9 +202,10 @@ public class PaymentService {
             throw new IllegalArgumentException("Enter a void reason up to 500 characters.");
         }
         touchReservation(payment.getReservationId());
-        if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
-            if (payMongo == null) throw new IllegalStateException("PayMongo checkout expiration is unavailable.");
-            payMongo.voidPendingCheckout(payment);
+        if ("XENDIT".equalsIgnoreCase(payment.getPaymentMethod())) {
+            throw new IllegalStateException("Xendit checkout sessions expire automatically. Do not void locally before Xendit confirms the session is expired.");
+        } else if ("PAYMONGO".equalsIgnoreCase(payment.getPaymentMethod())) {
+            throw new IllegalStateException("Legacy PayMongo checkout voiding is disabled after the provider migration.");
         } else {
             payment.markVoided();
         }
