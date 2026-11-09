@@ -6,6 +6,9 @@ import com.hotel.system.config.HotelStayTimePolicy;
 import com.hotel.system.audit.AuditService;
 import com.hotel.system.payment.PaymentRepository;
 import com.hotel.system.payment.PaymentStatus;
+import com.hotel.system.payment.PaymentRefundRequest;
+import com.hotel.system.payment.PaymentRefundRequestRepository;
+import com.hotel.system.payment.RefundRequestStatus;
 import com.hotel.system.notification.NotificationService;
 import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomNotFoundException;
@@ -32,18 +35,20 @@ public class ReservationService {
     private final Clock clock;
     private final AuditService audit;
     private final PaymentRepository payments;
+    private final PaymentRefundRequestRepository refundRequests;
     private final NotificationService notifications;
     private final HotelStayTimePolicy stayTimes;
 
     public ReservationService(ReservationRepository reservations, RoomRepository rooms,
                               SystemUserRepository users, Clock clock, AuditService audit, PaymentRepository payments,
-                              NotificationService notifications, HotelStayTimePolicy stayTimes) {
+                              PaymentRefundRequestRepository refundRequests, NotificationService notifications, HotelStayTimePolicy stayTimes) {
         this.reservations = reservations;
         this.rooms = rooms;
         this.users = users;
         this.clock = clock;
         this.audit = audit;
         this.payments = payments;
+        this.refundRequests = refundRequests;
         this.notifications = notifications;
         this.stayTimes = stayTimes;
     }
@@ -205,8 +210,35 @@ public class ReservationService {
             reservation.changeStatus(ReservationStatus.REJECTED);
             audit.record(adminUsername, "RESERVATION_REJECTED", "RESERVATION", id.toString(),
                 "Rejected reservation for " + reservation.getCustomerUsername());
+
+            // A paid reservation rejection must never trigger an automatic refund.
+            // Queue each eligible paid transaction for a different administrator to authorize.
+            List<com.hotel.system.payment.Payment> paidPayments =
+                    payments.findByReservationIdOrderByCreatedAtAsc(id).stream()
+                            .filter(payment -> payment.getStatus() == PaymentStatus.PAID)
+                            .toList();
+            for (com.hotel.system.payment.Payment payment : paidPayments) {
+                if (refundRequests.existsByPaymentIdAndStatus(payment.getId(), RefundRequestStatus.PENDING)) {
+                    continue;
+                }
+                PaymentRefundRequest refundRequest = refundRequests.save(new PaymentRefundRequest(
+                        payment.getId(), adminUsername,
+                        "Reservation #" + id + " was rejected. Full payment refund requires authorization by a different administrator."));
+                audit.record(adminUsername, "PAYMENT_REFUND_REQUESTED", "PAYMENT",
+                        payment.getId().toString(),
+                        "Refund request #" + refundRequest.getId() + " automatically created after reservation rejection #" + id
+                                + ". A different administrator must authorize the refund.");
+                notifications.notifyAdmins("Reservation rejection requires refund authorization",
+                        "Reservation #" + id + " was rejected by " + adminUsername
+                                + ". Refund request #" + refundRequest.getId() + " for payment #"
+                                + payment.getId() + " is awaiting review by a different administrator.",
+                        "PAYMENT");
+            }
             notifications.notifyUser(reservation.getCustomerUsername(), "Reservation rejected",
-                "Your reservation #" + id + " was rejected. Contact the hotel for details.", "RESERVATION");
+                paidPayments.isEmpty()
+                    ? "Your reservation #" + id + " was rejected. Contact the hotel for details."
+                    : "Your reservation #" + id + " was rejected. A full refund request has been submitted for separate administrator authorization. We will notify you when it is reviewed.",
+                "RESERVATION");
         }
     }
 
