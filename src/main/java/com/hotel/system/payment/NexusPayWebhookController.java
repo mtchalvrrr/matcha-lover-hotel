@@ -6,19 +6,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/** Receives and verifies signed NexusPay sandbox payment events. */
 @RestController
-public class XenditWebhookController {
-    private final XenditService xendit;
+public class NexusPayWebhookController {
+    private final NexusPayService nexusPay;
 
-    public XenditWebhookController(XenditService xendit) {
-        this.xendit = xendit;
+    public NexusPayWebhookController(NexusPayService nexusPay) {
+        this.nexusPay = nexusPay;
     }
 
-    @PostMapping(value = "/webhooks/xendit", consumes = "application/json")
+    @PostMapping(value = "/webhooks/nexuspay", consumes = "application/json")
     public ResponseEntity<Map<String, String>> receive(@RequestBody byte[] rawBody,
-            @RequestHeader(name = "x-callback-token", required = false) String callbackToken) {
+            @RequestHeader(name = "X-NexusPay-Signature", required = false) String signature) {
         try {
-            xendit.handleWebhook(rawBody, callbackToken);
+            nexusPay.handleWebhook(rawBody, signature);
             return ResponseEntity.ok(Map.of("received", "true"));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

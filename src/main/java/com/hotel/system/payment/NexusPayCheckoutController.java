@@ -7,18 +7,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-public class XenditCheckoutController {
-    private final XenditService xendit;
+public class NexusPayCheckoutController {
+    private final NexusPayService nexusPay;
 
-    public XenditCheckoutController(XenditService xendit) {
-        this.xendit = xendit;
+    public NexusPayCheckoutController(NexusPayService nexusPay) {
+        this.nexusPay = nexusPay;
     }
 
     @PostMapping("/customer/reservations/{id}/pay-online")
     public String checkout(@PathVariable Long id, Authentication authentication,
                            RedirectAttributes redirect) {
         try {
-            return "redirect:" + xendit.createCheckout(id, authentication.getName());
+            return "redirect:" + nexusPay.createCheckout(id, authentication.getName());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/customer/reservations";

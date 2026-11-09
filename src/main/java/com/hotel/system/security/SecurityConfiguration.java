@@ -174,13 +174,13 @@ public class SecurityConfiguration {
     @Order(4)
     SecurityFilterChain publicSecurity(HttpSecurity http,
                                        LoginAttemptAuthenticationProvider authenticationProvider) throws Exception {
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/webhooks/xendit"))
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/webhooks/nexuspay"))
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
                         "/api/chat", "/register", "/register/**", "/registration/status",
                         "/forgot-password", "/reset-password", "/rooms", "/rooms/**",
-                        "/css/**", "/js/**", "/images/**", "/room-images/**", "/webhooks/xendit", "/favicon.ico", "/error")
+                        "/css/**", "/js/**", "/images/**", "/room-images/**", "/webhooks/nexuspay", "/favicon.ico", "/error")
                 .permitAll()
                 .anyRequest().authenticated());
         applySecurityHeaders(http);

@@ -12,18 +12,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PaymentController {
     private final PaymentService payments;
     private final AuditService audit;
-    private final XenditService xendit;
+    private final NexusPayService nexusPay;
 
-    public PaymentController(PaymentService payments, AuditService audit, XenditService xendit) {
+    public PaymentController(PaymentService payments, AuditService audit, NexusPayService nexusPay) {
         this.payments = payments;
         this.audit = audit;
-        this.xendit = xendit;
+        this.nexusPay = nexusPay;
     }
 
     @PostMapping("/customer/reservations/{id}/pay")
     public String pay(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
         try {
-            return "redirect:" + xendit.createCheckout(id, authentication.getName());
+            return "redirect:" + nexusPay.createCheckout(id, authentication.getName());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
