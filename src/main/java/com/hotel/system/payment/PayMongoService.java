@@ -219,9 +219,7 @@ public class PayMongoService {
         payment.markPaidFromProvider(sessionId, providerPaymentId);
         audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
                 "Verified PayMongo checkout payment; provider reference " + providerPaymentId);
-        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
-                "Your PayMongo payment of ₱" + payment.getAmount()
-                        + " for reservation #" + payment.getReservationId() + " has been confirmed.", "PAYMENT");
+        sendPaymentReceipt(payment);
         Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
         if (linkedReservation == null
                 || (linkedReservation.getStatus() != ReservationStatus.APPROVED
@@ -239,6 +237,32 @@ public class PayMongoService {
                     "PAYMENT", "PAYMONGO-STALE-AMOUNT-" + payment.getId());
         }
         recordProcessedEvent(eventId, eventType);
+    }
+
+    private void sendPaymentReceipt(Payment payment) {
+        Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
+        StringBuilder receipt = new StringBuilder()
+                .append("Your payment has been confirmed. This email is your hotel payment receipt.\n\n")
+                .append("Hotel: ").append("[HOTEL NAME]").append("\n")
+                .append("Receipt number: PAY-").append(payment.getId()).append("\n")
+                .append("Payment reference: ").append(payment.getTransactionReference()).append("\n")
+                .append("Payment method: ").append(payment.getPaymentMethod()).append("\n")
+                .append("Amount paid: PHP ").append(payment.getAmount()).append("\n")
+                .append("Payment confirmed: ").append(Instant.now(clock)).append("\n");
+        if (reservation != null) {
+            receipt.append("\nReservation details\n")
+                    .append("Reservation number: ").append(reservation.getId()).append("\n")
+                    .append("Guest: ").append(reservation.getGuestName()).append("\n")
+                    .append("Room: ").append(reservation.getRoomCode()).append(" — ")
+                    .append(reservation.getRoomName()).append("\n")
+                    .append("Check-in: ").append(reservation.getCheckInDate()).append("\n")
+                    .append("Check-out: ").append(reservation.getCheckOutDate()).append("\n")
+                    .append("Guests: ").append(reservation.getGuests()).append("\n")
+                    .append("Reservation total: PHP ").append(reservation.getTotalAmount()).append("\n");
+        }
+        receipt.append("\nKeep this receipt for your records. A successful payment does not by itself mean the manager has approved the reservation.");
+        notifications.notifyUserOnce(payment.getCustomerUsername(), "Hotel payment receipt",
+                receipt.toString(), "PAYMENT", "PAYMONGO-RECEIPT-" + payment.getId());
     }
 
     private BigDecimal paidAmountForReservation(Long reservationId) {
@@ -308,9 +332,7 @@ public class PayMongoService {
                         payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
                         audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_CONFIRMED", "PAYMENT",
                                 payment.getId().toString(), "Payment confirmed by authenticated PayMongo checkout retrieval.");
-                        notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment confirmed",
-                                "Your PayMongo payment for reservation #" + payment.getReservationId()
-                                        + " has been confirmed.", "PAYMENT");
+                        sendPaymentReceipt(payment);
                         Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
                         if (linkedReservation == null
                                 || (linkedReservation.getStatus() != ReservationStatus.APPROVED
