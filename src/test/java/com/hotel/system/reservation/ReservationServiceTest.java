@@ -133,6 +133,8 @@ class ReservationServiceTest {
         when(payments.findByReservationIdOrderByCreatedAtAsc(91L)).thenReturn(java.util.List.of(payment));
         when(refundRequests.existsByPaymentIdAndStatus(501L,
                 com.hotel.system.payment.RefundRequestStatus.PENDING)).thenReturn(false);
+        when(refundRequests.save(any(com.hotel.system.payment.PaymentRefundRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         service().review(91L, false, "manager-one");
 
