@@ -207,6 +207,8 @@ public class RegistrationController {
             (path.toString().toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG);
         return ResponseEntity.ok().contentType(type)
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"identity-document\"")
+            .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, private")
+            .header(HttpHeaders.PRAGMA, "no-cache")
             .body(new FileSystemResource(path));
     }
 }
