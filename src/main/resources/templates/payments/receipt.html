@@ -13,7 +13,7 @@
 <div class="receipt-row"><span>Receipt reference</span><strong th:text="${payment.transactionReference}">REFERENCE</strong></div>
 <div class="receipt-row"><span>Reservation</span><strong th:text="${'#' + payment.reservationId}">#1</strong></div>
 <div class="receipt-row"><span>Account / guest</span><strong th:text="${payment.customerUsername}">guest</strong></div>
-<div class="receipt-row"><span>Payment type</span><strong th:text="${payment.paymentType}">DOWN_PAYMENT</strong></div>
+<div class="receipt-row"><span>Payment type</span><strong th:text="${payment.paymentType}">FULL_PAYMENT</strong></div>
 <div class="receipt-row"><span>Payment method</span><strong th:text="${payment.paymentMethod}">SIMULATED</strong></div>
 <div class="receipt-row"><span>Date received</span><strong th:text="${payment.createdAt}">Date</strong></div>
 <div class="receipt-row"><span>Status</span><strong th:text="${payment.status}">PAID</strong></div>
