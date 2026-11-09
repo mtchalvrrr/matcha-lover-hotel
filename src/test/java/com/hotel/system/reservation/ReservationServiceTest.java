@@ -7,6 +7,8 @@ import com.hotel.system.audit.AuditService;
 import com.hotel.system.config.HotelStayTimePolicy;
 import com.hotel.system.notification.NotificationService;
 import com.hotel.system.payment.PaymentRepository;
+import com.hotel.system.payment.PaymentRefundRequestRepository;
+import com.hotel.system.payment.Payment;
 import com.hotel.system.payment.PaymentStatus;
 import com.hotel.system.room.Room;
 import com.hotel.system.room.RoomRepository;
@@ -30,6 +32,7 @@ class ReservationServiceTest {
     private final SystemUserRepository users = mock(SystemUserRepository.class);
     private final AuditService audit = mock(AuditService.class);
     private final PaymentRepository payments = mock(PaymentRepository.class);
+    private final PaymentRefundRequestRepository refundRequests = mock(PaymentRefundRequestRepository.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final HotelStayTimePolicy stayTimes = mock(HotelStayTimePolicy.class);
     private final Clock clock = Clock.fixed(Instant.parse("2026-11-08T03:00:00Z"), ZoneId.of("Asia/Manila"));
@@ -37,7 +40,7 @@ class ReservationServiceTest {
     private ReservationService service() {
         when(stayTimes.checkInTime()).thenReturn(LocalTime.of(14, 0));
         when(stayTimes.checkOutTime()).thenReturn(LocalTime.NOON);
-        return new ReservationService(reservations, rooms, users, clock, audit, payments, notifications, stayTimes);
+        return new ReservationService(reservations, rooms, users, clock, audit, payments, refundRequests, notifications, stayTimes);
     }
 
     @Test
@@ -116,6 +119,32 @@ class ReservationServiceTest {
         assertThrows(IllegalStateException.class, () -> service().adminModifyReservation(77L, "admin", 2L,
                 LocalDate.of(2026, 11, 15), LocalDate.of(2026, 11, 17), 2));
         verify(rooms, never()).findByIdAndActiveTrue(anyLong());
+    }
+
+    @Test
+    void rejectingPaidReservationQueuesRefundForDifferentAdministrator() {
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 1L,
+                "A-01", "Room", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14),
+                2, 2, new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        Payment payment = mock(Payment.class);
+        when(payment.getId()).thenReturn(501L);
+        when(payment.getStatus()).thenReturn(PaymentStatus.PAID);
+        when(reservations.findById(91L)).thenReturn(Optional.of(reservation));
+        when(payments.findByReservationIdOrderByCreatedAtAsc(91L)).thenReturn(java.util.List.of(payment));
+        when(refundRequests.existsByPaymentIdAndStatus(501L,
+                com.hotel.system.payment.RefundRequestStatus.PENDING)).thenReturn(false);
+
+        service().review(91L, false, "manager-one");
+
+        assertEquals(ReservationStatus.REJECTED, reservation.getStatus());
+        verify(refundRequests).save(argThat(request ->
+                request.getPaymentId().equals(501L)
+                        && request.getRequestedBy().equals("manager-one")
+                        && request.getReason().contains("Reservation #91")));
+        verify(notifications).notifyAdmins(contains("refund authorization"), contains("Refund request #"),
+                eq("PAYMENT"));
+        verify(notifications).notifyUser(eq("guest"), eq("Reservation rejected"),
+                contains("full refund request"), eq("RESERVATION"));
     }
 
     @Test
