@@ -38,6 +38,14 @@ public class RegistrationController {
             @RequestParam String lastName, @RequestParam String email, @RequestParam String password,
             HttpSession session) {
         try {
+            Long existingId = (Long) session.getAttribute("registrationApplicationId");
+            String existingEmail = (String) session.getAttribute("registrationEmail");
+            if (existingId != null && existingEmail != null) {
+                if (existingEmail.equalsIgnoreCase(email.trim())) {
+                    throw new IllegalStateException("An OTP has already been sent for this registration. Enter the latest code or use Resend OTP after the cooldown.");
+                }
+                throw new IllegalStateException("A registration is already in progress in this browser session. Finish it before starting another.");
+            }
             String username = "guest" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
             RegistrationApplication app = registrations.submit(firstName, lastName, email, username, password, null);
             session.setAttribute("registrationApplicationId", app.getId());
@@ -70,8 +78,11 @@ public class RegistrationController {
             Long id = (Long) session.getAttribute("registrationApplicationId");
             String email = (String) session.getAttribute("registrationEmail");
             if (id == null || email == null) throw new IllegalStateException("Send an OTP first.");
-            if (!registrations.verify(id, email, otp))
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "The OTP is incorrect. Check the six digits and try again."));
+            String code = otp == null ? "" : otp.trim();
+            if (!code.matches("\\d{6}"))
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Enter the six-digit code from the latest verification email."));
+            if (!registrations.verify(id, email, code))
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "That code does not match the latest OTP sent for this registration. If you requested another code, use the newest email."));
             session.setAttribute("registrationOtpVerified", true);
             return ResponseEntity.ok(Map.of("success", true, "message", "Email verified successfully."));
         } catch (IllegalArgumentException | IllegalStateException ex) {
