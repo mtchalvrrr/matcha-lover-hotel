@@ -1,0 +1,15 @@
+<header class="topbar customer-main-header" th:fragment="customerHeader(active)">
+    <a class="brand" th:href="@{/customer/dashboard}">
+        <span class="brand-mark">H</span>
+        <span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span>
+    </a>
+    <nav class="customer-main-nav" aria-label="Customer functions">
+        <a th:href="@{/rooms}" th:classappend="${active == 'rooms' ? ' current' : ''}" th:attr="aria-current=${active == 'rooms' ? 'page' : null}">Browse Rooms</a>
+        <a th:href="@{/customer/dashboard}" th:classappend="${active == 'dashboard' ? ' current' : ''}" th:attr="aria-current=${active == 'dashboard' ? 'page' : null}">Dashboard</a>
+        <a th:href="@{/customer/notifications}" th:classappend="${active == 'notifications' ? ' current' : ''}" th:attr="aria-current=${active == 'notifications' ? 'page' : null}">Notifications</a>
+        <a th:href="@{/customer/support}" th:classappend="${active == 'support' ? ' current' : ''}" th:attr="aria-current=${active == 'support' ? 'page' : null}">Customer Support</a>
+    </nav>
+    <form class="customer-header-logout" th:action="@{/customer/logout}" method="post">
+        <button class="text-button" type="submit">Sign out</button>
+    </form>
+</header>
