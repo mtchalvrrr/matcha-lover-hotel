@@ -38,6 +38,11 @@ public class DataSeeder {
                         managerName == null || managerName.isBlank() ? "Hotel Manager" : managerName.trim(),
                         "MANAGER", true);
                 } else {
+                    if (!"MANAGER".equalsIgnoreCase(manager.getRole())) {
+                        throw new IllegalStateException(
+                            "HOTEL_MANAGER_EMAIL belongs to a non-manager account. Choose a separate manager email."
+                        );
+                    }
                     // Re-provision the configured manager on startup so a previously
                     // exposed demo password is replaced in the existing local database.
                     manager.setPasswordHash(encoder.encode(managerPassword));
