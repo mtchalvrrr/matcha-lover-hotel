@@ -636,9 +636,17 @@ public class PayMongoService {
         audit.record("PAYMONGO_WEBHOOK", "PAYMONGO_REFUND_STATUS_" + status.toUpperCase(Locale.ROOT),
                 "PAYMENT", payment.getId().toString(), "Provider refund " + refundId + " status " + status);
         if ("succeeded".equals(status)) {
-            notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Refund completed",
-                    "Your refund for payment " + payment.getTransactionReference() + " has been processed by PayMongo.",
-                    "PAYMENT");
+            String refundReceipt = hotelName + "\n\n"
+                    + "Your full refund has been confirmed by PayMongo.\n"
+                    + "Refund receipt: REF-" + payment.getId() + "\n"
+                    + "Provider refund reference: " + refundId + "\n"
+                    + "Original payment reference: " + payment.getTransactionReference() + "\n"
+                    + "Refund amount: PHP " + payment.getAmount() + "\n"
+                    + "Refund confirmed: " + Instant.now(clock) + "\n\n"
+                    + "Keep this email for your records.";
+            notifications.notifyUserOnce(payment.getCustomerUsername(), "PayMongo refund receipt",
+                    refundReceipt, "PAYMENT",
+                    "PAYMONGO-REFUND-RECEIPT-" + payment.getId() + "-" + refundId);
         } else if ("failed".equals(status)) {
             notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Refund failed",
                     "The payment provider could not complete your refund. Please contact the hotel.",
