@@ -50,7 +50,7 @@ public class ReservationController {
             hold = reservations.request(authentication.getName(), roomId, checkIn, checkOut, guests);
             String checkoutUrl = payMongo.createCheckout(hold.getId(), authentication.getName());
             return "redirect:" + checkoutUrl;
-        } catch (IllegalArgumentException | IllegalStateException ex) {
+        } catch (RuntimeException ex) {
             if (hold != null) {
                 try { reservations.cancelUnpaidCheckout(hold.getId(), authentication.getName()); }
                 catch (RuntimeException ignored) { /* Keep the original checkout error for the customer. */ }
