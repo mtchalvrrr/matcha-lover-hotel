@@ -33,6 +33,7 @@ public class AppUser {
     public void setCustomerCode(String value) { customerCode = value; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String value) { passwordHash = value; }
     public String getFullName() { return fullName; }
     public String getRole() { return role; }
     public boolean isVerified() { return verified; }
