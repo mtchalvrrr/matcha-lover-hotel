@@ -775,3 +775,27 @@ body.availability-modal-open{overflow:hidden}
  .registration-fields.two-columns{grid-template-columns:1fr;gap:0}
  .registration-next{min-width:0;flex:1}
 }
+
+/* Compact four-step registration layout */
+.registration-four-step{min-height:100svh;overflow-x:hidden;background:var(--paper)}
+.registration-wide-shell{width:min(calc(100% - 36px),1120px);min-height:100svh;margin:0 auto;display:flex;align-items:center;justify-content:center;padding:12px 0}
+.registration-wide-shell .registration-card{width:100%;max-width:100%;margin:0;padding:20px 34px 18px;border-radius:20px}
+.registration-wide-shell .registration-progress{margin:0 0 14px}
+.registration-wide-shell .registration-step-indicators{grid-template-columns:repeat(4,minmax(0,1fr))}
+.registration-wide-shell .registration-panel h2{font-size:24px;line-height:1.2;margin:0 0 12px}
+.registration-wide-shell .registration-kicker{margin:0 0 5px;font-size:10px;letter-spacing:.12em}
+.registration-wide-shell .registration-field{margin:0 0 9px;gap:4px}
+.registration-wide-shell .registration-field input,.registration-wide-shell .registration-field select{min-height:40px;padding:8px 11px}
+.registration-wide-shell .registration-fields.two-columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.registration-wide-shell .registration-actions{margin-top:10px;padding-top:10px}
+.registration-wide-shell .registration-description{display:none}
+.registration-wide-shell .registration-captcha{margin:8px 0}
+.registration-wide-shell .registration-inline-error{margin:6px 0;padding:7px 9px;font-size:10px}
+.otp-controls{display:flex;align-items:center;gap:12px;margin:7px 0 10px}
+.otp-controls button{min-height:36px}
+.otp-controls span{font-size:11px;color:var(--muted)}
+.privacy-acknowledgment{display:flex;align-items:flex-start;gap:9px;margin:9px 0;color:var(--ink);font-size:11px;line-height:1.4}
+.privacy-acknowledgment input{flex:0 0 16px;width:16px;height:16px;margin:2px 0 0;accent-color:var(--green)}
+.registration-four-step [hidden]{display:none!important}
+@media(max-width:760px){.registration-wide-shell{width:calc(100% - 22px);align-items:flex-start;padding:10px 0}.registration-wide-shell .registration-card{padding:16px 16px 14px}.registration-wide-shell .registration-fields.two-columns{grid-template-columns:1fr;gap:0}.registration-wide-shell .registration-panel h2{font-size:21px}}
+@media(max-height:760px) and (min-width:761px){.registration-wide-shell{padding:6px 0}.registration-wide-shell .registration-card{padding:13px 28px}.registration-wide-shell .registration-progress{margin-bottom:8px}.registration-wide-shell .registration-field{margin-bottom:5px}.registration-wide-shell .registration-panel h2{font-size:21px;margin-bottom:7px}.registration-wide-shell .registration-actions{margin-top:6px;padding-top:6px}.registration-wide-shell .registration-captcha{margin:5px 0}}
