@@ -148,6 +148,32 @@ class ReservationServiceTest {
     }
 
     @Test
+    void customerReservationIsHeldForPaymentAndNotSentToManagerUntilConfirmed() {
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(9L);
+        when(room.getRoomCode()).thenReturn("A-09");
+        when(room.getName()).thenReturn("Matcha Suite");
+        when(room.getCapacity()).thenReturn(2);
+        when(room.isBookable()).thenReturn(true);
+        when(room.getNightlyRate()).thenReturn(new BigDecimal("2500.00"));
+        when(users.findByUsernameIgnoreCase("guest")).thenReturn(Optional.of(
+                new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER)));
+        when(rooms.findByIdAndActiveTrue(9L)).thenReturn(Optional.of(room));
+        when(reservations.existsOverlappingReservation(eq(9L), anyCollection(),
+                eq(LocalDate.of(2026, 11, 12)), eq(LocalDate.of(2026, 11, 14)), isNull())).thenReturn(false);
+        when(reservations.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Reservation hold = service().request("guest", 9L,
+                LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 14), 2);
+
+        assertEquals(ReservationStatus.PAYMENT_PENDING, hold.getStatus());
+        assertEquals(new BigDecimal("5000.00"), hold.getTotalAmount());
+        verify(notifications, never()).notifyAdmins(anyString(), anyString(), anyString());
+        verify(audit).record(eq("guest"), eq("RESERVATION_CHECKOUT_STARTED"),
+                eq("RESERVATION"), anyString(), contains("full payment"));
+    }
+
+    @Test
     void customerCannotReserveRoomThatIsNotReadyForGuests() {
         Room room = mock(Room.class);
         when(room.isBookable()).thenReturn(false);
