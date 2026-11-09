@@ -65,7 +65,7 @@
     if (/logout|sign out|log out/.test(combined)) {
       return { title: "Sign out?", message: "Are you sure you want to sign out of your account?", confirmLabel: "Sign out" };
     }
-    if (/checkout|pay online|full payment|payment/.test(combined) && /checkout|pay online|full payment|payment/.test(label + " " + action)) {
+    if (/checkout/.test(action) || /pay online|full payment|continue to full payment/.test(label)) {
       return { title: "Continue to payment?", message: "You will be redirected to the payment provider. Your reservation will only be marked as paid after the payment provider confirms the transaction.", confirmLabel: "Continue" };
     }
     if (/no-show/.test(combined)) {
@@ -89,19 +89,19 @@
     if (/refund|void/.test(combined)) {
       return { title: "Confirm payment action?", message: "This action affects a financial record. Verify the amount, transaction, and authorization before continuing.", confirmLabel: "Continue" };
     }
-    if (/deactivat|suspend|reactivat|activate|status/.test(combined)) {
+    if (/deactivation/.test(action) || /deactivation request/.test(label)) { return { title: "Submit account deactivation request?", message: "Your request will be sent for Super Admin review. Your account remains active until it is approved.", confirmLabel: "Submit request" }; }\n    if (/deactivat|suspend|reactivat|activate|status|enable|disable|readiness/.test(combined)) {
       return { title: "Change account or room status?", message: "This will change whether the account or room is active and may affect access or availability.", confirmLabel: "Confirm change" };
     }
     if (/delete|remove/.test(combined)) {
       return { title: "Remove this item?", message: "This action may be permanent. Make sure you selected the correct item.", confirmLabel: "Remove" };
     }
-    if (/reservation|booking/.test(combined) && /create|submit|save/.test(combined)) {
+    if (/reservation|booking/.test(combined) && /create|submit|save|continue/.test(combined)) {
       return { title: "Submit reservation changes?", message: "Please review the reservation details, dates, room, guest information, and total before submitting.", confirmLabel: "Submit" };
     }
     if (/deactivation/.test(action) || /deactivation request/.test(label)) {
       return { title: "Submit account deactivation request?", message: "Your request will be sent for Super Admin review. Your account remains active until it is approved.", confirmLabel: "Submit request" };
     }
-    if (/save hotel settings|save room|save profile|change password|reset password|save reservation changes|create booking|upload photo|set as cover|backup/.test(combined)) {
+    if (/save hotel settings|save room|save profile|change password|reset password|save reservation changes|create admin|create booking|upload photo|set as cover|backup/.test(combined)) {
       return { title: "Save these changes?", message: "Please review the information before submitting this change.", confirmLabel: "Save changes" };
     }
     return null;
