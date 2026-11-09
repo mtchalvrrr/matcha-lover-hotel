@@ -799,3 +799,127 @@ body.availability-modal-open{overflow:hidden}
 .registration-four-step [hidden]{display:none!important}
 @media(max-width:760px){.registration-wide-shell{width:calc(100% - 22px);align-items:flex-start;padding:10px 0}.registration-wide-shell .registration-card{padding:16px 16px 14px}.registration-wide-shell .registration-fields.two-columns{grid-template-columns:1fr;gap:0}.registration-wide-shell .registration-panel h2{font-size:21px}}
 @media(max-height:760px) and (min-width:761px){.registration-wide-shell{padding:6px 0}.registration-wide-shell .registration-card{padding:13px 28px}.registration-wide-shell .registration-progress{margin-bottom:8px}.registration-wide-shell .registration-field{margin-bottom:5px}.registration-wide-shell .registration-panel h2{font-size:21px;margin-bottom:7px}.registration-wide-shell .registration-actions{margin-top:6px;padding-top:6px}.registration-wide-shell .registration-captcha{margin:5px 0}}
+
+
+/* Matcha boutique UI refresh — presentation only; preserves existing routes and forms. */
+:root{
+  --ink:#26372c;--muted:#6e7b70;--paper:#f4f2e9;--line:#dfe4d9;
+  --green:#294a35;--sage:#dce7d5;--white:#fffdf8;--gold:#b69b62;
+  --shadow:0 16px 42px rgba(35,55,39,.09);
+}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);line-height:1.55}
+::selection{background:#dce7d5;color:#203b2a}
+.shell{width:min(100% - 48px,1240px);padding:28px 0 42px}
+.shell.narrow{width:min(100% - 48px,1120px)}
+.topbar{min-height:68px;padding:0 0 18px;border-color:#d9dfd3}
+.brand{font-size:13px;letter-spacing:.045em;color:var(--green)}
+.brand-mark{width:40px;height:40px;border:0;border-radius:14px 14px 14px 5px;background:var(--green);color:#f8f6ec;box-shadow:0 5px 14px #294a3520}
+.top-note,.back-link{font-size:12px;color:var(--muted)}
+.hero{padding:clamp(58px,8vw,100px) 0 54px}
+.hero h1,.portal-hero h1,.launcher-content h1{color:var(--green);font-weight:500;letter-spacing:-.06em}
+.hero h1 em,.portal-hero h1 em,.launcher-content h1 em{color:#809678}
+.eyebrow,.portal-number{color:#788c70;letter-spacing:.18em}
+.intro{max-width:580px;color:#667568;font-size:15px;line-height:1.85}
+.portal-grid,.dashboard-links{gap:18px}
+.portal-card{position:relative;min-height:220px;padding:27px;border:1px solid #e0e4d9;border-radius:18px;background:var(--white);box-shadow:0 5px 18px rgba(35,55,39,.035);transition:transform .2s,box-shadow .2s,border-color .2s}
+.portal-card:hover{transform:translateY(-4px);border-color:#b7c8ad;box-shadow:var(--shadow)}
+.portal-card h2{color:var(--green);font-size:25px;line-height:1.15}
+.portal-card p{color:var(--muted);line-height:1.75}
+.portal-link{color:var(--green);font-size:12px}
+.portal-hero{padding:clamp(55px,7vw,82px) 0 34px}
+.compact-hero{padding:52px 0 28px}
+.action-row{gap:10px}
+.primary-link,.secondary-link,.primary-button,.secondary-button,.button{
+  min-height:44px;border-radius:999px;padding:12px 21px;font-size:12px;font-weight:750;
+  transition:transform .18s,background .18s,border-color .18s,box-shadow .18s
+}
+.primary-link,.primary-button{background:var(--green);border-color:var(--green);color:#fffdf7;box-shadow:0 6px 16px #294a351b}
+.primary-link:hover,.primary-button:hover{background:#203b2a;transform:translateY(-1px)}
+.secondary-link,.secondary-button{background:#fffdf8;border:1px solid #cfd9ca;color:var(--green)}
+.secondary-link:hover,.secondary-button:hover{background:#edf2e9}
+.text-button{border-radius:999px;border-color:#d7dfd3;color:var(--green);background:#fffdf8;padding:10px 16px}
+.auth-layout{gap:clamp(28px,6vw,70px)}
+.auth-card{border:1px solid #e0e4d9;border-radius:20px;background:var(--white);box-shadow:var(--shadow);padding:clamp(24px,3vw,36px)}
+.auth-card h2{color:var(--green)}
+.auth-card label,.registration-field label{color:#405745}
+.auth-card input,.auth-card select,.auth-card textarea,.registration-field input,.registration-field select,
+.wide-form input,.wide-form select,.wide-form textarea,.report-filter input,.report-filter select{
+  border:1px solid #d8e0d4;border-radius:10px;background:#fffefa;min-height:44px
+}
+.auth-card input:focus,.auth-card select:focus,.auth-card textarea:focus,
+.registration-field input:focus,.registration-field select:focus,
+.wide-form input:focus,.wide-form select:focus,.wide-form textarea:focus{
+  border-color:#8ba27f;box-shadow:0 0 0 3px rgba(139,162,127,.17)
+}
+.room-grid{gap:20px}
+.room-card{overflow:hidden;border:1px solid #e1e5db;border-radius:18px;background:var(--white);box-shadow:0 5px 18px rgba(35,55,39,.04);transition:transform .2s,box-shadow .2s}
+.room-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.room-image,.detail-image{background:#e7eadf}
+.room-card-body{padding:24px}
+.room-card-body h2{color:var(--green)}
+.room-meta strong{color:var(--green)}
+.room-card .primary-link{align-self:flex-start}
+.room-filters{gap:14px;padding:20px;border:1px solid #e0e5db;border-radius:16px;background:#fffdf8;box-shadow:0 5px 18px rgba(35,55,39,.035)}
+.room-filters input,.room-filters select{border-radius:10px;background:#fffefa}
+.table-wrap{border:1px solid #e0e5db;border-radius:16px;background:#fffdf8;box-shadow:0 5px 18px rgba(35,55,39,.035)}
+.data-table{font-size:12px}
+.data-table th{background:#eef2e9;color:#60715f;font-size:10px;letter-spacing:.1em}
+.data-table th,.data-table td{padding:15px 16px;border-color:#e8ebe3}
+.data-table tbody tr:hover{background:#f8f9f3}
+.table-actions{gap:8px;flex-wrap:wrap;white-space:normal}
+.table-actions a{color:#315b3e}
+.metric-grid{gap:14px}
+.metric-card{border:1px solid #e0e5db;border-radius:16px;background:#fffdf8;padding:21px;box-shadow:0 5px 18px rgba(35,55,39,.035)}
+.metric-card span{color:#718071;font-weight:650}
+.metric-card strong{color:var(--green);font-size:32px}
+.dashboard-recent,.backup-action,.report-section,.notification-item,.stay-card{
+  border:1px solid #e0e5db;border-radius:16px;background:#fffdf8;box-shadow:0 5px 18px rgba(35,55,39,.035)
+}
+.dashboard-recent,.backup-action{padding:22px;margin:0 0 24px}
+.dashboard-recent h2,.backup-action h2,.report-section h2{color:var(--green)}
+.notification-list{gap:14px}
+.notification-item{padding:20px}
+.notice{border-radius:10px;border-left:3px solid #8ca17d;background:#edf2e9;color:#526553}
+.alert{border-radius:10px}
+.registration-wide-shell{width:min(calc(100% - 32px),1080px);padding:28px 0}
+.registration-wide-shell .registration-card{border:1px solid #e0e5db;border-radius:22px;background:#fffdf8;box-shadow:var(--shadow);padding:clamp(22px,3vw,36px)}
+.registration-step-indicator span{border-radius:50%;background:#edf2e9;color:#49634a}
+.registration-step-indicator.is-active span{background:var(--green);color:white}
+.registration-progress-line{background:#e5eadf;border-radius:99px;overflow:hidden}
+.registration-progress-line span{background:#829b75}
+.registration-wide-shell .registration-panel h2{font-family:Georgia,serif;color:var(--green);font-size:28px}
+.registration-field input,.registration-field select{border-radius:10px}
+.privacy-acknowledgment{padding:13px;border:1px solid #e1e7dc;border-radius:12px;background:#f7f8f2}
+.chat-toggle{border-radius:999px;background:var(--green);box-shadow:0 8px 24px rgba(25,45,29,.22);padding:14px 20px}
+.chat-panel{overflow:hidden;border:1px solid #dce3d8;border-radius:18px;box-shadow:0 18px 55px rgba(25,45,29,.2)}
+.chat-header{background:#edf2e9}
+.chat-header strong{color:var(--green)}
+.chat-form input[type="text"]{border-radius:999px}
+.chat-form button{border-radius:999px;background:var(--green)}
+.customer-shortcuts{gap:9px;margin:18px 0 30px}
+.customer-shortcuts a,.customer-shortcuts button{border:1px solid #d8e1d4;border-radius:999px;background:#fffdf8;color:var(--green);padding:11px 17px;font-size:12px}
+.customer-shortcuts .current{background:var(--green);border-color:var(--green);color:#fff}
+.stay-card{padding:clamp(18px,3vw,26px)}
+.stay-date{border:1px solid #e1e8dc;border-radius:14px;background:#f1f5ed}
+.stay-date strong{color:var(--green)}
+.empty-stay{border:1px dashed #b8c9b0;border-radius:16px;background:#fbfcf7;padding:24px}
+.empty-stay h3{color:var(--green)}
+footer{border-color:#dce2d7;color:#718071}
+.customer-home-main{box-shadow:0 22px 60px rgba(35,55,39,.17)}
+.customer-home-explore{border-radius:999px}
+@media(max-width:760px){
+  .shell,.shell.narrow{width:calc(100% - 32px);padding-top:18px}
+  .portal-grid,.dashboard-links{grid-template-columns:1fr}
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .portal-hero{padding:48px 0 26px}
+  .registration-wide-shell{width:calc(100% - 20px);padding:12px 0}
+  .registration-wide-shell .registration-card{padding:18px}
+  .customer-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .customer-shortcuts a,.customer-shortcuts button{width:100%}
+}
+@media(max-width:420px){
+  .metric-grid{grid-template-columns:1fr}
+  .hero h1,.portal-hero h1{font-size:48px}
+  .brand{font-size:11px}
+}
