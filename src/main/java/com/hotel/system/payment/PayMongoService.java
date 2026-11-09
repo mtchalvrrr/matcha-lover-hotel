@@ -73,9 +73,11 @@ public class PayMongoService {
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
         if (!Objects.equals(customer.getId(), reservation.getCustomerId()))
             throw new IllegalArgumentException("Reservation not found.");
-        if (reservation.getStatus() != ReservationStatus.APPROVED
+        boolean initialReservationCheckout = reservation.getStatus() == ReservationStatus.PAYMENT_PENDING;
+        if (!initialReservationCheckout
+                && reservation.getStatus() != ReservationStatus.APPROVED
                 && reservation.getStatus() != ReservationStatus.CHECKED_IN)
-            throw new IllegalStateException("Payment is available only for approved or checked-in reservations.");
+            throw new IllegalStateException("Payment is available only for a new unpaid booking or an approved stay.");
 
         Optional<Payment> existing = payments.findFirstByReservationIdAndPaymentMethodAndStatusOrderByCreatedAtDesc(
                 reservationId, "PAYMONGO", PaymentStatus.PENDING);
@@ -83,10 +85,14 @@ public class PayMongoService {
         BigDecimal paid = paidAmountForReservation(reservationId);
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
-        PaymentType type = paid.signum() == 0 ? PaymentType.DOWN_PAYMENT : PaymentType.BALANCE;
-        BigDecimal amount = paid.signum() == 0
-                ? reservation.getTotalAmount().multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP)
-                : due;
+        if (initialReservationCheckout && paid.signum() > 0)
+            throw new IllegalStateException("A new reservation checkout cannot be started after a payment has already been recorded.");
+        PaymentType type = initialReservationCheckout ? PaymentType.FULL_PAYMENT
+                : (paid.signum() == 0 ? PaymentType.DOWN_PAYMENT : PaymentType.BALANCE);
+        BigDecimal amount = initialReservationCheckout ? due
+                : (paid.signum() == 0
+                    ? reservation.getTotalAmount().multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP)
+                    : due);
         if (existing.isPresent() && existing.get().getCheckoutUrl() != null) {
             Payment prior = existing.get();
             if (prior.getAmount().compareTo(amount) == 0) return prior.getCheckoutUrl();
@@ -219,10 +225,12 @@ public class PayMongoService {
         payment.markPaidFromProvider(sessionId, providerPaymentId);
         audit.record("PAYMONGO_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
                 "Verified PayMongo checkout payment; provider reference " + providerPaymentId);
+        submitPaidHoldToManagerReview(payment, "PAYMONGO_WEBHOOK");
         sendPaymentReceipt(payment);
         Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
         if (linkedReservation == null
-                || (linkedReservation.getStatus() != ReservationStatus.APPROVED
+                || (linkedReservation.getStatus() != ReservationStatus.PENDING
+                    && linkedReservation.getStatus() != ReservationStatus.APPROVED
                     && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
             notifications.notifyAdminsInAppOnly("Payment received for inactive reservation",
                     "PayMongo confirmed payment #" + payment.getId()
@@ -237,6 +245,19 @@ public class PayMongoService {
                     "PAYMENT", "PAYMONGO-STALE-AMOUNT-" + payment.getId());
         }
         recordProcessedEvent(eventId, eventType);
+    }
+
+    private void submitPaidHoldToManagerReview(Payment payment, String actor) {
+        Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
+        if (reservation == null || reservation.getStatus() != ReservationStatus.PAYMENT_PENDING) return;
+        reservation.changeStatus(ReservationStatus.PENDING);
+        audit.record(actor, "RESERVATION_SUBMITTED_AFTER_FULL_PAYMENT", "RESERVATION",
+                reservation.getId().toString(),
+                "Full payment was verified. Reservation is now pending manager review.");
+        notifications.notifyAdminsOnce("New paid reservation request",
+                "Reservation #" + reservation.getId() + " from " + reservation.getCustomerUsername()
+                        + " has been fully paid and is awaiting manager review.",
+                "RESERVATION", "PAYMONGO-PAID-RESERVATION-" + reservation.getId());
     }
 
     private void sendPaymentReceipt(Payment payment) {
@@ -331,10 +352,12 @@ public class PayMongoService {
                         payment.markPaidFromProvider(payment.getProviderCheckoutSessionId(), providerPaymentId);
                         audit.record("PAYMONGO_RECONCILIATION", "PAYMENT_CONFIRMED", "PAYMENT",
                                 payment.getId().toString(), "Payment confirmed by authenticated PayMongo checkout retrieval.");
+                        submitPaidHoldToManagerReview(payment, "PAYMONGO_RECONCILIATION");
                         sendPaymentReceipt(payment);
                         Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
                         if (linkedReservation == null
-                                || (linkedReservation.getStatus() != ReservationStatus.APPROVED
+                                || (linkedReservation.getStatus() != ReservationStatus.PENDING
+                                    && linkedReservation.getStatus() != ReservationStatus.APPROVED
                                     && linkedReservation.getStatus() != ReservationStatus.CHECKED_IN)) {
                             notifications.notifyAdmins("Payment received for inactive reservation",
                                     "PayMongo confirmed payment #" + payment.getId()
@@ -363,7 +386,8 @@ public class PayMongoService {
 
                 Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
                 boolean reservationInactive = reservation == null
-                        || (reservation.getStatus() != ReservationStatus.APPROVED
+                        || (reservation.getStatus() != ReservationStatus.PAYMENT_PENDING
+                            && reservation.getStatus() != ReservationStatus.APPROVED
                             && reservation.getStatus() != ReservationStatus.CHECKED_IN);
                 boolean amountOutdated = reservation != null
                         && !expectedCurrentDue(reservation, payment).equals(payment.getAmount());
@@ -381,6 +405,8 @@ public class PayMongoService {
     }
 
     private BigDecimal expectedAmountBeforePayment(Reservation reservation, Payment paidPayment) {
+        if (paidPayment.getPaymentType() == PaymentType.FULL_PAYMENT)
+            return reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
         BigDecimal paidIncludingThis = paidAmountForReservation(reservation.getId());
         BigDecimal paidBefore = paidIncludingThis.subtract(paidPayment.getAmount()).max(BigDecimal.ZERO);
         if (paidPayment.getPaymentType() == PaymentType.DOWN_PAYMENT && paidBefore.signum() == 0) {
@@ -392,6 +418,8 @@ public class PayMongoService {
     }
 
     private BigDecimal expectedCurrentDue(Reservation reservation, Payment pendingPayment) {
+        if (pendingPayment.getPaymentType() == PaymentType.FULL_PAYMENT)
+            return reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
         BigDecimal paid = paidAmountForReservation(reservation.getId());
         if (pendingPayment.getPaymentType() == PaymentType.DOWN_PAYMENT && paid.signum() == 0) {
             return reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
@@ -416,6 +444,13 @@ public class PayMongoService {
     private void markCheckoutExpired(Payment payment) {
         if (payment.getStatus() != PaymentStatus.PENDING) return;
         payment.markFailedFromProvider(null);
+        Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
+        if (reservation != null && reservation.getStatus() == ReservationStatus.PAYMENT_PENDING) {
+            reservation.changeStatus(ReservationStatus.EXPIRED);
+            audit.record("PAYMONGO_RECONCILIATION", "UNPAID_RESERVATION_HOLD_EXPIRED",
+                    "RESERVATION", reservation.getId().toString(),
+                    "The unpaid room hold was released after the PayMongo checkout expired.");
+        }
         audit.record("PAYMONGO_RECONCILIATION", "CHECKOUT_EXPIRED", "PAYMENT",
                 payment.getId().toString(), "PayMongo checkout session expired because the payment was abandoned, stale, or the reservation was no longer active.");
         notifications.notifyUserInAppOnly(payment.getCustomerUsername(), "Payment session expired",
