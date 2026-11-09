@@ -5,6 +5,7 @@ import com.hotel.system.audit.AuditService;
 import com.hotel.system.config.HotelStayTimePolicy;
 import com.hotel.system.notification.NotificationService;
 import com.hotel.system.payment.PaymentRepository;
+import com.hotel.system.payment.PaymentRefundRequestRepository;
 import com.hotel.system.payment.PaymentStatus;
 import com.hotel.system.room.RoomRepository;
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,13 @@ class ReservationCheckInOutTest {
     private final SystemUserRepository users = mock(SystemUserRepository.class);
     private final AuditService audit = mock(AuditService.class);
     private final PaymentRepository payments = mock(PaymentRepository.class);
+    private final PaymentRefundRequestRepository refundRequests = mock(PaymentRefundRequestRepository.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final HotelStayTimePolicy stayTimes = mock(HotelStayTimePolicy.class);
     private final Clock clock = Clock.fixed(Instant.parse("2026-11-08T03:00:00Z"), ZoneId.of("Asia/Manila"));
 
     private ReservationService service() {
-        return new ReservationService(reservations, rooms, users, clock, audit, payments, notifications, stayTimes);
+        return new ReservationService(reservations, rooms, users, clock, audit, payments, refundRequests, notifications, stayTimes);
     }
 
     @Test
@@ -59,7 +61,7 @@ class ReservationCheckInOutTest {
         Clock afterCheckout = Clock.fixed(
                 Instant.parse("2026-11-10T05:00:00Z"), ZoneId.of("Asia/Manila"));
         ReservationService lateService = new ReservationService(
-                reservations, rooms, users, afterCheckout, audit, payments, notifications, stayTimes);
+                reservations, rooms, users, afterCheckout, audit, payments, refundRequests, notifications, stayTimes);
 
         IllegalStateException error = assertThrows(IllegalStateException.class,
                 () -> lateService.checkIn(95L, "admin"));
