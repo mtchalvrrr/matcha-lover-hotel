@@ -27,7 +27,7 @@ import java.util.List;
 @Transactional
 public class ReservationService {
     private static final List<ReservationStatus> BLOCKING_STATUSES =
-        List.of(ReservationStatus.PENDING, ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN);
+        List.of(ReservationStatus.PAYMENT_PENDING, ReservationStatus.PENDING, ReservationStatus.APPROVED, ReservationStatus.CHECKED_IN);
 
     private final ReservationRepository reservations;
     private final RoomRepository rooms;
@@ -76,11 +76,11 @@ public class ReservationService {
             customer.getEmail(), room.getId(), room.getRoomCode(), room.getName(),
             checkIn, checkOut, guests, nights, room.getNightlyRate(), total);
         reservation.setStayTimes(stayTimes.checkInTime(), stayTimes.checkOutTime());
+        reservation.changeStatus(ReservationStatus.PAYMENT_PENDING);
         Reservation saved = reservations.save(reservation);
-        audit.record(username, "RESERVATION_REQUESTED", "RESERVATION", saved.getId().toString(),
-            "Room " + room.getRoomCode() + ", stay " + checkIn + " to " + checkOut);
-        notifications.notifyAdmins("New reservation request", "Reservation #" + saved.getId()
-            + " from " + customer.getUsername() + " requires review.", "RESERVATION");
+        audit.record(username, "RESERVATION_CHECKOUT_STARTED", "RESERVATION", saved.getId().toString(),
+            "Room " + room.getRoomCode() + ", stay " + checkIn + " to " + checkOut
+                    + ". The reservation will be submitted for manager review only after full payment is verified.");
         return saved;
     }
 
@@ -186,7 +186,11 @@ public class ReservationService {
         if (from != null && to != null && to.isBefore(from)) {
             throw new IllegalArgumentException("The end date must be on or after the start date.");
         }
-        return reservations.searchReservations(cleanQuery, status, source, from, to);
+        List<Reservation> results = reservations.searchReservations(cleanQuery, status, source, from, to);
+        // Unpaid checkout holds reserve dates but are not yet manager-reviewable reservations.
+        return status == null
+                ? results.stream().filter(r -> r.getStatus() != ReservationStatus.PAYMENT_PENDING).toList()
+                : results;
     }
 
 
@@ -240,6 +244,20 @@ public class ReservationService {
                     : "Your reservation #" + id + " was rejected. A full refund request has been submitted for separate administrator authorization. We will notify you when it is reviewed.",
                 "RESERVATION");
         }
+    }
+
+    public void cancelUnpaidCheckout(Long id, String username) {
+        SystemUser customer = users.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        Reservation reservation = reservations.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())
+                || reservation.getStatus() != ReservationStatus.PAYMENT_PENDING) {
+            throw new IllegalStateException("This payment hold can no longer be cancelled.");
+        }
+        reservation.changeStatus(ReservationStatus.EXPIRED);
+        audit.record(username, "RESERVATION_PAYMENT_HOLD_CANCELLED", "RESERVATION", id.toString(),
+                "Checkout could not be started; the unpaid room hold was released.");
     }
 
     public void cancelCustomerReservation(Long id, String username) {
@@ -408,10 +426,8 @@ public class ReservationService {
                 && reservation.getCheckInDate().equals(now.toLocalDate());
         if (now.isBefore(scheduledCheckIn) && !sameDayWalkIn)
             throw new IllegalStateException("The scheduled check-in time has not started.");
-        BigDecimal requiredDeposit = reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
-            .setScale(2, java.math.RoundingMode.HALF_UP);
-        if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(requiredDeposit) < 0)
-            throw new IllegalStateException("The 50% down payment must be recorded before check-in.");
+        if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(reservation.getTotalAmount()) < 0)
+            throw new IllegalStateException("Full payment must be recorded before check-in.");
         reservation.recordCheckIn(java.time.Instant.now(clock));
         audit.record(adminUsername, "GUEST_CHECKED_IN", "RESERVATION", id.toString(),
             "Checked in guest " + reservation.getGuestName() + " at " + reservation.getCheckedInAt());
