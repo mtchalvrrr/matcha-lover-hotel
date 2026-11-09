@@ -43,7 +43,7 @@
 <div><label for="guests">Number of guests</label><input id="guests" type="number" name="guests" min="1" th:attr="max=${room.capacity}" th:value="${guestCount}" required></div>
 </div>
 <button class="primary-button" type="submit" th:disabled="${availabilityChecked and !availabilityAvailable}">Continue with reservation</button>
-<p class="form-help">Your reservation is reviewed by the hotel before payment. Once approved, you can pay the 50% deposit securely through the configured PayMongo checkout.</p>
+<p class="form-help">Full payment is required through PayMongo before your reservation request is sent to the hotel for manager review. A payment receipt will be emailed after PayMongo confirms the transaction.</p>
 </form>
 </section>
 <div class="room-availability-dialog" id="roomAvailabilityDialog" role="dialog" aria-modal="true" aria-labelledby="roomAvailabilityTitle" tabindex="-1">
@@ -52,7 +52,7 @@
 <h2 id="roomAvailabilityTitle">Reserved dates for this room</h2>
 <div class="room-occupancy-list">
 <p class="form-help">These dates are blocked and cannot be booked.</p>
-<p class="room-occupancy-empty" th:if="${#lists.isEmpty(roomOccupancy)}">No pending, approved, or checked-in reservations for this room.</p>
+<p class="room-occupancy-empty" th:if="${#lists.isEmpty(roomOccupancy)}">No active payment holds or reservations for this room.</p>
 <ul th:unless="${#lists.isEmpty(roomOccupancy)}">
 <li th:each="booking : ${roomOccupancy}">
 <span class="occupancy-status"
