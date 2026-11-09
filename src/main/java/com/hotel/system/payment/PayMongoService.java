@@ -87,12 +87,8 @@ public class PayMongoService {
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
         if (initialReservationCheckout && paid.signum() > 0)
             throw new IllegalStateException("A new reservation checkout cannot be started after a payment has already been recorded.");
-        PaymentType type = initialReservationCheckout ? PaymentType.FULL_PAYMENT
-                : (paid.signum() == 0 ? PaymentType.DOWN_PAYMENT : PaymentType.BALANCE);
-        BigDecimal amount = initialReservationCheckout ? due
-                : (paid.signum() == 0
-                    ? reservation.getTotalAmount().multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP)
-                    : due);
+        PaymentType type = PaymentType.FULL_PAYMENT;
+        BigDecimal amount = due;
         if (existing.isPresent() && existing.get().getCheckoutUrl() != null) {
             Payment prior = existing.get();
             if (prior.getAmount().compareTo(amount) == 0) return prior.getCheckoutUrl();
@@ -405,8 +401,6 @@ public class PayMongoService {
     }
 
     private BigDecimal expectedAmountBeforePayment(Reservation reservation, Payment paidPayment) {
-        if (paidPayment.getPaymentType() == PaymentType.FULL_PAYMENT)
-            return reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
         BigDecimal paidIncludingThis = paidAmountForReservation(reservation.getId());
         BigDecimal paidBefore = paidIncludingThis.subtract(paidPayment.getAmount()).max(BigDecimal.ZERO);
         if (paidPayment.getPaymentType() == PaymentType.DOWN_PAYMENT && paidBefore.signum() == 0) {
@@ -418,8 +412,6 @@ public class PayMongoService {
     }
 
     private BigDecimal expectedCurrentDue(Reservation reservation, Payment pendingPayment) {
-        if (pendingPayment.getPaymentType() == PaymentType.FULL_PAYMENT)
-            return reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
         BigDecimal paid = paidAmountForReservation(reservation.getId());
         if (pendingPayment.getPaymentType() == PaymentType.DOWN_PAYMENT && paid.signum() == 0) {
             return reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
