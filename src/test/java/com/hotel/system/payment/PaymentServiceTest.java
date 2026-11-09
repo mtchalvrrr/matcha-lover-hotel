@@ -23,6 +23,35 @@ import static org.mockito.Mockito.*;
 
 class PaymentServiceTest {
     @Test
+    void firstPaymentCollectsTheEntireReservationAmount() {
+        PaymentRepository payments = mock(PaymentRepository.class);
+        PaymentRefundRequestRepository refundRequests = mock(PaymentRefundRequestRepository.class);
+        ReservationRepository reservations = mock(ReservationRepository.class);
+        SystemUserRepository users = mock(SystemUserRepository.class);
+        AuditService audit = mock(AuditService.class);
+        NotificationService notifications = mock(NotificationService.class);
+        PaymentService service = new PaymentService(payments, refundRequests, reservations, users, audit, "SIMULATED",
+                notifications, Clock.fixed(java.time.Instant.parse("2026-11-08T04:00:00Z"), ZoneId.of("Asia/Manila")));
+
+        SystemUser customer = new SystemUser("guest", "guest@example.com", "encoded", AccountRole.CUSTOMER);
+        Reservation reservation = new Reservation(null, "guest", "guest@example.com", 4L,
+                "R-04", "Deluxe Room", LocalDate.of(2026, 11, 10),
+                LocalDate.of(2026, 11, 12), 2, 2,
+                new BigDecimal("1000.00"), new BigDecimal("2000.00"));
+        reservation.changeStatus(ReservationStatus.APPROVED);
+        when(users.findByUsernameIgnoreCase("guest")).thenReturn(Optional.of(customer));
+        when(reservations.findById(56L)).thenReturn(Optional.of(reservation));
+        when(payments.sumPaidForReservation(56L, PaymentStatus.PAID)).thenReturn(BigDecimal.ZERO);
+        when(payments.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Payment payment = service.payNextDue(56L, "guest");
+
+        assertEquals(PaymentType.FULL_PAYMENT, payment.getPaymentType());
+        assertEquals(new BigDecimal("2000.00"), payment.getAmount());
+        assertEquals(PaymentStatus.PAID, payment.getStatus());
+    }
+
+    @Test
     void checkedInCustomerCanPayRemainingBalance() {
         PaymentRepository payments = mock(PaymentRepository.class);
         PaymentRefundRequestRepository refundRequests = mock(PaymentRefundRequestRepository.class);
