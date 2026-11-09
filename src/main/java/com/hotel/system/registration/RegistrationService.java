@@ -145,20 +145,49 @@ public class RegistrationService {
         if (otp == null) return false;
         boolean verified = app.verifyOtp(otp.trim(), encoder, Instant.now(clock));
         if (verified) {
-            if (users.existsByUsernameIgnoreCase(app.getUsername()) || users.existsByEmailIgnoreCase(app.getEmail())) {
-                throw new IllegalStateException("A matching account already exists. Please contact the hotel.");
-            }
-            users.save(new SystemUser(app.getFirstName(), app.getLastName(), app.getUsername(),
-                    app.getEmail(), app.getPasswordHash(), AccountRole.CUSTOMER));
-            app.review(true, "SYSTEM", "Automatically activated after email verification (temporary testing mode).");
-            notifications.notifyUser(app.getUsername(), "Customer account activated",
-                    "Your email has been verified and your customer account is now active. You can sign in.", "ACCOUNT");
-            audit.record(app.getUsername(), "CUSTOMER_REGISTRATION_AUTO_APPROVED", "REGISTRATION", id.toString(),
-                "Customer account automatically activated after successful email OTP verification.");
+            audit.record(app.getUsername(), "REGISTRATION_EMAIL_VERIFIED", "REGISTRATION", id.toString(),
+                "Email OTP verified. Identity documents are still required before review.");
         }
         return verified;
     }
 
+
+
+    public void attachIdentityDocuments(Long id, String email, String idType,
+            org.springframework.web.multipart.MultipartFile front, org.springframework.web.multipart.MultipartFile back) {
+        RegistrationApplication app = applications.findByIdAndEmailIgnoreCase(id,
+                clean(email).toLowerCase(java.util.Locale.ROOT))
+            .orElseThrow(() -> new IllegalArgumentException("Registration application not found."));
+        String type = clean(idType);
+        if (type.isBlank() || type.length() > 80)
+            throw new IllegalArgumentException("Select your government-issued ID type.");
+        if (!app.isEmailVerified())
+            throw new IllegalStateException("Verify your email address before submitting identity documents.");
+        if (front == null || front.isEmpty() || back == null || back.isEmpty())
+            throw new IllegalArgumentException("Upload both the front and back of your government-issued ID.");
+        String frontHash = fingerprint(front), backHash = fingerprint(back);
+        String combinedHash;
+        try {
+            combinedHash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest((frontHash + ":" + backHash).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Secure document fingerprinting is unavailable.", ex);
+        }
+        if (applications.existsByDocumentHashAndStatusIn(combinedHash, DOCUMENT_HASH_BLOCKING_STATUSES))
+            throw new IllegalArgumentException("These ID documents have already been submitted.");
+        String frontPath = "", backPath = "";
+        try {
+            frontPath = documents.store(front);
+            backPath = documents.store(back);
+            app.attachIdentityDocuments(type, frontPath, backPath, combinedHash);
+            audit.record(app.getUsername(), "CUSTOMER_IDENTITY_DOCUMENTS_SUBMITTED", "REGISTRATION",
+                id.toString(), "Government ID type and front/back images submitted for review.");
+        } catch (RuntimeException ex) {
+            if (!frontPath.isBlank()) try { documents.delete(frontPath); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            if (!backPath.isBlank()) try { documents.delete(backPath); } catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            throw ex;
+        }
+    }
 
     public List<RegistrationApplication> pendingReview() {
         return applications.findByStatusOrderBySubmittedAtAsc(RegistrationStatus.PENDING_REVIEW);
