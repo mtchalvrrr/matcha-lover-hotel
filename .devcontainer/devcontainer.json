@@ -1,0 +1,14 @@
+{
+  "name": "Matcha Lover Hotel",
+  "forwardPorts": [
+    8080
+  ],
+  "portsAttributes": {
+    "8080": {
+      "label": "Matcha Lover Hotel",
+      "onAutoForward": "notify",
+      "protocol": "https"
+    }
+  },
+  "postCreateCommand": "mkdir -p data"
+}
