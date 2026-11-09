@@ -38,7 +38,7 @@ class PaymentServiceTest {
                 "R-04", "Deluxe Room", LocalDate.of(2026, 11, 10),
                 LocalDate.of(2026, 11, 12), 2, 2,
                 new BigDecimal("1000.00"), new BigDecimal("2000.00"));
-        reservation.changeStatus(ReservationStatus.APPROVED);
+        reservation.changeStatus(ReservationStatus.PAYMENT_PENDING);
         when(users.findByUsernameIgnoreCase("guest")).thenReturn(Optional.of(customer));
         when(reservations.findById(56L)).thenReturn(Optional.of(reservation));
         when(payments.sumPaidForReservation(56L, PaymentStatus.PAID)).thenReturn(BigDecimal.ZERO);
@@ -52,7 +52,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    void checkedInCustomerCanPayRemainingBalance() {
+    void checkedInCustomerCannotPayRemainingBalance() {
         PaymentRepository payments = mock(PaymentRepository.class);
         PaymentRefundRequestRepository refundRequests = mock(PaymentRefundRequestRepository.class);
         ReservationRepository reservations = mock(ReservationRepository.class);
@@ -68,18 +68,14 @@ class PaymentServiceTest {
                 LocalDate.of(2026, 11, 12), 2, 2,
                 new BigDecimal("1000.00"), new BigDecimal("2000.00"));
         reservation.changeStatus(ReservationStatus.CHECKED_IN);
-
         when(users.findByUsernameIgnoreCase("guest")).thenReturn(Optional.of(customer));
         when(reservations.findById(55L)).thenReturn(Optional.of(reservation));
-        when(payments.sumPaidForReservation(55L, PaymentStatus.PAID)).thenReturn(new BigDecimal("1000.00"));
-        when(payments.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Payment payment = service.payNextDue(55L, "guest");
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> service.payNextDue(55L, "guest"));
 
-        assertEquals(PaymentType.BALANCE, payment.getPaymentType());
-        assertEquals(new BigDecimal("1000.00"), payment.getAmount());
-        assertEquals(PaymentStatus.PAID, payment.getStatus());
-        verify(payments).save(any(Payment.class));
+        assertTrue(error.getMessage().contains("Remaining-balance collection is not supported"));
+        verify(payments, never()).save(any(Payment.class));
     }
 
     @Test
