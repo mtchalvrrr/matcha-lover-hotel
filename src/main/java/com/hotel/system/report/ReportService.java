@@ -174,6 +174,7 @@ public class ReportService {
                 countStatus(bookings, ReservationStatus.REJECTED),
                 countStatus(bookings, ReservationStatus.CANCELLED),
                 countStatus(bookings, ReservationStatus.EXPIRED),
+                countStatus(bookings, ReservationStatus.VOID),
                 countStatus(bookings, ReservationStatus.NO_SHOW),
                 countStatus(bookings, ReservationStatus.CHECKED_IN),
                 countStatus(bookings, ReservationStatus.CHECKED_OUT),
