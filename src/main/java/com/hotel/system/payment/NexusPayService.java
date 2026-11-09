@@ -358,11 +358,8 @@ public class NexusPayService {
 
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            byte[] expected = mac.doFinal((timestamp + ".").getBytes(StandardCharsets.UTF_8));
-            mac.reset();
-            mac.init(new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             mac.update((timestamp + ".").getBytes(StandardCharsets.UTF_8));
-            expected = mac.doFinal(rawBody);
+            byte[] expected = mac.doFinal(rawBody);
             byte[] supplied = HexFormat.of().parseHex(suppliedHex);
             return MessageDigest.isEqual(expected, supplied);
         } catch (Exception ex) {
