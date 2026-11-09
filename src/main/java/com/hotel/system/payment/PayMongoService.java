@@ -40,6 +40,7 @@ public class PayMongoService {
     private final String secretKey;
     private final String webhookSecret;
     private final String publicBaseUrl;
+    private final String hotelName;
     private final Clock clock;
 
     public PayMongoService(RestClient.Builder builder, ObjectMapper mapper, PaymentRepository payments,
@@ -49,6 +50,7 @@ public class PayMongoService {
             @Value("${payment.paymongo.secret-key:}") String secretKey,
             @Value("${payment.paymongo.webhook-secret:}") String webhookSecret,
             @Value("${hotel.public-base-url:http://localhost:8080}") String publicBaseUrl,
+            @Value("${hotel.name:[HOTEL NAME]}") String hotelName,
             Clock clock) {
         this.client = builder.baseUrl("https://api.paymongo.com").build();
         this.mapper = mapper;
@@ -62,6 +64,7 @@ public class PayMongoService {
         this.secretKey = secretKey == null ? "" : secretKey.trim();
         this.webhookSecret = webhookSecret == null ? "" : webhookSecret.trim();
         this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
+        this.hotelName = hotelName;
         this.clock = clock;
     }
 
@@ -259,6 +262,7 @@ public class PayMongoService {
     private void sendPaymentReceipt(Payment payment) {
         Reservation reservation = reservations.findById(payment.getReservationId()).orElse(null);
         StringBuilder receipt = new StringBuilder()
+                .append(hotelName).append("\\n")
                 .append("Your payment has been confirmed. This email is your hotel payment receipt.\n\n")
                 .append("Receipt number: PAY-").append(payment.getId()).append("\n")
                 .append("Payment reference: ").append(payment.getTransactionReference()).append("\n")
