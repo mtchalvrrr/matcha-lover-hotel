@@ -185,7 +185,7 @@ public class XenditService {
 
         Payment payment = payments.findByTransactionReference(reference)
                 .orElseThrow(() -> new IllegalArgumentException("No matching hotel payment was found."));
-        BigDecimal providerAmount = BigDecimal.valueOf(data.path("amount").asDouble(-1));
+        BigDecimal providerAmount = data.path("amount").decimalValue();
         if (providerAmount.compareTo(payment.getAmount()) != 0)
             throw new IllegalArgumentException("The Xendit payment amount does not match the hotel payment.");
         if (!Objects.equals(payment.getProviderCheckoutSessionId(), sessionId))
@@ -236,6 +236,7 @@ public class XenditService {
         String status = data.path("status").asText("");
         String eventKey = event + ":" + refundId;
         if (refundId.isBlank() || providerPaymentId.isBlank()
+                || !"PHP".equals(data.path("currency").asText(""))
                 || (!"SUCCEEDED".equals(status) && !"FAILED".equals(status)))
             throw new IllegalArgumentException("The Xendit refund webhook is incomplete or invalid.");
         if (processedEvents.existsByEventKey(eventKey)) return;
@@ -345,7 +346,9 @@ public class XenditService {
                     "PAYMENT", "XENDIT-REFUND-RECEIPT-" + payment.getId());
         } else if ("FAILED".equals(status)) {
             payment.markRefundFailed(refundId);
-            throw new IllegalStateException("Xendit rejected the refund. The payment remains recorded as paid.");
+            notifications.notifyAdmins("Xendit refund failed",
+                    "Xendit rejected the refund for payment #" + payment.getId()
+                            + ". Review the provider dashboard.", "PAYMENT");
         }
     }
 
