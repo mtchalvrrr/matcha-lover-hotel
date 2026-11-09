@@ -100,7 +100,8 @@ public class PayMongoService {
             } catch (RuntimeException ex) {
                 throw new IllegalStateException("A previous checkout is still being processed. Wait for its payment result before creating another checkout.");
             }
-            if (prior.getStatus() == PaymentStatus.PENDING) return prior.getCheckoutUrl();
+            if (prior.getStatus() == PaymentStatus.PENDING)
+                throw new IllegalStateException("A previous checkout with a different amount is still active. Wait for it to expire or finish before starting the full-payment checkout.");
         }
         String reference = "HOTEL-" + reservationId + "-" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
         // Force the reservation's optimistic version check before creating an external checkout.
