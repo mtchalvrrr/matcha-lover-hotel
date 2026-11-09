@@ -119,7 +119,7 @@ public class PayMongoService {
         attributes.put("success_url", publicBaseUrl + "/customer/payments?checkout=returned");
         attributes.put("cancel_url", publicBaseUrl + "/customer/reservations");
         attributes.put("reference_number", reference);
-        attributes.put("send_email_receipt", true);
+        attributes.put("send_email_receipt", false);
         attributes.put("metadata", Map.of("reservation_id", reservationId.toString(),
                 "hotel_payment_id", payment.getId().toString()));
         Map<String, Object> body = Map.of("data", Map.of("attributes", attributes));
