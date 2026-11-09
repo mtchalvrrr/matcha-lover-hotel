@@ -12,7 +12,7 @@ Independent hotel reservation and management system on the `new-hotel-system` br
 - Customer registration with identity-document upload, email OTP verification, Super Admin application review, and account status management.
 - Customer profiles, password changes, password recovery, account deactivation requests, and session invalidation.
 - Room browsing, date availability, guest-capacity checks, filters, sorting, room details, photo galleries, and room management.
-- Reservation creation, full online payment before Admin review, reservation modification, cancellation, history, and automatic expiry of unpaid holds or stale pending requests.
+- Reservation creation, full online payment before Admin review, reservation modification, cancellation, history, and automatic expiry of unpaid holds or stale pending requests. Reservation extension requests are part of the required system scope and are tracked as an outstanding implementation gap.
 - Admin reservation approval/rejection, walk-in bookings, check-in, checkout, no-show handling, and room readiness management.
 - Xendit hosted checkout in Test Mode, verified webhooks, payment reconciliation, payment receipts, and two-Admin refund authorization.
 - Customer support conversations, in-app notifications, optional SMTP email, and scheduled stay reminders.
@@ -83,8 +83,13 @@ mvn spring-boot:run
 ## Excluded features
 - Staff portal, staff accounts, or staff management.
 - Separate databases for each portal.
-- Reservation extensions.
 - Reservation ratings and reviews.
+
+## Known specification gaps
+
+- The uploaded Matcha Lover Hotel system cycle requires reservation extension requests, Admin approval/rejection, extension charge calculation, and additional Xendit payment. The current branch has a date-extension method on the reservation entity but does not yet have the complete request, review, payment, webhook, and notification workflow. Do not present reservation extensions as completed until that workflow is implemented and tested.
+- The requirements distinguish an Online Booking Admin and a Walk-in Booking Admin. The current account model supports two ADMIN accounts with identical permissions, but does not yet store or display those two operational designations separately.
+- The `new-hotel-system` branch uses the explicit `VOID` status for pending reservations that reach check-in without Admin review only after the spec-alignment changes in this branch. `EXPIRED` remains the state for stale pending requests before check-in; `NO_SHOW` remains for approved reservations not checked in after the allowed grace period.
 
 ## Remaining verification
 
