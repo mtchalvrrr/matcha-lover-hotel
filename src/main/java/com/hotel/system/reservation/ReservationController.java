@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.hotel.system.payment.PaymentService;
+import com.hotel.system.payment.PayMongoService;
 import com.hotel.system.room.RoomService;
 import com.hotel.system.room.RoomRatingService;
 
@@ -17,6 +18,7 @@ import java.time.Clock;
 public class ReservationController {
     private final ReservationService reservations;
     private final PaymentService payments;
+    private final PayMongoService payMongo;
     private final WalkInBookingService walkInBookings;
     private final RoomService rooms;
     private final Clock clock;
@@ -24,10 +26,11 @@ public class ReservationController {
     private final RoomRatingService roomRatings;
 
     public ReservationController(ReservationService reservations, PaymentService payments,
-                                 WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
+                                 PayMongoService payMongo, WalkInBookingService walkInBookings, RoomService rooms, Clock clock,
                                  ReservationHistoryService history, RoomRatingService roomRatings) {
         this.reservations = reservations;
         this.payments = payments;
+        this.payMongo = payMongo;
         this.walkInBookings = walkInBookings;
         this.rooms = rooms;
         this.clock = clock;
@@ -42,11 +45,16 @@ public class ReservationController {
                                      @RequestParam Integer guests,
                                      Authentication authentication,
                                      RedirectAttributes redirect) {
+        Reservation hold = null;
         try {
-            Reservation reservation = reservations.request(authentication.getName(), roomId, checkIn, checkOut, guests);
-            redirect.addFlashAttribute("success", "Reservation request #" + reservation.getId() + " was submitted for approval.");
-            return "redirect:/customer/reservations";
+            hold = reservations.request(authentication.getName(), roomId, checkIn, checkOut, guests);
+            String checkoutUrl = payMongo.createCheckout(hold.getId(), authentication.getName());
+            return "redirect:" + checkoutUrl;
         } catch (IllegalArgumentException | IllegalStateException ex) {
+            if (hold != null) {
+                try { reservations.cancelUnpaidCheckout(hold.getId(), authentication.getName()); }
+                catch (RuntimeException ignored) { /* Keep the original checkout error for the customer. */ }
+            }
             redirect.addFlashAttribute("error", ex.getMessage());
             return "redirect:/rooms/" + roomId;
         }
