@@ -13,6 +13,15 @@ public class SupportCase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "customer_id")
+    private Long customerId;
+
+    @Column(name = "customer_name", nullable = false, length = 160)
+    private String customerName;
+
+    @Column(name = "customer_email", nullable = false, length = 254)
+    private String customerEmail;
+
     @Column(name = "customer_username", nullable = false, length = 80)
     private String customerUsername;
 
@@ -37,13 +46,20 @@ public class SupportCase {
 
     protected SupportCase() { }
 
-    public SupportCase(String customerUsername, String category, String subject) {
+    public SupportCase(Long customerId, String customerName, String customerEmail,
+                       String customerUsername, String category, String subject) {
+        this.customerId = customerId;
+        this.customerName = customerName;
+        this.customerEmail = customerEmail;
         this.customerUsername = customerUsername;
         this.category = category;
         this.subject = subject;
     }
 
     public Long getId() { return id; }
+    public Long getCustomerId() { return customerId; }
+    public String getCustomerName() { return customerName; }
+    public String getCustomerEmail() { return customerEmail; }
     public String getCustomerUsername() { return customerUsername; }
     public String getCategory() { return category; }
     public String getSubject() { return subject; }
