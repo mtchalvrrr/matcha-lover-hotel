@@ -76,17 +76,8 @@ public class PaymentService {
         BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
         if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
 
-        PaymentType type;
-        BigDecimal amount;
-        if (paid.signum() == 0) {
-            type = PaymentType.DOWN_PAYMENT;
-            amount = reservation.getTotalAmount().multiply(new BigDecimal("0.50"))
-                .setScale(2, RoundingMode.HALF_UP);
-            if (amount.compareTo(due) > 0) amount = due;
-        } else {
-            type = PaymentType.BALANCE;
-            amount = due;
-        }
+        PaymentType type = PaymentType.FULL_PAYMENT;
+        BigDecimal amount = due;
 
         reservation.touchForPayment();
         reservations.saveAndFlush(reservation);
