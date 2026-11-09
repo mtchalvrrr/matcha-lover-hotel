@@ -180,7 +180,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/", "/customer", "/admin", "/super-admin",
                         "/api/chat", "/register", "/register/**", "/registration/status",
                         "/forgot-password", "/reset-password", "/rooms", "/rooms/**",
-                        "/css/**", "/js/**", "/images/**", "/room-images/**", "/webhooks/paymongo", "/webhooks/xendit", "/favicon.ico", "/error")
+                        "/css/**", "/js/**", "/images/**", "/room-images/**", "/webhooks/xendit", "/favicon.ico", "/error")
                 .permitAll()
                 .anyRequest().authenticated());
         applySecurityHeaders(http);
