@@ -38,7 +38,7 @@ public class RoomController {
     public String browseRooms(@RequestParam(required = false) LocalDate checkIn,
                               @RequestParam(required = false) LocalDate checkOut,
                               @RequestParam(required = false) Integer guests,
-                              Model model) {
+                              Model model, Authentication authentication) {
         var availableRooms = rooms.publicRooms();
         boolean availabilitySearch = checkIn != null || checkOut != null || guests != null;
         try {
@@ -50,6 +50,9 @@ public class RoomController {
             availableRooms = rooms.publicRooms();
             availabilitySearch = false;
         }
+        boolean customerSignedIn = authentication != null && authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).anyMatch("ROLE_CUSTOMER"::equals);
+        model.addAttribute("customerSignedIn", customerSignedIn);
         model.addAttribute("rooms", availableRooms);
         model.addAttribute("roomRatingSummaries", roomRatings.summaries(availableRooms.stream().map(Room::getId).toList()));
         model.addAttribute("roomPhotos", availableRooms.stream().collect(Collectors.toMap(
