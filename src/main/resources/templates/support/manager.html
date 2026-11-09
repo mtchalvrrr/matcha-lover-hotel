@@ -23,7 +23,7 @@
                 <div>
                     <p class="eyebrow" th:text="${thread.supportCase.category}">CATEGORY</p>
                     <h2 th:text="${thread.supportCase.subject}">Subject</h2>
-                    <small th:text="${'Request #' + thread.supportCase.id + ' · Customer: ' + thread.supportCase.customerUsername}">Customer</small>
+                    <small th:text="${'Request #' + thread.supportCase.id + ' · ' + thread.supportCase.customerName + ' · Customer ID: ' + thread.supportCase.customerId}">Customer</small><small th:text="${thread.supportCase.customerEmail + ' · @' + thread.supportCase.customerUsername}">Customer email</small>
                     <small th:text="${'Opened ' + #temporals.format(thread.supportCase.createdAt, 'MMM d, yyyy h:mm a')}">Date</small>
                 </div>
                 <form th:action="@{/admin/support/{id}/status(id=${thread.supportCase.id})}" method="post" class="support-status-form">
