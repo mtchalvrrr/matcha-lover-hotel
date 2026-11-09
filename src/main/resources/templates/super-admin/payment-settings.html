@@ -10,6 +10,7 @@
 <tr><th>Payment mode</th><td th:text="${paymentMode}">SIMULATED</td></tr>
 <tr><th>Xendit Test Mode API key</th><td th:text="${apiKeyConfigured ? 'Configured (value hidden)' : 'Not configured'}">Not configured</td></tr>
 <tr><th>Xendit webhook verification token</th><td th:text="${webhookTokenConfigured ? 'Configured (value hidden)' : 'Not configured'}">Not configured</td></tr>
+<tr><th>Public HTTPS return URL</th><td th:text="${publicHttpsUrlConfigured ? 'Configured' : 'Not configured'}">Not configured</td></tr>
 <tr><th>Hosted checkout</th><td th:text="${xenditReady ? 'Configuration ready' : 'Unavailable'}">Unavailable</td></tr>
 </tbody></table></div>
 <h2>Configure through repository secrets</h2>
