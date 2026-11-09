@@ -131,8 +131,8 @@ public class RegistrationController {
 
     @GetMapping("/super-admin/registrations/{id}/document")
     @ResponseBody
-    public ResponseEntity<FileSystemResource> document(@PathVariable Long id) throws java.io.IOException {
-        java.nio.file.Path path = registrations.documentPath(id);
+    public ResponseEntity<FileSystemResource> document(@PathVariable Long id, @RequestParam(defaultValue = "front") String side) throws java.io.IOException {
+        java.nio.file.Path path = registrations.documentPath(id, side);
         if (!Files.exists(path)) return ResponseEntity.notFound().build();
         MediaType type = path.toString().toLowerCase().endsWith(".pdf") ? MediaType.APPLICATION_PDF :
             (path.toString().toLowerCase().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG);
