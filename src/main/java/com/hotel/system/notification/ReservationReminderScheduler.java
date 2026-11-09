@@ -65,7 +65,7 @@ public class ReservationReminderScheduler {
         String message = "Reminder: reservation #" + reservation.getId()
                 + " is scheduled to check out on " + reservation.getCheckOutDate()
                 + " at " + reservation.getCheckOutTime()
-                + ". Please settle any remaining balance before checkout.";
+                + ".";
         send(reservation, "Upcoming check-out", message, eventKey);
     }
 

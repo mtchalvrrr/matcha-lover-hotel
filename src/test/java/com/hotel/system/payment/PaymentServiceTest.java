@@ -90,7 +90,7 @@ class PaymentServiceTest {
         PaymentService service = new PaymentService(payments, refundRequests, reservations, users, audit,
                 "SIMULATED", notifications, clock);
 
-        Payment payment = new Payment(55L, "guest", PaymentType.DOWN_PAYMENT,
+        Payment payment = new Payment(55L, "guest", PaymentType.FULL_PAYMENT,
                 new BigDecimal("1000.00"), "SIMULATED", "SIM-REFUND-TEST", PaymentStatus.PAID);
         ReflectionTestUtils.setField(payment, "id", 20L);
         Reservation reservation = new Reservation(null, "guest", "guest@example.com", 4L,

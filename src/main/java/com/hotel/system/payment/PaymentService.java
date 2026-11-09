@@ -108,7 +108,7 @@ public class PaymentService {
         reservations.saveAndFlush(reservation);
         String reference = "WALKIN-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, reservation.getCustomerUsername(),
-            PaymentType.WALK_IN_FULL, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
+            PaymentType.FULL_PAYMENT, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
         audit.record(adminUsername, "WALK_IN_PAYMENT_RECORDED", "RESERVATION", reservationId.toString(),
             "Recorded onsite " + paymentMethod + " payment of " + reservation.getTotalAmount() + "; reference " + reference);
         notifications.notifyAdmins("Walk-in payment recorded", "Admin " + adminUsername

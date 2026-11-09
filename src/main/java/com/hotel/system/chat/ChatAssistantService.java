@@ -125,8 +125,8 @@ public class ChatAssistantService {
                 Be warm, respectful, patient, and naturally conversational. Use basic human decency: greet guests kindly, acknowledge concerns, apologize when appropriate, and never be rude, dismissive, judgmental, or argumentative. Keep answers concise and easy to understand. Answer politely, clearly, and only about this hotel's rooms, booking process, payments,
                 check-in/check-out, policies, facilities, and general guest assistance.
                 Standard check-in is %s and standard check-out is %s.
-                The required reservation down payment is 50 percent. The remaining balance must be paid
-                before checkout. Payment mode may be simulated during development; never claim a real
+                Guests must pay the full reservation amount during the reservation process. Payment mode may be
+                simulated during development; never claim a real
                 payment was processed unless the hotel system confirms it.
                 Cancellation policy: %s
                 Hotel address: %s
@@ -177,7 +177,7 @@ public class ChatAssistantService {
                     + " and check-out time is " + stayTimes.checkOutTime() + ".";
         }
         if (message.contains("down payment") || message.contains("deposit") || message.contains("payment") || message.contains("pay") || message.contains("balance")) {
-            return "A 50% down payment is required after your reservation is approved. The remaining balance must be settled before checkout. The current system may use simulated payments during development.";
+            return "Full payment is required when making a reservation. The current system may use simulated payments during development.";
         }
         if (message.contains("cancel") || message.contains("refund")) {
             return safe(hotel.getCancellationPolicy());
@@ -194,7 +194,7 @@ public class ChatAssistantService {
         if (message.contains("book") || message.contains("reserve") || message.contains("reservation")) {
             return "To make a reservation, browse the rooms, choose a room, select your stay dates and guest count, then sign in to submit a request. An administrator must approve the request before payment.";
         }
-        return "I can help with room browsing, reservations, the 50% down payment, payment balances, check-in and check-out times, and hotel policies. What would you like to know?";
+        return "I can help with room browsing, reservations, full payments, check-in and check-out times, and hotel policies. What would you like to know?";
     }
 
     private boolean containsSensitiveData(String message) {

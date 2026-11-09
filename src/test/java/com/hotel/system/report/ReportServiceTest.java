@@ -135,7 +135,7 @@ class ReportServiceTest {
     void calculatesRefundedAmountByTheDateRefundWasIssued() {
         LocalDate from = LocalDate.of(2026, 11, 8);
         LocalDate to = LocalDate.of(2026, 11, 8);
-        Payment refunded = new Payment(12L, "guest", PaymentType.DOWN_PAYMENT,
+        Payment refunded = new Payment(12L, "guest", PaymentType.FULL_PAYMENT,
                 new BigDecimal("500.00"), "SIMULATED", "SIM-REFUND", PaymentStatus.PAID);
         refunded.markRefunded(Instant.parse("2026-11-08T04:00:00Z"));
 
@@ -161,7 +161,7 @@ class ReportServiceTest {
     void calculatesCollectedRevenueSeparatelyForEachRoom() {
         LocalDate from = LocalDate.of(2026, 11, 8);
         LocalDate to = LocalDate.of(2026, 11, 8);
-        Payment paid = new Payment(41L, "guest", PaymentType.DOWN_PAYMENT,
+        Payment paid = new Payment(41L, "guest", PaymentType.FULL_PAYMENT,
                 new BigDecimal("750.00"), "PAYMONGO", "PAID-ROOM-41", PaymentStatus.PAID);
         Reservation roomReservation = mock(Reservation.class);
         when(roomReservation.getRoomCode()).thenReturn("A-01");

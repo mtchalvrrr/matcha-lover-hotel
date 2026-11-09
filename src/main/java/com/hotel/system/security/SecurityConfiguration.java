@@ -198,7 +198,7 @@ public class SecurityConfiguration {
                     "camera=(), microphone=(), geolocation=()"))
             .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy",
                     "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; "
-                    + "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
+                    + "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com; "
                     + "font-src 'self' data:; connect-src 'self' https://api.groq.com https://www.google.com/recaptcha/ "
                     + "https://www.gstatic.com/recaptcha/; frame-src https://www.google.com/recaptcha/ "
                     + "https://recaptcha.google.com/recaptcha/; object-src 'none'; base-uri 'self'; "
