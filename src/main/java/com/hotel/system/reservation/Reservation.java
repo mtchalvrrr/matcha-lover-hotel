@@ -144,6 +144,15 @@ public class Reservation {
         this.updatedAt = at;
     }
 
+    /** Mark a paid reservation VOID when check-in arrives before Admin review. */
+    public void voidAtCheckIn(Instant at) {
+        if (status != ReservationStatus.PENDING) {
+            throw new IllegalStateException("Only pending reservations can become VOID.");
+        }
+        this.status = ReservationStatus.VOID;
+        this.updatedAt = at;
+    }
+
     public void recordCheckIn(Instant at) {
         this.checkedInAt = at;
         this.status = ReservationStatus.CHECKED_IN;

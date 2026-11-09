@@ -7,4 +7,5 @@
 <form class="auth-card wide-form" th:action="@{/admin/rooms/{id}/photos(id=${room.id})}" method="post" enctype="multipart/form-data"><label for="photo">Room photo (JPG, PNG, WEBP; maximum 8 MB)</label><input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required><button class="primary-button" type="submit">Upload photo</button></form>
 <section class="room-grid"><article class="room-card" th:each="photo : ${photos}"><div class="room-image"><img th:src="${photo.publicPath}" alt="Room photo"></div><div class="room-card-body"><p class="eyebrow" th:text="${photo.cover ? 'CURRENT COVER PHOTO' : 'ROOM PHOTO'}">ROOM PHOTO</p><p th:text="${photo.originalFileName}">filename</p><div class="action-row"><form th:if="${!photo.cover}" th:action="@{/admin/rooms/{id}/photos/{photoId}/cover(id=${room.id},photoId=${photo.id})}" method="post"><button class="text-button" type="submit">Set as cover</button></form><form th:action="@{/admin/rooms/{id}/photos/{photoId}/delete(id=${room.id},photoId=${photo.id})}" method="post"><button class="text-button" type="submit">Remove</button></form></div></div></article></section>
 <p class="notice" th:if="${#lists.isEmpty(photos)}">No photos uploaded for this room yet.</p>
-</main></body></html>
+</main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>

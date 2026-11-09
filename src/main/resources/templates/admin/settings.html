@@ -32,12 +32,13 @@
         </div>
         <label for="cancellationPolicy">Cancellation and refund policy</label>
         <textarea id="cancellationPolicy" name="cancellationPolicy" rows="6" maxlength="3000" th:text="${settings.cancellationPolicy}"></textarea>
-        <div class="notice">The reservation payment rule is fixed at a 50% down payment. Payment mode remains SIMULATED until a verified payment gateway is configured.</div>
+        <div class="notice">The reservation payment rule requires full payment. Payment mode remains SIMULATED until a verified payment gateway is configured.</div>
         <button class="primary-button" type="submit">Save hotel settings</button>
     </form>
     <form th:if="${!readOnly}" th:action="@{/super-admin/settings/test-email}" method="post" class="action-row">
         <button class="secondary-button" type="submit">Send SMTP test email to Super Admin</button>
     </form>
 </main>
+<script th:src="@{/js/decision-confirmations.js}" defer></script>
 </body>
 </html>

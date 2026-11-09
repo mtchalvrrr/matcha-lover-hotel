@@ -21,7 +21,7 @@
 <tr th:each="event : ${history.events}"><td th:text="${event.createdAt}">Time</td><td th:text="${event.actorUsername}">Account</td><td th:text="${event.action}">Action</td><td th:text="${event.details}">Details</td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(history.events)}">No activity has been recorded for this reservation yet.</p></section>
 <section class="report-section"><h2>Payment history</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Reference</th><th>Type</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead><tbody>
-<tr th:each="payment : ${history.payments}"><td th:text="${payment.transactionReference}">Reference</td><td th:text="${payment.paymentType}">DOWN_PAYMENT</td><td th:text="${'₱' + #numbers.formatDecimal(payment.amount,1,'COMMA',2,'POINT')}">₱0.00</td><td th:text="${payment.paymentMethod}">SIMULATED</td><td th:text="${payment.status}">PAID</td><td th:text="${payment.createdAt}">Date</td></tr>
+<tr th:each="payment : ${history.payments}"><td th:text="${payment.transactionReference}">Reference</td><td th:text="${payment.paymentType}">FULL_PAYMENT</td><td th:text="${'₱' + #numbers.formatDecimal(payment.amount,1,'COMMA',2,'POINT')}">₱0.00</td><td th:text="${payment.paymentMethod}">SIMULATED</td><td th:text="${payment.status}">PAID</td><td th:text="${payment.createdAt}">Date</td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(history.payments)}">No payment transactions have been recorded yet.</p></section>
 </main>
 </body></html>

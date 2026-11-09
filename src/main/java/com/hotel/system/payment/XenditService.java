@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.net.http.HttpClient;
 
@@ -92,18 +93,19 @@ public class XenditService {
         if (!Objects.equals(customer.getId(), reservation.getCustomerId()))
             throw new IllegalArgumentException("Reservation not found.");
 
-        boolean initial = reservation.getStatus() == ReservationStatus.PAYMENT_PENDING;
-        if (!initial && reservation.getStatus() != ReservationStatus.APPROVED
-                && reservation.getStatus() != ReservationStatus.CHECKED_IN)
-            throw new IllegalStateException("Payment is available only for a new unpaid booking or an approved stay.");
+        // The system requires 100% payment before Admin review. Standard reservation
+        // checkout is therefore available only while the reservation is PAYMENT_PENDING.
+        // Additional charges (such as an approved extension) must use their own payment flow.
+        if (reservation.getStatus() != ReservationStatus.PAYMENT_PENDING)
+            throw new IllegalStateException("Full payment is required during the initial reservation checkout. Balance collection is not supported.");
 
         Optional<Payment> existing = payments.findFirstByReservationIdAndPaymentMethodAndStatusOrderByCreatedAtDesc(
                 reservationId, "XENDIT", PaymentStatus.PENDING);
         BigDecimal paid = paidAmountForReservation(reservationId);
-        BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
-        if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
-        if (initial && paid.signum() > 0)
-            throw new IllegalStateException("A new reservation checkout cannot be started after a payment has already been recorded.");
+        if (paid.signum() > 0)
+            throw new IllegalStateException("This reservation already has a recorded payment. A second standard reservation payment is not allowed.");
+        BigDecimal due = reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
+        if (due.signum() <= 0) throw new IllegalStateException("The reservation total must be greater than zero.");
 
         if (existing.isPresent()) {
             Payment prior = existing.get();
@@ -114,7 +116,7 @@ public class XenditService {
             prior.markFailedFromProvider(null);
         }
 
-        PaymentType type = paid.signum() == 0 ? PaymentType.FULL_PAYMENT : PaymentType.BALANCE;
+        PaymentType type = PaymentType.FULL_PAYMENT;
         String reference = "HOTEL-" + reservationId + "-" +
                 UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
         reservation.touchForPayment();
@@ -143,10 +145,28 @@ public class XenditService {
                     .header("Content-Type", "application/json")
                     .body(body)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (request, result) -> {
-                        throw new IllegalStateException("Xendit could not create checkout. Check the Test Mode API key and dashboard settings.");
-                    })
                     .body(Map.class);
+        } catch (RestClientResponseException ex) {
+            // Preserve Xendit's safe error details so a rejected API request can be diagnosed
+            // from the application message without exposing the secret API key.
+            String providerDetail = "HTTP " + ex.getStatusCode().value();
+            try {
+                JsonNode error = mapper.readTree(ex.getResponseBodyAsString());
+                String errorCode = error.path("error_code").asText("");
+                String errorMessage = error.path("message").asText("");
+                if (!errorCode.isBlank()) providerDetail += " [" + errorCode + "]";
+                if (!errorMessage.isBlank()) {
+                    String safeMessage = errorMessage.replaceAll("[\\r\\n\\t]", " ").trim();
+                    if (safeMessage.length() > 240) safeMessage = safeMessage.substring(0, 240);
+                    providerDetail += ": " + safeMessage;
+                }
+            } catch (Exception ignored) {
+                // The HTTP status remains useful even when Xendit returns a non-JSON error body.
+            }
+            throw new IllegalStateException(
+                    "Xendit rejected the checkout request (" + providerDetail
+                            + "). Check that the Test Mode API key and enabled payment channels are correct.",
+                    ex);
         } catch (RestClientException ex) {
             throw new IllegalStateException(
                     "Xendit checkout could not be reached within the allowed time. No payment was confirmed. Please try again.",

@@ -102,6 +102,7 @@ public class ReportController {
         append(csv, "Summary", "Rejected reservations", summary.rejectedReservations());
         append(csv, "Summary", "Cancelled reservations", summary.cancelledReservations());
         append(csv, "Summary", "Expired reservations", summary.expiredReservations());
+        append(csv, "Summary", "VOID reservations", summary.voidReservations());
         append(csv, "Summary", "No-show reservations", summary.noShowReservations());
         append(csv, "Summary", "Checked-in reservations", summary.checkedInReservations());
         append(csv, "Summary", "Checked-out reservations", summary.checkedOutReservations());
@@ -178,7 +179,8 @@ public class ReportController {
                 + " | Approved: " + summary.approvedReservations());
         lines.add("Rejected: " + summary.rejectedReservations()
                 + " | Cancelled: " + summary.cancelledReservations()
-                + " | Expired: " + summary.expiredReservations());
+                + " | Expired: " + summary.expiredReservations()
+                + " | VOID: " + summary.voidReservations());
         lines.add("No-show: " + summary.noShowReservations()
                 + " | Checked in: " + summary.checkedInReservations()
                 + " | Checked out: " + summary.checkedOutReservations());

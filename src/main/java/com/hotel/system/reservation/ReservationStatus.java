@@ -9,5 +9,6 @@ public enum ReservationStatus {
     CHECKED_IN,
     CHECKED_OUT,
     NO_SHOW,
+    VOID,
     EXPIRED
 }

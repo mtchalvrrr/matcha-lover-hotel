@@ -64,20 +64,20 @@ public class PaymentService {
         if (!java.util.Objects.equals(reservation.getCustomerId(), customer.getId())) {
             throw new IllegalArgumentException("Reservation not found.");
         }
-        if (reservation.getStatus() != ReservationStatus.APPROVED
-                && reservation.getStatus() != ReservationStatus.CHECKED_IN) {
-            throw new IllegalStateException("Payments are available only for approved or currently checked-in reservations.");
+        // This simulated helper mirrors the initial full-payment step only. It must
+        // never be used to collect a balance after approval or during a stay.
+        if (reservation.getStatus() != ReservationStatus.PAYMENT_PENDING) {
+            throw new IllegalStateException("Standard online payment is available only before Admin review. Remaining-balance collection is not supported.");
         }
         if (!"SIMULATED".equalsIgnoreCase(paymentMode)) {
             throw new IllegalStateException("A verified payment gateway is not configured. No payment was taken.");
         }
 
         BigDecimal paid = paidAmountForReservation(reservationId);
-        BigDecimal due = reservation.getTotalAmount().subtract(paid).setScale(2, RoundingMode.HALF_UP);
-        if (due.signum() <= 0) throw new IllegalStateException("This reservation is already fully paid.");
-
-        PaymentType type = paid.signum() == 0 ? PaymentType.FULL_PAYMENT : PaymentType.BALANCE;
-        BigDecimal amount = due;
+        if (paid.signum() > 0) throw new IllegalStateException("This reservation already has a recorded payment.");
+        BigDecimal amount = reservation.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
+        if (amount.signum() <= 0) throw new IllegalStateException("The reservation total must be greater than zero.");
+        PaymentType type = PaymentType.FULL_PAYMENT;
 
         reservation.touchForPayment();
         reservations.saveAndFlush(reservation);
@@ -108,7 +108,7 @@ public class PaymentService {
         reservations.saveAndFlush(reservation);
         String reference = "WALKIN-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Payment payment = payments.save(new Payment(reservationId, reservation.getCustomerUsername(),
-            PaymentType.WALK_IN_FULL, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
+            PaymentType.FULL_PAYMENT, reservation.getTotalAmount(), paymentMethod, reference, PaymentStatus.PAID));
         audit.record(adminUsername, "WALK_IN_PAYMENT_RECORDED", "RESERVATION", reservationId.toString(),
             "Recorded onsite " + paymentMethod + " payment of " + reservation.getTotalAmount() + "; reference " + reference);
         notifications.notifyAdmins("Walk-in payment recorded", "Admin " + adminUsername

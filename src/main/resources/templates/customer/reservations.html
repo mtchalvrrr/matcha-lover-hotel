@@ -12,4 +12,5 @@
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(reservations)}">You do not have any reservations yet.</p>
 <p class="form-help" th:if="${paymentMode != 'XENDIT_TEST'}">Online payments are not configured. No payment will be taken.</p><p class="form-help" th:if="${paymentMode == 'XENDIT_TEST'}">Online payments use Xendit Test Mode. Test credentials only; no live payments.</p>
 </main><div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
+<script th:src="@{/js/decision-confirmations.js}" defer></script>
 </body></html>

@@ -13,4 +13,5 @@
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Application</th><th>Applicant</th><th>Email</th><th>Reviewed by</th><th>Document</th></tr></thead><tbody>
 <tr th:each="application : ${applications}"><td th:text="${application.id}">1</td><td th:text="${application.firstName + ' ' + application.lastName}">Name</td><td th:text="${application.email}">Email</td><td th:text="${application.reviewedBy}">Reviewer</td><td><a th:href="@{/admin/customers/applications/{id}/document(id=${application.id})}" target="_blank" rel="noopener">View ID document</a></td></tr>
 </tbody></table></div><p class="notice" th:if="${#lists.isEmpty(applications)}">No approved registration documents are available.</p>
-</main></body></html>
+</main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>

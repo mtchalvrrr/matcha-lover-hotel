@@ -14,4 +14,5 @@
 <label for="paymentMethod">Onsite payment method</label><select id="paymentMethod" name="paymentMethod" required><option value="CASH">Cash</option><option value="CARD">Card terminal</option><option value="GCASH">GCash</option><option value="BANK_TRANSFER">Bank transfer</option></select>
 <p class="form-help">The system records the full reservation amount as paid using the selected onsite method. Verify the actual payment before submitting.</p>
 <div class="action-row"><button class="primary-button" type="submit">Create booking and record payment</button><a class="secondary-link" th:href="@{/admin/reservations}">Cancel</a></div>
-</form></main></body></html>
+</form></main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>

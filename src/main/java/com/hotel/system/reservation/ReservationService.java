@@ -454,7 +454,7 @@ public class ReservationService {
         if (reservation.getStatus() != ReservationStatus.CHECKED_IN)
             throw new IllegalStateException("Only checked-in guests can be checked out.");
         if (payments.sumPaidForReservation(id, PaymentStatus.PAID).compareTo(reservation.getTotalAmount()) < 0)
-            throw new IllegalStateException("The remaining balance must be settled before checkout.");
+            throw new IllegalStateException("Full reservation payment must be completed before checkout.");
         reservation.recordCheckOut(java.time.Instant.now(clock));
         audit.record(adminUsername, "GUEST_CHECKED_OUT", "RESERVATION", id.toString(),
             "Checked out guest " + reservation.getGuestName() + " at " + reservation.getCheckedOutAt());

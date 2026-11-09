@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PaymentTest {
     private Payment paidPayment() {
-        return new Payment(10L, "customer", PaymentType.DOWN_PAYMENT,
+        return new Payment(10L, "customer", PaymentType.FULL_PAYMENT,
                 new BigDecimal("500.00"), "SIMULATED", "SIM-REFERENCE", PaymentStatus.PAID);
     }
 
@@ -27,7 +27,7 @@ class PaymentTest {
 
     @Test
     void onlyPendingPaymentCanBeVoided() {
-        Payment pending = new Payment(10L, "customer", PaymentType.BALANCE,
+        Payment pending = new Payment(10L, "customer", PaymentType.FULL_PAYMENT,
                 new BigDecimal("500.00"), "GATEWAY", "PENDING-REFERENCE", PaymentStatus.PENDING);
 
         pending.markVoided();

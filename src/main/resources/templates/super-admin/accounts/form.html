@@ -10,4 +10,5 @@
 <label for="password">Temporary password</label><input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
 <p class="form-help">Use at least 12 characters with uppercase, lowercase, a number, and a special character. Give the credentials to the intended administrator securely.</p>
 <div class="action-row"><button class="primary-button" type="submit">Create Admin</button><a class="secondary-link" th:href="@{/super-admin/accounts}">Cancel</a></div>
-</form></main></body></html>
+</form></main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+</body></html>
