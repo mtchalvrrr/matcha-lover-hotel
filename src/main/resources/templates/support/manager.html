@@ -9,7 +9,7 @@
 <body>
 <main class="shell">
     <header class="topbar">
-        <a class="brand" th:href="@{/admin/dashboard}"><span class="brand-mark">H</span><span>[HOTEL NAME]</span></a>
+        <a class="brand" th:href="@{/admin/dashboard}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a>
         <a class="back-link" th:href="@{/admin/dashboard}">Dashboard</a>
     </header>
     <section class="support-threads">
