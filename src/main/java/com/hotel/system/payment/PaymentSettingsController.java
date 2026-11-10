@@ -46,12 +46,13 @@ public class PaymentSettingsController {
 
     /** Super Admin can enable or disable online checkout without editing provider secrets. */
     @PostMapping("/super-admin/payment-settings/online-payments")
-    public String updateOnlinePayments(@RequestParam(defaultValue = "false") boolean enabled,
+    public String updateOnlinePayments(@RequestParam(required = false) Boolean enabled,
             Authentication authentication, RedirectAttributes redirect) {
         try {
-            settings.updateOnlinePayments(enabled, authentication.getName());
+            boolean allowOnlinePayments = Boolean.TRUE.equals(enabled);
+            settings.updateOnlinePayments(allowOnlinePayments, authentication.getName());
             redirect.addFlashAttribute("success",
-                    enabled ? "Online payment checkout enabled." : "Online payment checkout disabled.");
+                    allowOnlinePayments ? "Online payment checkout enabled." : "Online payment checkout disabled.");
         } catch (IllegalArgumentException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
