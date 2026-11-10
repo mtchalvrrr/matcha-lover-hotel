@@ -1,7 +1,6 @@
 package com.hotel.system.security;
 
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,9 +10,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Enforces the persisted failed-login lockout before password verification.
- * The failure handler records unsuccessful attempts; successful authentication
- * clears the counter in the success handler.
+ * Enforces CAPTCHA verification and persisted failed-password lockout before
+ * allowing Spring Security to verify the submitted username and password.
+ * CAPTCHA failures are deliberately distinguished from password failures so
+ * that an unsolved CAPTCHA does not lock a legitimate user out of the account.
  */
 public class LoginAttemptAuthenticationProvider extends DaoAuthenticationProvider {
     private final LoginAttemptService loginAttempts;
@@ -43,7 +43,7 @@ public class LoginAttemptAuthenticationProvider extends DaoAuthenticationProvide
             if (!(attributes instanceof ServletRequestAttributes servlet)
                     || !captcha.verify(servlet.getRequest().getParameter("g-recaptcha-response"),
                             servlet.getRequest().getRemoteAddr())) {
-                throw new BadCredentialsException("CAPTCHA verification failed. Please try again.");
+                throw new CaptchaVerificationException("CAPTCHA verification failed. Please try again.");
             }
         }
         if (loginAttempts.isLocked(username)) {
