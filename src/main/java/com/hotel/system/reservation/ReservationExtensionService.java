@@ -195,6 +195,19 @@ public class ReservationExtensionService {
                         + " was paid and the checkout date was updated.", "RESERVATION");
     }
 
+    /** Allows a new checkout attempt only after the previously linked payment definitively failed. */
+    public void replaceFailedPayment(Long extensionId, Long previousPaymentId, Long newPaymentId,
+                                     String username) {
+        ReservationExtensionRequest extension = approvedRequestForPayment(extensionId, username);
+        if (!Objects.equals(extension.getPaymentId(), previousPaymentId))
+            throw new IllegalStateException("The extension payment changed; refresh and try again.");
+        Payment previous = payments.findById(previousPaymentId)
+                .orElseThrow(() -> new IllegalStateException("The previous extension payment was not found."));
+        if (previous.getStatus() != PaymentStatus.FAILED && previous.getStatus() != PaymentStatus.VOIDED)
+            throw new IllegalStateException("A new checkout can be created only after the previous payment has failed or expired.");
+        extension.replacePayment(newPaymentId);
+    }
+
     private void validateAvailability(Reservation reservation, LocalDate requestedCheckout) {
         Room room = rooms.findByIdAndActiveTrue(reservation.getRoomId())
                 .orElseThrow(() -> new IllegalStateException("The reserved room is no longer active."));
