@@ -213,10 +213,16 @@ public class XenditService {
                     && payment.getProviderCheckoutSessionId() != null
                     && payment.getStatus() == PaymentStatus.PENDING)
                 return payment.getCheckoutUrl();
-            if (payment.getStatus() != PaymentStatus.FAILED && payment.getStatus() != PaymentStatus.VOIDED)
-                throw new IllegalStateException("The previous extension checkout is still pending. Wait for Xendit to confirm its status.");
-            payment = createExtensionPayment(extension, extensionId, username);
-            extensions.replaceFailedPayment(extensionId, previousPaymentId, payment.getId(), username);
+            if (payment.getStatus() == PaymentStatus.PENDING) {
+                if (payment.getProviderCheckoutSessionId() != null)
+                    throw new IllegalStateException("The previous extension checkout is still pending. Wait for Xendit to confirm its status.");
+                // Reuse the pending local payment if the provider request failed before a session was created.
+            } else if (payment.getStatus() == PaymentStatus.FAILED || payment.getStatus() == PaymentStatus.VOIDED) {
+                payment = createExtensionPayment(extension, extensionId, username);
+                extensions.replaceFailedPayment(extensionId, previousPaymentId, payment.getId(), username);
+            } else {
+                throw new IllegalStateException("The previous extension payment cannot be reused.");
+            }
         } else {
             payment = createExtensionPayment(extension, extensionId, username);
             extensions.attachPayment(extensionId, payment.getId(), username);
