@@ -40,6 +40,7 @@ public class XenditService {
     private final ProcessedXenditEventRepository processedEvents;
     private final ReservationRepository reservations;
     private final ReservationExtensionService extensions;
+    private final PaymentProviderSettingsService providerSettings;
     private final SystemUserRepository users;
     private final AuditService audit;
     private final NotificationService notifications;
@@ -52,7 +53,8 @@ public class XenditService {
 
     public XenditService(RestClient.Builder builder, ObjectMapper mapper, PaymentRepository payments,
             ProcessedXenditEventRepository processedEvents, ReservationRepository reservations,
-            ReservationExtensionService extensions, SystemUserRepository users, AuditService audit, NotificationService notifications,
+            ReservationExtensionService extensions, PaymentProviderSettingsService providerSettings,
+            SystemUserRepository users, AuditService audit, NotificationService notifications,
             @Value("${payment.mode:SIMULATED}") String mode,
             @Value("${payment.xendit.secret-key:}") String secretKey,
             @Value("${payment.xendit.webhook-token:}") String webhookToken,
@@ -71,6 +73,7 @@ public class XenditService {
         this.processedEvents = processedEvents;
         this.reservations = reservations;
         this.extensions = extensions;
+        this.providerSettings = providerSettings;
         this.users = users;
         this.audit = audit;
         this.notifications = notifications;
@@ -83,7 +86,8 @@ public class XenditService {
     }
 
     public boolean isConfigured() {
-        return "XENDIT_TEST".equalsIgnoreCase(mode)
+        return providerSettings.onlinePaymentsEnabled()
+                && "XENDIT_TEST".equalsIgnoreCase(mode)
                 && secretKey.startsWith("xnd_development_")
                 && !webhookToken.isBlank();
     }
