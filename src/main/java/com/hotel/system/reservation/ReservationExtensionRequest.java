@@ -134,6 +134,12 @@ public class ReservationExtensionRequest {
         paymentId = id;
     }
 
+    public void replacePayment(Long newPaymentId) {
+        if (status != Status.APPROVED_AWAITING_PAYMENT || newPaymentId == null)
+            throw new IllegalStateException("Only an approved extension can replace a failed payment.");
+        paymentId = newPaymentId;
+    }
+
     public void markPaid(Instant at) {
         if (status == Status.PAID) return;
         if (status != Status.APPROVED_AWAITING_PAYMENT || paymentId == null)
