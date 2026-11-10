@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Extension Requests | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span>Matcha Lover Hotel</span></a><a class="back-link" th:href="@{/admin/reservations}">Reservation management</a></header>
+<section class="portal-hero compact-hero"><p class="eyebrow">ADMIN / RESERVATIONS</p><h1>Extension<br><em>requests.</em></h1><p class="intro">Validate room availability, approve or reject requests, and require full payment of the additional charge before changing checkout dates.</p></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Request / Reservation</th><th>Customer</th><th>Current checkout</th><th>Requested checkout</th><th>Additional nights</th><th>Full additional charge</th><th>Customer note</th><th>Status</th><th>Review</th></tr></thead><tbody>
+<tr th:each="extension : ${extensionRequests}">
+<td th:text="${'#' + extension.id + ' / #' + extension.reservationId}">#1 / #1</td><td th:text="${extension.customerUsername}">Customer</td>
+<td th:text="${extension.currentCheckoutDate}">Current</td><td th:text="${extension.requestedCheckoutDate}">Requested</td><td th:text="${extension.additionalNights}">1</td>
+<td th:text="${'₱' + #numbers.formatDecimal(extension.extensionAmount,1,'COMMA',2,'POINT')}">₱0.00</td><td th:text="${extension.customerNote}">—</td><td><strong th:text="${extension.status}">PENDING</strong><br><span th:if="${extension.reviewNote != null}" th:text="${extension.reviewNote}"></span></td>
+<td><div class="review-actions"><form th:if="${extension.status.name() == 'PENDING'}" th:action="@{/admin/reservation-extensions/{id}/review(id=${extension.id})}" method="post"><input type="hidden" name="approve" value="true"><input type="text" name="reason" maxlength="500" placeholder="Optional approval note"><button class="text-button" type="submit">Approve</button></form>
+<form th:if="${extension.status.name() == 'PENDING'}" th:action="@{/admin/reservation-extensions/{id}/review(id=${extension.id})}" method="post"><input type="hidden" name="approve" value="false"><input type="text" name="reason" maxlength="500" placeholder="Rejection reason" required><button class="text-button" type="submit">Reject</button></form>
+<span th:if="${extension.status.name() != 'PENDING'}">Reviewed by <span th:text="${extension.reviewedBy}">Admin</span></span></div></td>
+</tr></tbody></table></div>
+<p class="notice" th:if="${#lists.isEmpty(extensionRequests)}">No extension requests have been submitted.</p>
+</main><script th:src="@{/js/decision-confirmations.js}" defer></script></body></html>
