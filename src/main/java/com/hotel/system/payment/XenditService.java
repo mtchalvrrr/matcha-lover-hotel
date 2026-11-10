@@ -9,6 +9,8 @@ import com.hotel.system.notification.NotificationService;
 import com.hotel.system.reservation.Reservation;
 import com.hotel.system.reservation.ReservationRepository;
 import com.hotel.system.reservation.ReservationStatus;
+import com.hotel.system.reservation.ReservationExtensionRequest;
+import com.hotel.system.reservation.ReservationExtensionService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -37,6 +39,7 @@ public class XenditService {
     private final PaymentRepository payments;
     private final ProcessedXenditEventRepository processedEvents;
     private final ReservationRepository reservations;
+    private final ReservationExtensionService extensions;
     private final SystemUserRepository users;
     private final AuditService audit;
     private final NotificationService notifications;
@@ -49,7 +52,7 @@ public class XenditService {
 
     public XenditService(RestClient.Builder builder, ObjectMapper mapper, PaymentRepository payments,
             ProcessedXenditEventRepository processedEvents, ReservationRepository reservations,
-            SystemUserRepository users, AuditService audit, NotificationService notifications,
+            ReservationExtensionService extensions, SystemUserRepository users, AuditService audit, NotificationService notifications,
             @Value("${payment.mode:SIMULATED}") String mode,
             @Value("${payment.xendit.secret-key:}") String secretKey,
             @Value("${payment.xendit.webhook-token:}") String webhookToken,
@@ -67,6 +70,7 @@ public class XenditService {
         this.payments = payments;
         this.processedEvents = processedEvents;
         this.reservations = reservations;
+        this.extensions = extensions;
         this.users = users;
         this.audit = audit;
         this.notifications = notifications;
@@ -185,6 +189,72 @@ public class XenditService {
         return checkoutUrl;
     }
 
+
+    /**
+     * Creates a separate hosted checkout for the full additional charge of an
+     * Admin-approved reservation extension. It never changes the stay dates;
+     * the dates change only after the signed provider webhook confirms payment.
+     */
+    public String createExtensionCheckout(Long extensionId, String username) {
+        requireTestConfiguration();
+        ReservationExtensionRequest extension = extensions.approvedRequestForPayment(extensionId, username);
+        Payment payment;
+        if (extension.getPaymentId() != null) {
+            payment = payments.findById(extension.getPaymentId())
+                    .orElseThrow(() -> new IllegalStateException("The linked extension payment was not found."));
+            if (payment.getStatus() == PaymentStatus.PAID)
+                throw new IllegalStateException("This extension has already been paid.");
+            if (payment.getCheckoutUrl() != null
+                    && payment.getProviderCheckoutSessionId() != null
+                    && payment.getStatus() == PaymentStatus.PENDING)
+                return payment.getCheckoutUrl();
+        } else {
+            String reference = "EXT-" + extensionId + "-"
+                    + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+            payment = payments.save(new Payment(
+                    extension.getReservationId(), username, PaymentType.EXTENSION_PAYMENT,
+                    extension.getExtensionAmount(), "XENDIT", reference, PaymentStatus.PENDING));
+            payment.linkExtensionRequest(extensionId);
+            extensions.attachPayment(extensionId, payment.getId(), username);
+        }
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("reference_id", payment.getTransactionReference());
+        body.put("session_type", "PAY");
+        body.put("mode", "PAYMENT_LINK");
+        body.put("amount", extension.getExtensionAmount().setScale(2, RoundingMode.HALF_UP));
+        body.put("currency", "PHP");
+        body.put("country", "PH");
+        body.put("capture_method", "AUTOMATIC");
+        body.put("description", "Hotel reservation #" + extension.getReservationId()
+                + " - extension #" + extensionId + " full additional charge");
+        body.put("success_return_url", publicBaseUrl + "/customer/reservation-extensions?payment=returned");
+        body.put("cancel_return_url", publicBaseUrl + "/customer/reservation-extensions");
+        body.put("metadata", Map.of("reservation_id", extension.getReservationId().toString(),
+                "extension_request_id", extensionId.toString(), "hotel_payment_id", payment.getId().toString()));
+
+        Map<?, ?> response;
+        try {
+            response = client.post().uri("/sessions")
+                    .headers(headers -> headers.setBasicAuth(secretKey, ""))
+                    .header("Content-Type", "application/json")
+                    .body(body).retrieve().body(Map.class);
+        } catch (RestClientException ex) {
+            throw new IllegalStateException(
+                    "Xendit could not create the extension checkout. No extension payment was confirmed. Please retry.",
+                    ex);
+        }
+        if (response == null || !(response.get("payment_session_id") instanceof String sessionId)
+                || !(response.get("payment_link_url") instanceof String checkoutUrl)
+                || !checkoutUrl.startsWith("https://"))
+            throw new IllegalStateException("Xendit returned an incomplete extension checkout response.");
+        payment.attachCheckoutSession(sessionId, checkoutUrl);
+        audit.record(username, "XENDIT_EXTENSION_CHECKOUT_CREATED", "PAYMENT",
+                payment.getId().toString(), "Hosted checkout created for extension #" + extensionId
+                        + "; full additional charge PHP " + extension.getExtensionAmount() + ".");
+        return checkoutUrl;
+    }
+
     public void handleWebhook(byte[] rawBody, String callbackToken) {
         requireTestConfiguration();
         if (callbackToken == null || !MessageDigest.isEqual(
@@ -263,7 +333,16 @@ public class XenditService {
         if (payment.getStatus() != PaymentStatus.PAID) {
             payment.markPaidFromProvider(sessionId, paymentId);
             audit.record("XENDIT_WEBHOOK", "PAYMENT_CONFIRMED", "PAYMENT", payment.getId().toString(),
-                    "Xendit Test Mode confirmed full payment; provider payment ID " + paymentId);
+                    "Xendit Test Mode confirmed " + payment.getPaymentType()
+                            + "; provider payment ID " + paymentId);
+            if (payment.getPaymentType() == PaymentType.EXTENSION_PAYMENT) {
+                if (payment.getExtensionRequestId() == null)
+                    throw new IllegalStateException("The extension payment is missing its extension request link.");
+                extensions.completePayment(payment.getExtensionRequestId(), payment.getId(), payment.getAmount());
+                sendPaymentReceipt(payment);
+                processedEvents.save(new ProcessedXenditEvent(eventKey, event));
+                return;
+            }
             submitPaidHoldToManagerReview(payment);
             sendPaymentReceipt(payment);
             Reservation linkedReservation = reservations.findById(payment.getReservationId()).orElse(null);
