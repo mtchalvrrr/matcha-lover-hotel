@@ -199,8 +199,9 @@ public class XenditService {
         requireTestConfiguration();
         ReservationExtensionRequest extension = extensions.approvedRequestForPayment(extensionId, username);
         Payment payment;
-        if (extension.getPaymentId() != null) {
-            payment = payments.findById(extension.getPaymentId())
+        Long previousPaymentId = extension.getPaymentId();
+        if (previousPaymentId != null) {
+            payment = payments.findById(previousPaymentId)
                     .orElseThrow(() -> new IllegalStateException("The linked extension payment was not found."));
             if (payment.getStatus() == PaymentStatus.PAID)
                 throw new IllegalStateException("This extension has already been paid.");
@@ -208,13 +209,12 @@ public class XenditService {
                     && payment.getProviderCheckoutSessionId() != null
                     && payment.getStatus() == PaymentStatus.PENDING)
                 return payment.getCheckoutUrl();
+            if (payment.getStatus() != PaymentStatus.FAILED && payment.getStatus() != PaymentStatus.VOIDED)
+                throw new IllegalStateException("The previous extension checkout is still pending. Wait for Xendit to confirm its status.");
+            payment = createExtensionPayment(extension, extensionId, username);
+            extensions.replaceFailedPayment(extensionId, previousPaymentId, payment.getId(), username);
         } else {
-            String reference = "EXT-" + extensionId + "-"
-                    + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
-            payment = payments.save(new Payment(
-                    extension.getReservationId(), username, PaymentType.EXTENSION_PAYMENT,
-                    extension.getExtensionAmount(), "XENDIT", reference, PaymentStatus.PENDING));
-            payment.linkExtensionRequest(extensionId);
+            payment = createExtensionPayment(extension, extensionId, username);
             extensions.attachPayment(extensionId, payment.getId(), username);
         }
 
@@ -253,6 +253,17 @@ public class XenditService {
                 payment.getId().toString(), "Hosted checkout created for extension #" + extensionId
                         + "; full additional charge PHP " + extension.getExtensionAmount() + ".");
         return checkoutUrl;
+    }
+
+    private Payment createExtensionPayment(ReservationExtensionRequest extension, Long extensionId,
+                                            String username) {
+        String reference = "EXT-" + extensionId + "-"
+                + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        Payment payment = payments.save(new Payment(extension.getReservationId(), username,
+                PaymentType.EXTENSION_PAYMENT, extension.getExtensionAmount(),
+                "XENDIT", reference, PaymentStatus.PENDING));
+        payment.linkExtensionRequest(extensionId);
+        return payment;
     }
 
     public void handleWebhook(byte[] rawBody, String callbackToken) {
