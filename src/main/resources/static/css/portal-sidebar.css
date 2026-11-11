@@ -43,16 +43,11 @@ body.portal-layout {
   text-decoration: none;
 }
 .portal-sidebar-mark {
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  display: grid;
-  place-items: center;
-  border: 3px solid var(--va-orange);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 850;
-  letter-spacing: -.08em;
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  object-fit: contain;
 }
 .portal-sidebar-brand strong,
 .portal-sidebar-brand small { display: block; }
