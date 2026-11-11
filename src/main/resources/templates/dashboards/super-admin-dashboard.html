@@ -1,17 +1,65 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Super Admin Dashboard | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><div class="action-row"><a class="back-link" th:href="@{/super-admin/settings}">System settings</a><form th:action="@{/super-admin/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></div></header>
-<section class="portal-hero"><p class="eyebrow">SUPER ADMIN PORTAL</p><h1>System control</h1><p class="intro">Review system activity and monitor recorded actions across the hotel programs.</p></section>
-<section class="metric-grid dashboard-metrics">
-<article class="metric-card"><span>Pending registrations</span><strong th:text="${summary.pendingRegistrations}">0</strong></article>
-<article class="metric-card"><span>Deactivation requests</span><strong th:text="${summary.pendingDeactivations}">0</strong></article>
-<article class="metric-card"><span>Admin accounts</span><strong th:text="${summary.adminAccounts}">0</strong></article>
-<article class="metric-card"><span>Customer accounts</span><strong th:text="${summary.customerAccounts}">0</strong></article>
-</section>
-<section class="dashboard-recent"><h2>Recent system activity</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Time</th><th>Account</th><th>Action</th><th>Details</th></tr></thead><tbody><tr th:each="event : ${summary.recentActivity}"><td th:text="${event.createdAt}">Time</td><td th:text="${event.actorUsername}">Account</td><td th:text="${event.action}">Action</td><td th:text="${event.details}">Details</td></tr></tbody></table></div><p class="notice" th:if="${#lists.isEmpty(summary.recentActivity)}">No recorded activity yet.</p></section>
-<section class="backup-action"><h2>Database backup</h2><p>Create a fresh copy of the shared hotel database for safekeeping. Automated daily backups retain the 14 most recent copies.</p><form th:action="@{/super-admin/backup}" method="post"><button class="secondary-button" type="submit">Download database backup</button></form></section>
-<section class="dashboard-links"><a class="portal-card" th:href="@{/super-admin/notifications}"><span class="portal-number">UPDATES</span><h2>Notifications</h2><p>View verified applications and account updates.</p><span class="portal-link">Open inbox ↗</span></a><a class="portal-card" th:href="@{/super-admin/registrations}"><span class="portal-number">CUSTOMER APPROVAL</span><h2>Registration review</h2><p>Review verified customer applications and uploaded ID documents.</p><span class="portal-link">Review applications ↗</span></a><a class="portal-card" th:href="@{/super-admin/reservations}"><span class="portal-number">SYSTEM RECORDS</span><h2>All reservations</h2><p>View all online and walk-in reservations.</p><span class="portal-link">View reservations ↗</span></a><a class="portal-card" th:href="@{/super-admin/payments}"><span class="portal-number">FINANCIAL RECORDS</span><h2>All payments</h2><p>View payment transactions and refund authorization records.</p><span class="portal-link">View payments ↗</span></a><a class="portal-card" th:href="@{/super-admin/reports}"><span class="portal-number">SYSTEM ANALYTICS</span><h2>System-wide reports</h2><p>Review hotel revenue, occupancy, room popularity, customers, and booking trends.</p><span class="portal-link">View reports ↗</span></a><a class="portal-card" th:href="@{/super-admin/payment-settings}"><span class="portal-number">PAYMENT CONFIGURATION</span><h2>Payment settings</h2><p>Review payment mode and provider credential readiness without exposing secrets.</p><span class="portal-link">View payment settings ↗</span></a><a class="portal-card" th:href="@{/super-admin/permissions}"><span class="portal-number">ACCESS CONTROL</span><h2>Admin permissions</h2><p>Enable or disable shared capabilities for both Admin accounts.</p><span class="portal-link">Manage permissions ↗</span></a><a class="portal-card" th:href="@{/super-admin/accounts}"><span class="portal-number">ACCESS CONTROL</span><h2>Account management</h2><p>Create Admin accounts and suspend or reactivate eligible accounts.</p><span class="portal-link">Manage accounts ↗</span></a><a class="portal-card" th:href="@{/super-admin/audit}"><span class="portal-number">SECURITY</span><h2>Audit log</h2><p>Review recorded reservation and payment actions, including administrator identities.</p><span class="portal-link">Open audit log ↗</span></a><a class="portal-card" th:href="@{/super-admin/records}"><span class="portal-number">SYSTEM RECORDS</span><h2>All system records</h2><p>View accounts, rooms, reservations, payments, extension requests, and recent audit events in one place.</p><span class="portal-link">View all records ↗</span></a><a class="portal-card" th:href="@{/super-admin/admin-activity}"><span class="portal-number">ADMIN MONITORING</span><h2>Admin activity</h2><p>Filter and review actions performed by both Admin accounts.</p><span class="portal-link">Monitor Admin activity ↗</span></a><a class="portal-card" th:href="@{/super-admin/security-events}"><span class="portal-number">SECURITY MONITORING</span><h2>Security events</h2><p>Review successful logins, failed sign-ins, and temporary login locks.</p><span class="portal-link">View security events ↗</span></a><a class="portal-card" th:href="@{/super-admin/deactivations}"><span class="portal-number">ACCOUNT REQUESTS</span><h2>Deactivation review</h2><p>Review customer requests and approve or reject account deactivation.</p><span class="portal-link">Review requests ↗</span></a></section>
-</main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Admin Dashboard | Hotel Management</title>
+<link rel="stylesheet" th:href="@{/css/app.css}">
+<link rel="stylesheet" th:href="@{/css/portal-sidebar.css}">
+</head>
+<body class="portal-layout">
+<div class="portal-frame">
+<aside class="portal-sidebar" aria-label="Super Admin navigation">
+  <a class="portal-sidebar-brand" th:href="@{/super-admin}">
+    <span class="portal-sidebar-mark" aria-hidden="true">VA</span>
+    <span><strong th:text="${hotelSettings.hotelName}">Hotel Management</strong><small>Super Admin portal</small></span>
+  </a>
+  <div>
+    <p class="portal-sidebar-label">System workspace</p>
+    <nav class="portal-sidebar-nav" aria-label="Super Admin functions">
+      <a th:href="@{/super-admin}" aria-current="page"><span aria-hidden="true">▦</span> Dashboard</a>
+      <a th:href="@{/super-admin/registrations}"><span aria-hidden="true">♙</span> Registration review</a>
+      <a th:href="@{/super-admin/deactivations}"><span aria-hidden="true">⊘</span> Deactivation review</a>
+      <a th:href="@{/super-admin/accounts}"><span aria-hidden="true">♧</span> Account management</a>
+      <a th:href="@{/super-admin/permissions}"><span aria-hidden="true">⚿</span> Admin permissions</a>
+      <a th:href="@{/super-admin/reservations}"><span aria-hidden="true">▤</span> All reservations</a>
+      <a th:href="@{/super-admin/payments}"><span aria-hidden="true">₱</span> All payments</a>
+      <a th:href="@{/super-admin/reports}"><span aria-hidden="true">▥</span> System reports</a>
+      <a th:href="@{/super-admin/payment-settings}"><span aria-hidden="true">⚙</span> Payment settings</a>
+      <a th:href="@{/super-admin/records}"><span aria-hidden="true">▣</span> All system records</a>
+      <a th:href="@{/super-admin/admin-activity}"><span aria-hidden="true">◷</span> Admin activity</a>
+      <a th:href="@{/super-admin/security-events}"><span aria-hidden="true">♢</span> Security events</a>
+      <a th:href="@{/super-admin/audit}"><span aria-hidden="true">≡</span> Audit log</a>
+      <a th:href="@{/super-admin/notifications}"><span aria-hidden="true">♧</span> Notifications</a>
+      <a th:href="@{/super-admin/settings}"><span aria-hidden="true">⚙</span> System settings</a>
+    </nav>
+  </div>
+  <div class="portal-sidebar-footer">
+    <form th:action="@{/super-admin/logout}" method="post"><button type="submit">Sign out</button></form>
+  </div>
+</aside>
+<main class="portal-main">
+  <section class="portal-hero">
+    <p class="eyebrow">SUPER ADMIN PORTAL</p><h1>System control</h1>
+    <p class="intro">Review system activity and monitor recorded actions across the hotel programs.</p>
+  </section>
+  <section class="metric-grid dashboard-metrics">
+    <article class="metric-card"><span>Pending registrations</span><strong th:text="${summary.pendingRegistrations}">0</strong></article>
+    <article class="metric-card"><span>Deactivation requests</span><strong th:text="${summary.pendingDeactivations}">0</strong></article>
+    <article class="metric-card"><span>Admin accounts</span><strong th:text="${summary.adminAccounts}">0</strong></article>
+    <article class="metric-card"><span>Customer accounts</span><strong th:text="${summary.customerAccounts}">0</strong></article>
+  </section>
+  <section class="dashboard-recent">
+    <h2>Recent system activity</h2>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>Time</th><th>Account</th><th>Action</th><th>Details</th></tr></thead>
+    <tbody><tr th:each="event : ${summary.recentActivity}"><td th:text="${event.createdAt}">Time</td><td th:text="${event.actorUsername}">Account</td><td th:text="${event.action}">Action</td><td th:text="${event.details}">Details</td></tr></tbody></table></div>
+    <p class="notice" th:if="${#lists.isEmpty(summary.recentActivity)}">No recorded activity yet.</p>
+  </section>
+  <section class="backup-action">
+    <h2>Database backup</h2>
+    <p>Create a fresh copy of the shared hotel database for safekeeping. Automated daily backups retain the 14 most recent copies.</p>
+    <form th:action="@{/super-admin/backup}" method="post"><button class="secondary-button" type="submit">Download database backup</button></form>
+  </section>
+</main>
+</div>
+<script th:src="@{/js/decision-confirmations.js}" defer></script>
 </body></html>
