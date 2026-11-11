@@ -26,6 +26,21 @@ class PortalAuthenticationFailureHandlerTest {
     }
 
     @Test
+    void captchaFailureHasSeparateMessageAndDoesNotConsumePasswordAttempt() throws Exception {
+        LoginAttemptService attempts = mock(LoginAttemptService.class);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("portal", "customer");
+        request.setParameter("username", "guest");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        new PortalAuthenticationFailureHandler(attempts).onAuthenticationFailure(
+                request, response, new CaptchaVerificationException("CAPTCHA verification failed"));
+
+        assertEquals("/customer/login?captchaError", response.getRedirectedUrl());
+        org.mockito.Mockito.verifyNoInteractions(attempts);
+    }
+
+    @Test
     void invalidPortalCannotControlRedirect() throws Exception {
         LoginAttemptService attempts = mock(LoginAttemptService.class);
         MockHttpServletRequest request = new MockHttpServletRequest();

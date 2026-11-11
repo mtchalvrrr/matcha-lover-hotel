@@ -21,6 +21,7 @@
             <h2>Sign in</h2>
             <p class="form-help">Use the account credentials assigned to you.</p>
             <div class="alert alert-error" th:if="${param.error}">The username or password is incorrect, or this account is inactive.</div>
+            <div class="alert alert-error" th:if="${param.captchaError}">Google reCAPTCHA verification failed. Please complete the CAPTCHA and try again.</div>
             <div class="alert alert-error" th:if="${param.denied}">This account does not have permission to enter this portal.</div>
             <input type="hidden" name="portal" value="customer">
             <label for="username">Username</label>

@@ -4,16 +4,20 @@
 <body><main class="shell narrow">
 <header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><a class="back-link" th:href="@{/super-admin/dashboard}">Super Admin dashboard</a></header>
 <section class="portal-hero compact-hero"><p class="eyebrow">SUPER ADMIN / CONFIGURATION</p><h1>Payment<br><em>settings.</em></h1><p class="intro">Review the active payment mode and provider configuration without exposing secret credentials in the browser.</p></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
 <p class="notice" th:if="${xenditReady}">Xendit Test Mode is configured. Complete a test checkout and verify webhook delivery before considering any live transaction.</p>
-<p class="alert alert-error" th:if="${!xenditReady}">Xendit Test Mode is not fully configured. Online checkout will remain unavailable until the required test credentials and webhook token are present.</p>
+<p class="alert alert-error" th:if="${!xenditReady}">Xendit Test Mode is not fully configured or online checkout is disabled. Online checkout will remain unavailable until the required test credentials, webhook token, HTTPS URL, and enable switch are ready.</p>
 <div class="table-wrap"><table class="data-table"><tbody>
+<tr><th>Online checkout switch</th><td th:text="${onlinePaymentsEnabled ? 'ENABLED' : 'DISABLED'}">ENABLED</td></tr>
 <tr><th>Payment mode</th><td th:text="${paymentMode}">SIMULATED</td></tr>
 <tr><th>Xendit Test Mode API key</th><td th:text="${apiKeyConfigured ? 'Configured (value hidden)' : 'Not configured'}">Not configured</td></tr>
 <tr><th>Xendit webhook verification token</th><td th:text="${webhookTokenConfigured ? 'Configured (value hidden)' : 'Not configured'}">Not configured</td></tr>
 <tr><th>Public HTTPS return URL</th><td th:text="${publicHttpsUrlConfigured ? 'Configured' : 'Not configured'}">Not configured</td></tr>
 <tr><th>Hosted checkout</th><td th:text="${xenditReady ? 'Configuration ready' : 'Unavailable'}">Unavailable</td></tr>
 </tbody></table></div>
-<h2>Configure through repository secrets</h2>
+<h2>Online checkout control</h2>
+<form th:action="@{/super-admin/payment-settings/online-payments}" method="post"><label><input type="checkbox" name="enabled" value="true" th:checked="${onlinePaymentsEnabled}"> Allow customers to start online checkout</label><p class="form-help">Disabling this switch blocks new standard and extension checkouts. It does not change payment records or refund processing.</p><button class="primary-button" type="submit">Save online payment setting</button></form>
+<h2>Configure provider credentials through repository secrets</h2>
 <p>Set <code>PAYMENT_MODE=XENDIT_TEST</code>, <code>XENDIT_SECRET_KEY</code> using a Xendit Development/Test Mode secret key, and <code>XENDIT_WEBHOOK_TOKEN</code> using the verification token from the Xendit dashboard.</p>
 <p>After the application endpoint is available, register <code>/webhooks/xendit</code> as the webhook URL for Payment Session completed/expired events and refund succeeded/failed events. Use the public HTTPS Codespaces URL. Never put API credentials in website forms or commit them to Git.</p>
 <p class="form-help">This application intentionally does not allow changing provider secrets from the website. Manage them through Codespaces repository secrets or the local environment.</p>

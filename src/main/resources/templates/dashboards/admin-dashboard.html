@@ -1,23 +1,58 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin Dashboard | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><main class="shell narrow">
-<header class="topbar"><a class="brand" th:href="@{/}"><span class="brand-mark">H</span><span th:text="${hotelSettings.hotelName}">[HOTEL NAME]</span></a><div class="action-row"><form th:action="@{/admin/logout}" method="post"><button class="text-button" type="submit">Sign out</button></form></div></header>
-<section class="portal-hero"><p class="eyebrow">ADMIN PORTAL</p><h1>Hotel operations</h1><p class="intro">Manage room inventory, review online reservation requests, and monitor payment records.</p></section>
-<section class="metric-grid dashboard-metrics">
-<article class="metric-card"><span>Total reservations</span><strong th:text="${summary.totalReservations}">0</strong></article>
-<article class="metric-card"><span>Pending requests</span><strong th:text="${summary.pendingReservations}">0</strong></article>
-<article class="metric-card"><span>Approved</span><strong th:text="${summary.approvedReservations}">0</strong></article>
-<article class="metric-card"><span>Currently checked in</span><strong th:text="${summary.checkedInReservations}">0</strong></article>
-<article class="metric-card"><span>Arrivals today</span><strong th:text="${summary.arrivalsToday}">0</strong></article>
-<article class="metric-card"><span>Departures today</span><strong th:text="${summary.departuresToday}">0</strong></article>
-<article class="metric-card"><span>Active rooms</span><strong th:text="${summary.activeRooms}">0</strong></article>
-<article class="metric-card"><span>Recorded paid revenue</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0.00</strong></article>
-</section>
-<section class="dashboard-recent"><h2>Recent activity</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Time</th><th>Account</th><th>Action</th><th>Details</th></tr></thead><tbody><tr th:each="event : ${summary.recentActivity}"><td th:text="${event.createdAt}">Time</td><td th:text="${event.actorUsername}">Account</td><td th:text="${event.action}">Action</td><td th:text="${event.details}">Details</td></tr></tbody></table></div><p class="notice" th:if="${#lists.isEmpty(summary.recentActivity)}">No recorded activity yet.</p></section>
-<section class="dashboard-links">
-<a class="portal-card" th:href="@{/admin/customers}"><span class="portal-number">GUEST ACCOUNTS</span><h2>Customer management</h2><p>Review customer account details, manage access, and view approved identity documents.</p><span class="portal-link">Manage customers ↗</span></a><a class="portal-card" th:href="@{/admin/rooms}"><span class="portal-number">ROOM INVENTORY</span><h2>Room management</h2><p>Create rooms, update rates and capacity, and activate or deactivate room records.</p><span class="portal-link">Open room management ↗</span></a>
-<a class="portal-card" th:href="@{/admin/reservations}"><span class="portal-number">BOOKING OPERATIONS</span><h2>Reservations</h2><p>Review customer requests, check stay dates, and approve or reject pending reservations.</p><span class="portal-link">Open reservations ↗</span></a>
-<a class="portal-card" th:href="@{/admin/support}"><span class="portal-number">CUSTOMER SERVICE</span><h2>Customer support</h2><p>Read customer inquiries, reply in the same conversation, and resolve support requests.</p><span class="portal-link">Open support inbox ↗</span></a><a class="portal-card" th:href="@{/admin/notifications}"><span class="portal-number">UPDATES</span><h2>Notifications</h2><p>View new booking and payment activity alerts.</p><span class="portal-link">Open inbox ↗</span></a><a class="portal-card" th:href="@{/admin/audit}"><span class="portal-number">OPERATIONS</span><h2>Audit log</h2><p>Review reservation, payment, and account activity within Admin access permissions.</p><span class="portal-link">View audit activity ↗</span></a><a class="portal-card" th:href="@{/admin/reports}"><span class="portal-number">ANALYTICS</span><h2>Reports</h2><p>View reservation activity, paid revenue, and bookings by room across a selected date range.</p><span class="portal-link">Open reports ↗</span></a><a class="portal-card" th:href="@{/admin/payments}"><span class="portal-number">FINANCE</span><h2>Payment monitoring</h2><p>Review payment records and transaction references.</p><span class="portal-link">Open payments ↗</span></a>
-</section></main><script th:src="@{/js/decision-confirmations.js}" defer></script>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Dashboard | Hotel Management</title>
+<link rel="stylesheet" th:href="@{/css/app.css}">
+<link rel="stylesheet" th:href="@{/css/portal-sidebar.css}">
+</head>
+<body class="portal-layout">
+<div class="portal-frame">
+<aside class="portal-sidebar" aria-label="Admin navigation">
+  <a class="portal-sidebar-brand" th:href="@{/admin}">
+    <img class="portal-sidebar-mark" th:src="@{/images/va-symbol.svg}" alt="VA logo">
+    <span><strong th:text="${hotelSettings.hotelName}">Hotel Management</strong><small>Admin portal</small></span>
+  </a>
+  <div>
+    <p class="portal-sidebar-label">Workspace</p>
+    <nav class="portal-sidebar-nav" aria-label="Admin functions">
+      <a th:href="@{/admin}" aria-current="page"><span aria-hidden="true">▦</span> Dashboard</a>
+      <a th:href="@{/admin/reservations}"><span aria-hidden="true">▤</span> Reservations</a>
+      <a th:href="@{/admin/rooms}"><span aria-hidden="true">▣</span> Room management</a>
+      <a th:href="@{/admin/customers}"><span aria-hidden="true">♙</span> Customer management</a>
+      <a th:href="@{/admin/payments}"><span aria-hidden="true">₱</span> Payments</a>
+      <a th:href="@{/admin/reports}"><span aria-hidden="true">▥</span> Reports</a>
+      <a th:href="@{/admin/support}"><span aria-hidden="true">✉</span> Customer support</a>
+      <a th:href="@{/admin/notifications}"><span aria-hidden="true">♢</span> Notifications</a>
+      <a th:href="@{/admin/audit}"><span aria-hidden="true">◷</span> Audit log</a>
+    </nav>
+  </div>
+  <div class="portal-sidebar-footer">
+    <form th:action="@{/admin/logout}" method="post"><button type="submit">Sign out</button></form>
+  </div>
+</aside>
+<main class="portal-main">
+  <section class="portal-hero">
+    <p class="eyebrow">ADMIN PORTAL</p><h1>Hotel operations</h1>
+    <p class="intro">Manage room inventory, review online reservation requests, and monitor payment records.</p>
+  </section>
+  <section class="metric-grid dashboard-metrics">
+    <article class="metric-card"><span>Total reservations</span><strong th:text="${summary.totalReservations}">0</strong></article>
+    <article class="metric-card"><span>Pending requests</span><strong th:text="${summary.pendingReservations}">0</strong></article>
+    <article class="metric-card"><span>Approved</span><strong th:text="${summary.approvedReservations}">0</strong></article>
+    <article class="metric-card"><span>Currently checked in</span><strong th:text="${summary.checkedInReservations}">0</strong></article>
+    <article class="metric-card"><span>Arrivals today</span><strong th:text="${summary.arrivalsToday}">0</strong></article>
+    <article class="metric-card"><span>Departures today</span><strong th:text="${summary.departuresToday}">0</strong></article>
+    <article class="metric-card"><span>Active rooms</span><strong th:text="${summary.activeRooms}">0</strong></article>
+    <article class="metric-card"><span>Recorded paid revenue</span><strong th:text="${'₱' + #numbers.formatDecimal(summary.paidRevenue,1,'COMMA',2,'POINT')}">₱0.00</strong></article>
+  </section>
+  <section class="dashboard-recent">
+    <h2>Recent activity</h2>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>Time</th><th>Account</th><th>Action</th><th>Details</th></tr></thead>
+    <tbody><tr th:each="event : ${summary.recentActivity}"><td th:text="${event.createdAt}">Time</td><td th:text="${event.actorUsername}">Account</td><td th:text="${event.action}">Action</td><td th:text="${event.details}">Details</td></tr></tbody></table></div>
+    <p class="notice" th:if="${#lists.isEmpty(summary.recentActivity)}">No recorded activity yet.</p>
+  </section>
+</main>
+</div>
+<script th:src="@{/js/decision-confirmations.js}" defer></script>
 </body></html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reservation Extensions | [HOTEL NAME]</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="shell">
+<div th:replace="~{fragments/customer-header :: customerHeader('dashboard')}"></div>
+<section class="portal-hero compact-hero"><p class="eyebrow">CUSTOMER / RESERVATIONS</p><h1>Stay<br><em>extensions.</em></h1><p class="intro">Request more nights, wait for Admin review, then pay the full approved additional charge to confirm the new checkout date.</p><div class="action-row"><a class="secondary-link" th:href="@{/customer/reservations}">My reservations</a></div></section>
+<p class="notice" th:if="${success}" th:text="${success}"></p><p class="alert alert-error" th:if="${error}" th:text="${error}"></p>
+<section class="content-section"><h2>Request an extension</h2>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Reservation</th><th>Current checkout</th><th>Request new checkout</th></tr></thead><tbody>
+<tr th:each="reservation : ${reservations}" th:if="${reservation.status.name() == 'APPROVED' or reservation.status.name() == 'CHECKED_IN'}">
+<td><strong th:text="${'#' + reservation.id + ' · ' + reservation.roomName}">Reservation</strong><br><span th:text="${reservation.roomCode}">Room</span></td>
+<td th:text="${reservation.checkOutDate}">Date</td>
+<td><form th:action="@{/customer/reservations/{id}/extensions(id=${reservation.id})}" method="post">
+<input type="date" name="requestedCheckoutDate" th:min="${reservation.checkOutDate.plusDays(1)}" required>
+<input type="text" name="customerNote" maxlength="500" placeholder="Optional note for the hotel">
+<button class="primary-button" type="submit">Submit extension request</button></form></td>
+</tr></tbody></table></div>
+</section>
+<section class="content-section"><h2>My extension requests</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Request</th><th>Reservation</th><th>Requested checkout</th><th>Nights</th><th>Additional charge</th><th>Status</th><th>Action</th></tr></thead><tbody>
+<tr th:each="extension : ${extensionRequests}">
+<td th:text="${'#' + extension.id}">#1</td><td th:text="${'#' + extension.reservationId}">#1</td><td th:text="${extension.requestedCheckoutDate}">Date</td><td th:text="${extension.additionalNights}">1</td>
+<td th:text="${'₱' + #numbers.formatDecimal(extension.extensionAmount,1,'COMMA',2,'POINT')}">₱0.00</td><td><strong th:text="${extension.status}">PENDING</strong><br><span th:if="${extension.reviewNote != null}" th:text="${extension.reviewNote}"></span></td>
+<td><form th:if="${extension.status.name() == 'APPROVED_AWAITING_PAYMENT'}" th:action="@{/customer/reservation-extensions/{id}/pay(id=${extension.id})}" method="post"><button class="primary-button" type="submit">Pay full extension charge</button></form><span th:if="${extension.status.name() != 'APPROVED_AWAITING_PAYMENT'}">—</span></td>
+</tr></tbody></table></div><p class="notice" th:if="${#lists.isEmpty(extensionRequests)}">No extension requests yet.</p></section>
+<p class="form-help">The checkout date is not changed when a request is submitted or approved. It changes only after the full additional payment is confirmed by Xendit.</p>
+</main></body></html>

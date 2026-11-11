@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title">
+  <title id="title">VA symbol</title>
+  <rect x="12" y="10" width="76" height="80" fill="none" stroke="#f58216" stroke-width="5"/>
+  <path d="M2 31H29L43 68L39 78H17Z" fill="#1f4e9e"/>
+  <path d="M35 31H64L50 58Z" fill="#1f4e9e"/>
+  <path d="M51 78L64 45L77 78Z" fill="#1f4e9e"/>
+  <path d="M67 31H88L99 78H76L64 40Z" fill="#1f4e9e"/>
+</svg>

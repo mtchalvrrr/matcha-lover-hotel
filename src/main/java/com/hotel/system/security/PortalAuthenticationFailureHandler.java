@@ -22,11 +22,19 @@ public class PortalAuthenticationFailureHandler implements AuthenticationFailure
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
-        loginAttempts.recordFailure(request.getParameter("username"));
         String portal = request.getParameter("portal");
         if (!PORTALS.contains(portal)) {
             portal = "customer";
         }
+
+        // Match the older system's separate CAPTCHA feedback. A CAPTCHA error
+        // is not a bad-password attempt and must not increment account lockout.
+        if (exception instanceof CaptchaVerificationException) {
+            response.sendRedirect("/" + portal + "/login?captchaError");
+            return;
+        }
+
+        loginAttempts.recordFailure(request.getParameter("username"));
         response.sendRedirect("/" + portal + "/login?error");
     }
 }

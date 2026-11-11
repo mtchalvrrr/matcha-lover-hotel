@@ -14,6 +14,8 @@ public class Payment {
     private Long id;
     @Column(name = "reservation_id", nullable = false)
     private Long reservationId;
+    @Column(name = "extension_request_id")
+    private Long extensionRequestId;
     @Column(name = "customer_username", nullable = false, length = 80)
     private String customerUsername;
     @Enumerated(EnumType.STRING)
@@ -61,6 +63,12 @@ public class Payment {
     }
     public Long getId() { return id; }
     public Long getReservationId() { return reservationId; }
+    public Long getExtensionRequestId() { return extensionRequestId; }
+    public void linkExtensionRequest(Long extensionRequestId) {
+        if (extensionRequestId == null || paymentType != PaymentType.EXTENSION_PAYMENT || status != PaymentStatus.PENDING)
+            throw new IllegalStateException("A pending extension payment and request are required.");
+        this.extensionRequestId = extensionRequestId;
+    }
     public String getCustomerUsername() { return customerUsername; }
     public PaymentType getPaymentType() { return paymentType; }
     public BigDecimal getAmount() { return amount; }

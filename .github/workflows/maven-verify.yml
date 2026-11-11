@@ -1,7 +1,7 @@
 name: Build and test
 on:
   push:
-    branches: [new-hotel-system, 'spec-alignment/complete-system-cycle']
+    branches: [new-hotel-system, 'spec-alignment/complete-system-cycle', 'feature/complete-extension-and-role-gaps']
   pull_request:
     branches: [main, new-hotel-system]
     paths:

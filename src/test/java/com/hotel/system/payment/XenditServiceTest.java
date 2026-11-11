@@ -27,10 +27,13 @@ class XenditServiceTest {
     private final ReservationRepository reservations = mock(ReservationRepository.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final AuditService audit = mock(AuditService.class);
+    private final com.hotel.system.reservation.ReservationExtensionService extensions = mock(com.hotel.system.reservation.ReservationExtensionService.class);
+    private final PaymentProviderSettingsService providerSettings = mock(PaymentProviderSettingsService.class);
 
     private XenditService service() {
+        when(providerSettings.onlinePaymentsEnabled()).thenReturn(true);
         return new XenditService(RestClient.builder(), new ObjectMapper(), payments, events, reservations,
-                mock(SystemUserRepository.class), audit, notifications, "XENDIT_TEST",
+                extensions, providerSettings, mock(SystemUserRepository.class), audit, notifications, "XENDIT_TEST",
                 "xnd_development_test_key", "webhook-token", "https://hotel.example",
                 "Matcha Lover Hotel", Clock.systemUTC());
     }
