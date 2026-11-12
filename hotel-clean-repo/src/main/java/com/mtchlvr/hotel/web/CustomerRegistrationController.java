@@ -67,6 +67,16 @@ public class CustomerRegistrationController {
         return "register";
     }
 
+    @GetMapping("/api/register/email-available")
+    @ResponseBody
+    public java.util.Map<String,Boolean> emailAvailable(@RequestParam String email) {
+        String normalized=clean(email).toLowerCase(Locale.ROOT);
+        boolean available=normalized.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
+                && !users.existsByEmailIgnoreCase(normalized)
+                && !applications.existsByEmailIgnoreCase(normalized);
+        return java.util.Map.of("available",available);
+    }
+
     @PostMapping("/register/start")
     public String start(@RequestParam String firstName, @RequestParam String lastName,
             @RequestParam @Email String email, @RequestParam String password,
@@ -83,7 +93,7 @@ public class CustomerRegistrationController {
             return "redirect:/register";
         }
         if(users.existsByEmailIgnoreCase(cleanEmail) || applications.existsByEmailIgnoreCase(cleanEmail)) {
-            flash.addFlashAttribute("error","This email cannot be used to create another account.");
+            // Block duplicate registration without exposing account existence in a visible message.
             return "redirect:/register";
         }
         if(!captcha.verify(captchaToken, request.getRemoteAddr())) {
