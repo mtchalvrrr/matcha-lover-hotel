@@ -50,7 +50,7 @@ public class SecurityConfig {
                 ).hasAnyRole("MANAGER", "ONLINE_MANAGER")
 
                 // Walk-in booking and payment operations belong to the On-Site Manager.
-                .requestMatchers("/manager/walk-ins/**")
+                .requestMatchers("/manager/walk-ins", "/manager/walk-ins/**")
                     .hasAnyRole("MANAGER", "ONSITE_MANAGER")
 
                 // Shared manager workspace. MANAGER remains supported for legacy accounts.
