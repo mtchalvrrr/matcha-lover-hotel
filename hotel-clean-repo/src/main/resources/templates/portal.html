@@ -30,13 +30,6 @@
     .admin .launch{background:#344967}
     .launch:hover{filter:brightness(1.08)}
     footer{margin-top:32px;text-align:center;color:#91a0af;font-size:11px}
-    .locked{display:none;position:fixed;inset:0;z-index:10;place-items:center;padding:24px;background:#f5f7fa}
-    .locked-panel{max-width:480px;padding:36px;border:1px solid #dce5ef;border-radius:20px;background:#fff;text-align:center;box-shadow:0 20px 60px #183b5c18}
-    .locked-panel h1{margin:14px 0 8px;color:#12365a;font-size:26px}
-    .locked-panel p{color:#687b8e;font-size:14px;line-height:1.7}
-    .locked-mark{font-size:34px;color:#df7824}
-    body.launch-locked .shell{display:none}
-    body.launch-locked .locked{display:grid}
     @media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:580px){.shell{width:min(100% - 28px,480px);padding-top:20px}.grid{grid-template-columns:1fr}.card{min-height:260px}.intro{margin:22px auto 28px}header{padding-bottom:18px}.secure{display:none}}
   </style>
@@ -82,38 +75,5 @@
     </main>
     <footer>VA HOTEL · Secure portal selection</footer>
   </div>
-  <section class="locked" aria-live="polite">
-    <div class="locked-panel">
-      <div class="locked-mark" aria-hidden="true">✓</div>
-      <h1>Portal launched</h1>
-      <p>This launcher is now locked in this browser tab. Continue in the new tab that was opened for your selected portal.</p>
-      <p>Close this tab when you are finished.</p>
-    </div>
-  </section>
-  <script>
-    (function () {
-      var lockKey = "vaHotelPortalLauncherUsed";
-      function lockLauncher() {
-        document.body.classList.add("launch-locked");
-      }
-      try {
-        if (sessionStorage.getItem(lockKey) === "true") {
-          lockLauncher();
-        }
-      } catch (error) {
-        // The launcher still locks for the current page if browser storage is unavailable.
-      }
-      document.querySelectorAll(".launch").forEach(function (link) {
-        link.addEventListener("click", function () {
-          try {
-            sessionStorage.setItem(lockKey, "true");
-          } catch (error) {
-            // Continue with the visual lock even when session storage is unavailable.
-          }
-          lockLauncher();
-        });
-      });
-    }());
-  </script>
 </body>
 </html>
