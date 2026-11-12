@@ -98,52 +98,6 @@ public class HotelController {
         return "super-admin-portal";
     }
 
-    @GetMapping("/register") public String register(Model model, HttpSession session,
-            jakarta.servlet.http.HttpServletResponse response) {
-        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-        response.setHeader("Pragma", "no-cache");
-        response.setDateHeader("Expires", 0);
-        model.addAttribute("form", new RegisterForm());
-        model.addAttribute("duplicateEmail", false);
-        return "register";
-    }
-
-    // Check email availability before allowing the registration form to advance.
-    @GetMapping("/api/register/email-available")
-    @ResponseBody
-    public java.util.Map<String, Boolean> checkRegistrationEmail(@RequestParam String email) {
-        String normalizedEmail = email == null ? "" : email.trim();
-        boolean available = !normalizedEmail.isBlank() &&
-                !users.existsByEmailIgnoreCase(normalizedEmail);
-        return java.util.Map.of("available", available);
-    }
-
-    @PostMapping("/register") public String registerPost(@Valid @ModelAttribute("form") RegisterForm form,
-            BindingResult errors, HttpSession session, Model model, RedirectAttributes flash,
-            @RequestParam(name = "g-recaptcha-response", required = false) String captchaToken,
-            jakarta.servlet.http.HttpServletRequest request) {
-        if (!captcha.verify(captchaToken, request.getRemoteAddr())) errors.reject("captcha", "Please complete the Google reCAPTCHA check and try again.");
-        if (!java.util.Objects.equals(form.password, form.confirmPassword)) {
-            errors.rejectValue("confirmPassword", "mismatch", "Passwords do not match.");
-        }
-        String normalizedEmail = form.email == null ? "" : form.email.trim();
-        boolean duplicateEmail = !normalizedEmail.isBlank() &&
-                users.existsByEmailIgnoreCase(normalizedEmail);
-        if (duplicateEmail) {
-            // Keep the customer on step one without displaying an "email already in use" message.
-            model.addAttribute("duplicateEmail", true);
-        }
-        if (errors.hasErrors() || duplicateEmail) return "register";
-        AppUser newCustomer = new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT),
-                encoder.encode(form.password), form.getFullName().trim(), "CUSTOMER", true);
-        newCustomer.setCustomerCode(generateCustomerCode());
-        users.save(newCustomer);
-        flash.addFlashAttribute("success", "Account created successfully!");
-        request.setAttribute(
-                org.springframework.web.servlet.View.RESPONSE_STATUS_ATTRIBUTE,
-                org.springframework.http.HttpStatus.SEE_OTHER);
-        return "redirect:/customer-portal";
-    }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
         AppUser customer = users.findByEmailIgnoreCase(auth.getName()).orElseThrow();
         if (!hasValidCustomerCode(customer)) {
@@ -730,86 +684,6 @@ public class HotelController {
                 || (r.getBookingType() != null
                     && r.getBookingType().toLowerCase(java.util.Locale.ROOT).contains(term));
     }
-
-    /**
-     * Only completed or otherwise processed reservations belong in history.
-     * A Pencil Booking awaiting its Online Manager decision is still pending
-     * and must not be hidden or deleted as a processed history record.
-     */
-    private boolean isProcessedHistory(Reservation r) {
-        return r.isHistoryVisible()
-                && !java.util.List.of(
-                    "PENDING",
-                    "PENCIL_PENDING_REVIEW",
-                    "CANCELLATION_REQUESTED"
-                ).contains(r.getStatus());
-    }
-
-    @PostMapping("/manager/history/{id}/delete")
-    public String deleteHistoryRecord(@PathVariable Long id, RedirectAttributes flash) {
-        Reservation r = reservations.findById(id).orElse(null);
-        if (r == null || !isProcessedHistory(r)) {
-            flash.addFlashAttribute("error", "Processed history record not found.");
-        } else {
-            r.setHistoryVisible(false);
-            reservations.save(r);
-            flash.addFlashAttribute("success", "History record deleted.");
-        }
-        return "redirect:/manager/history";
-    }
-
-    @PostMapping("/manager/history/clear")
-    public String clearHistory(RedirectAttributes flash) {
-        java.util.List<Reservation> processed = reservations.findAllByOrderByCreatedAtDesc()
-            .stream().filter(this::isProcessedHistory).toList();
-        if (processed.isEmpty()) {
-            flash.addFlashAttribute("error", "There are no processed history records to delete.");
-        } else {
-            processed.forEach(r -> r.setHistoryVisible(false));
-            reservations.saveAll(processed);
-            flash.addFlashAttribute("success", "Processed reservation history cleared.");
-        }
-        return "redirect:/manager/history";
-    }
-
-
-public static class RegisterForm {
-    @NotBlank @Size(min=1, max=60)
-    private String firstName = "";
-
-    @NotBlank @Size(min=1, max=60)
-    private String lastName = "";
-
-    @NotBlank @Email @Size(max=160)
-    private String email = "";
-
-    @NotBlank
-    @Size(min=10, max=70)
-    @Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9\\s])\\S+$",
-        message = "Password must have uppercase and lowercase letters, a number, and a special symbol, with no spaces."
-    )
-    private String password = "";
-
-    @NotBlank
-    private String confirmPassword = "";
-
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getFullName() { return (firstName == null ? "" : firstName.trim()) + " " + (lastName == null ? "" : lastName.trim()); }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
-    public String getConfirmPassword() { return confirmPassword; }
-    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
-}
-
 
     private boolean hasValidCustomerCode(AppUser customer) {
         return customer != null && customer.getCustomerCode() != null &&
