@@ -18,3 +18,6 @@ test-results/
 .env
 .env.*
 !.env.example
+
+# Private identity verification documents (never commit applicant IDs)
+private-uploads/
