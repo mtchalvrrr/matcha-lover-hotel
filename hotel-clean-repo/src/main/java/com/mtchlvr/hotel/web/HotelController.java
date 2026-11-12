@@ -54,7 +54,45 @@ public class HotelController {
         model.addAttribute("rooms", rooms.findByActiveTrueAndAvailableTrueOrderByTypeAscRoomNumberAsc());
         return "rooms";
     }
-    @GetMapping("/login") public String login(Model model) { return "login"; }
+    /**
+     * Opens the shared sign-in page and keeps the portal selected by the visitor.
+     * Portal selection is checked again by Spring Security after authentication.
+     */
+    @GetMapping("/login")
+    public String login(
+            @RequestParam(name = "portal", required = false) String requestedPortal,
+            @RequestParam(name = "roleError", required = false) String roleError,
+            Model model) {
+        String portal = requestedPortal == null ? "" : requestedPortal.trim().toLowerCase(java.util.Locale.ROOT);
+        String portalName = "VA HOTEL";
+        if ("customer".equals(portal)) {
+            portalName = "Customer Portal";
+        } else if ("online-manager".equals(portal)) {
+            portalName = "Online Reservation Manager Portal";
+        } else if ("onsite-manager".equals(portal)) {
+            portalName = "On-Site Reservation Manager Portal";
+        } else if ("super-admin".equals(portal)) {
+            portalName = "Super Admin Portal";
+        } else {
+            portal = "";
+        }
+        model.addAttribute("portal", portal);
+        model.addAttribute("portalName", portalName);
+        model.addAttribute("roleError", roleError != null);
+        return "login";
+    }
+
+    /** Shows the two separate manager entry points before sign-in. */
+    @GetMapping("/manager-portal")
+    public String managerPortal() {
+        return "manager-portal";
+    }
+
+    /** Role-protected landing page for the Super Admin portal. */
+    @GetMapping("/super-admin")
+    public String superAdminPortal() {
+        return "super-admin-portal";
+    }
 
     @GetMapping("/register") public String register(Model model, HttpSession session,
             jakarta.servlet.http.HttpServletResponse response) {
