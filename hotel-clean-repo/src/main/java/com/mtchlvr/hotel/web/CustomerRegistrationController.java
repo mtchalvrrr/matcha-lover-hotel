@@ -13,7 +13,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -122,6 +121,10 @@ public class CustomerRegistrationController {
     public String resendOtp(HttpSession session, RedirectAttributes flash) {
         RegistrationDraft d=draft(session);
         if(d==null || Boolean.TRUE.equals(session.getAttribute(OTP_VERIFIED))) return "redirect:/register";
+        if(d.resends>=3) {
+            flash.addFlashAttribute("error","You have reached the resend limit. Please restart registration.");
+            return "redirect:/register";
+        }
         if(Duration.between(d.lastSentAt,Instant.now()).getSeconds()<60) {
             flash.addFlashAttribute("error","Please wait 60 seconds before requesting another code.");
             return "redirect:/register?step=3";
@@ -129,7 +132,7 @@ public class CustomerRegistrationController {
         String otp=String.format(Locale.ROOT,"%06d",random.nextInt(1_000_000));
         try {
             d.otpHash=encoder.encode(otp); d.expiresAt=Instant.now().plus(Duration.ofMinutes(5));
-            d.lastSentAt=Instant.now(); d.attempts=0; sendOtp(d.email,otp);
+            d.lastSentAt=Instant.now(); d.attempts=0; d.resends++; sendOtp(d.email,otp);
         } catch(Exception ex) {
             flash.addFlashAttribute("error","We could not send a new code. Please try again.");
         }
@@ -204,7 +207,9 @@ public class CustomerRegistrationController {
         String ext="image/png".equalsIgnoreCase(type)?".png":".jpg";
         Path target=uploadRoot.resolve(UUID.randomUUID()+ext).normalize();
         if(!target.startsWith(uploadRoot)) throw new IOException("Invalid file path");
-        Files.copy(file.getInputStream(),target,StandardCopyOption.REPLACE_EXISTING);
+        String format="image/png".equalsIgnoreCase(type)?"png":"jpg";
+        // Re-encode images to strip EXIF metadata, including possible GPS coordinates.
+        if(!ImageIO.write(image,format,target.toFile())) throw new IOException("Unsupported image format");
         return target.toString();
     }
 
@@ -223,9 +228,9 @@ public class CustomerRegistrationController {
 
     private static final class RegistrationDraft implements java.io.Serializable {
         final String firstName,lastName,email,passwordHash;
-        String otpHash; Instant expiresAt,lastSentAt; int attempts;
+        String otpHash; Instant expiresAt,lastSentAt; int attempts; int resends;
         RegistrationDraft(String f,String l,String e,String p,String o,Instant x,Instant sent,int a){
-            firstName=f;lastName=l;email=e;passwordHash=p;otpHash=o;expiresAt=x;lastSentAt=sent;attempts=a;
+            firstName=f;lastName=l;email=e;passwordHash=p;otpHash=o;expiresAt=x;lastSentAt=sent;attempts=a;resends=0;
         }
     }
 }
