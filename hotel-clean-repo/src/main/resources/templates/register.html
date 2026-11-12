@@ -48,7 +48,7 @@
 <label>Password<input id="password" name="password" type="password" minlength="10" maxlength="70" autocomplete="new-password" required></label>
 <ul class="rules" id="passwordRules"><li data-rule="length">10+ characters</li><li data-rule="upper">Uppercase letter</li><li data-rule="lower">Lowercase letter</li><li data-rule="number">Number</li><li data-rule="symbol">Special symbol</li><li data-rule="nospace">No spaces</li></ul>
 <label>Confirm password<input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required></label>
-<div class="captcha-wrap"><div class="g-recaptcha" th:attr="data-sitekey=${@environment.getProperty('google.recaptcha.site-key','')}"></div></div>
+<div class="captcha-wrap"><div id="registrationCaptcha" th:attr="data-sitekey=${@environment.getProperty('google.recaptcha.site-key','')}"></div></div>
 <div class="actions"><button class="button secondary" type="button" data-back="1">Back</button><button class="button" type="submit">Send email code</button></div>
 </form>
 </section>
@@ -87,11 +87,14 @@
 </form>
 <p class="hint">Already registered? <a href="/login?portal=customer">Sign in</a></p>
 </main>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaReady&render=explicit" async defer></script>
 <script>
 (() => {
  const panels=[1,2,3,4,5].map(n=>document.getElementById("step"+n));
- const show=n=>{panels.forEach((p,i)=>p.hidden=i!==n-1);document.querySelectorAll("[data-progress]").forEach(el=>el.classList.toggle("active",Number(el.dataset.progress)<=n));history.replaceState({registrationStep:n},"","/register?step="+n);};
+ let captchaWidget=null;let captchaLoaded=false;
+ window.onRecaptchaReady=()=>{captchaLoaded=true;renderCaptcha();};
+ function renderCaptcha(){const el=document.getElementById("registrationCaptcha");if(captchaLoaded&&el&&captchaWidget===null&&window.grecaptcha){captchaWidget=grecaptcha.render(el,{sitekey:el.dataset.sitekey});}}
+ const show=n=>{panels.forEach((p,i)=>p.hidden=i!==n-1);document.querySelectorAll("[data-progress]").forEach(el=>el.classList.toggle("active",Number(el.dataset.progress)<=n));history.replaceState({registrationStep:n},"","/register?step="+n);if(n===2)renderCaptcha();};
  const value=id=>document.getElementById(id).value.trim();
  document.querySelector('[data-next="2"]').addEventListener("click",()=>{
    const f=document.getElementById("step1form");
@@ -112,7 +115,7 @@
  const rules={length:v=>v.length>=10,upper:v=>/[A-Z]/.test(v),lower:v=>/[a-z]/.test(v),number:v=>/[0-9]/.test(v),symbol:v=>/[^A-Za-z0-9\s]/.test(v),nospace:v=>!/\s/.test(v)};
  const update=()=>{document.querySelectorAll("[data-rule]").forEach(el=>el.classList.toggle("ok",rules[el.dataset.rule](pw.value)));pw.setCustomValidity(Object.values(rules).every(fn=>fn(pw.value))?"":"Meet all password requirements.");confirm.setCustomValidity(confirm.value===pw.value?"":"Passwords do not match.");};
  pw.addEventListener("input",update);confirm.addEventListener("input",update);
- document.getElementById("step2form").addEventListener("submit",e=>{update();if(!e.currentTarget.reportValidity())e.preventDefault();if(!window.grecaptcha||!grecaptcha.getResponse()){e.preventDefault();alert("Please complete the reCAPTCHA checkbox.");}});
+ document.getElementById("step2form").addEventListener("submit",e=>{update();if(!e.currentTarget.reportValidity())e.preventDefault();if(!window.grecaptcha||!grecaptcha.getResponse(captchaWidget)){e.preventDefault();alert("Please complete the reCAPTCHA checkbox.");}});
  document.querySelectorAll('input[type="file"][data-preview]').forEach(input=>input.addEventListener("change",()=>{
    const file=input.files[0],preview=document.getElementById(input.dataset.preview);if(!file)return;
    if(file.size>5*1024*1024){input.value="";preview.style.display="none";alert("Each ID photo must be 5 MB or smaller.");return;}
