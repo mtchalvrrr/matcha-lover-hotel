@@ -53,6 +53,12 @@ public class HotelController {
     public String home() {
         return "portal";
     }
+    /** Customer-facing main page opened from the Customer Portal launcher. */
+    @GetMapping("/customer-portal")
+    public String customerPortalHome() {
+        return "index";
+    }
+
     @GetMapping("/rooms") public String browse(Model model) {
         // Customers should only see rooms that are both active and marked available.
         model.addAttribute("rooms", rooms.findByActiveTrueAndAvailableTrueOrderByTypeAscRoomNumberAsc());
@@ -136,7 +142,7 @@ public class HotelController {
         request.setAttribute(
                 org.springframework.web.servlet.View.RESPONSE_STATUS_ATTRIBUTE,
                 org.springframework.http.HttpStatus.SEE_OTHER);
-        return "redirect:/";
+        return "redirect:/customer-portal";
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
         AppUser customer = users.findByEmailIgnoreCase(auth.getName()).orElseThrow();
