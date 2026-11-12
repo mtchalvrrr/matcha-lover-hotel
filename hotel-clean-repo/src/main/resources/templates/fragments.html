@@ -16,6 +16,10 @@
       <a href="/manager/reports">Guest reports</a>
     </th:block>
 
+    <th:block sec:authorize="hasAnyRole('MANAGER','ONSITE_MANAGER')">
+      <a href="/manager/walk-ins/new">Record walk-in</a>
+    </th:block>
+
     <th:block sec:authorize="hasAnyRole('MANAGER','ONLINE_MANAGER')">
       <a href="/manager/reservation-requests">Reservation requests</a>
       <a href="/manager/pencil-bookings">Pencil Booking reviews</a>
