@@ -74,7 +74,6 @@ class WalkInBookingServiceTest {
         assertEquals("PAID", captor.getValue().getStatus());
         assertEquals("NEXUS_SIMULATION", captor.getValue().getPaymentMethod());
         assertEquals(new BigDecimal("3600.00"), captor.getValue().getAmount());
-        verifyNoInteractions(rooms == null ? new Object() : new Object());
     }
 
     @Test
