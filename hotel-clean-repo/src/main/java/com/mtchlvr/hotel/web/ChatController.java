@@ -34,8 +34,16 @@ public class ChatController {
         boolean authenticated = authentication != null
                 && authentication.isAuthenticated()
                 && !"anonymousUser".equals(authentication.getName());
-        boolean manager = authenticated && authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+        // The legacy MANAGER role retains both manager permission sets.
+        boolean onlineManager = authenticated && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER")
+                        || a.getAuthority().equals("ROLE_ONLINE_MANAGER"));
+
+        boolean onsiteManager = authenticated && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER")
+                        || a.getAuthority().equals("ROLE_ONSITE_MANAGER"));
+
+        boolean manager = onlineManager || onsiteManager;
 
         // Room browsing is public, just like the /rooms page. Keep the chatbot
         // useful to signed-out visitors without exposing account or manager data.
@@ -87,6 +95,13 @@ public class ChatController {
         String managerUrl = managerFunction(normalized);
 
         if (managerUrl != null) {
+            // Online reservation requests must not be offered to On-Site Managers.
+            if (managerUrl.equals("/manager/reservation-requests") && !onlineManager) {
+                return new ChatResponse(
+                        "Online reservation requests are restricted to the Online Manager workspace.",
+                        List.of());
+            }
+
             if (!manager) {
                 return new ChatResponse(
                         "Sorry! That function is available only to authorized hotel managers. "

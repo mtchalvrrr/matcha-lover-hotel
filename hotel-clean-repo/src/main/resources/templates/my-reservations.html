@@ -15,7 +15,41 @@
       <button type="button" class="button secondary" data-checkout-dismiss>Not now</button>
     </div>
   </section>
-</div><div th:if="${#lists.isEmpty(reservations)}" class="empty-state"><h2>Nothing booked just yet.</h2><p>Your next restful stay is waiting.</p><a class="button" href="/rooms">Browse rooms </a></div><div class="table-wrap" th:unless="${#lists.isEmpty(reservations)}"><table><thead><tr><th>Room</th><th>Dates</th><th>Nights</th><th>Nightly rate</th><th>Billing statement</th><th>Status</th><th>Action</th></tr></thead><tbody><tr th:each="r : ${reservations}"><td><strong th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Deluxe · 201</strong></td><td th:text="${r.checkIn} + '  –  ' + ${r.checkOut}">2026-10-14</td><td th:text="${r.nights}">2</td><td th:text="'₱' + ${#numbers.formatDecimal(r.room.nightlyRate,1,'COMMA',2,'POINT')}">₱1,800.00</td><td><strong th:text="'₱' + ${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}">₱3,600.00</strong><span class="cell-sub">Room charge; extras not included</span></td><td><span class="status" th:text="${currentlyCheckedInReservationIds.contains(r.id) ? 'CHECKED IN' : (r.status == 'COMPLETED' ? 'Checked Out' : r.status)}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td><td><div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px"><form th:if="${r.status == 'PENDING' or r.status == 'APPROVED'}" th:action="@{'/customer/reservations/' + ${r.id} + '/cancel'}" method="post" data-confirm="Request cancellation for this reservation? This will send it to the manager for review."><button class="table-action" type="submit">Request cancellation</button></form><span th:if="${r.status != 'PENDING' and r.status != 'APPROVED'}" class="muted">—</span></div></td></tr></tbody></table></div><dialog class="customer-report-dialog" id="customer-report-dialog">
+</div><div th:if="${#lists.isEmpty(reservations)}" class="empty-state"><h2>Nothing booked just yet.</h2><p>Your next restful stay is waiting.</p><a class="button" href="/rooms">Browse rooms </a></div><div class="table-wrap" th:unless="${#lists.isEmpty(reservations)}"><table><thead><tr><th>Room</th><th>Dates</th><th>Nights</th><th>Nightly rate</th><th>Billing statement</th><th>Status</th><th>Action</th></tr></thead><tbody><tr th:each="r : ${reservations}"><td><strong th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Deluxe · 201</strong></td><td th:text="${r.checkIn} + '  –  ' + ${r.checkOut}">2026-10-14</td><td th:text="${r.nights}">2</td><td th:text="'₱' + ${#numbers.formatDecimal(r.room.nightlyRate,1,'COMMA',2,'POINT')}">₱1,800.00</td><td>
+<strong th:text="'₱' + ${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}">₱3,600.00</strong>
+<span class="cell-sub">Room charge; extras not included</span>
+<div style="margin-top:8px">
+    <div><strong>Paid:</strong> <span th:text="'₱' + ${#numbers.formatDecimal(paidAmountsByReservation[r.id],1,'COMMA',2,'POINT')}">₱1,800.00</span></div>
+    <div><strong>Balance:</strong> <span th:text="'₱' + ${#numbers.formatDecimal(remainingBalancesByReservation[r.id],1,'COMMA',2,'POINT')}">₱1,800.00</span></div>
+</div>
+<div th:if="${!#lists.isEmpty(paymentRecordsByReservation[r.id])}" style="margin-top:10px">
+    <strong>Payment transactions</strong>
+    <div th:each="payment : ${paymentRecordsByReservation[r.id]}" style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e9e1">
+        <div><strong th:text="${payment.paymentType}">PENCIL_DOWN_PAYMENT</strong></div>
+        <div th:text="'Amount: ₱' + ${#numbers.formatDecimal(payment.amount,1,'COMMA',2,'POINT')}">Amount: ₱1,800.00</div>
+        <div th:text="'Status: ' + ${payment.status}">Status: PAID</div>
+        <div th:text="'Method: ' + ${payment.paymentMethod}">Method: NEXUS_SIMULATION</div>
+        <div th:text="'Reference: ' + ${payment.transactionReference}">Reference: NEXUS-REFERENCE</div>
+        <div class="cell-sub" th:text="'Recorded: ' + ${payment.paidAt}">Recorded: 2026-11-12T00:00:00Z</div>
+    </div>
+</div>
+</td><td><span class="status" th:text="${currentlyCheckedInReservationIds.contains(r.id) ? 'CHECKED IN' : (r.status == 'COMPLETED' ? 'Checked Out' : r.status)}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td><td>
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
+    <form th:if="${r.bookingType == 'PENCIL' and r.status == 'APPROVED' and remainingBalancesByReservation[r.id].compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+          th:action="@{'/customer/reservations/' + ${r.id} + '/pay-balance'}"
+          method="post"
+          data-confirm="Pay the remaining Pencil Booking balance now?">
+        <button class="table-action" type="submit">Pay Remaining Balance</button>
+    </form>
+    <form th:if="${r.status == 'PENDING' or r.status == 'APPROVED'}"
+          th:action="@{'/customer/reservations/' + ${r.id} + '/cancel'}"
+          method="post"
+          data-confirm="Request cancellation for this reservation? This will send it to the manager for review.">
+        <button class="table-action" type="submit">Request cancellation</button>
+    </form>
+    <span th:if="${r.status != 'PENDING' and r.status != 'APPROVED'}" class="muted">—</span>
+</div>
+</td></tr></tbody></table></div><dialog class="customer-report-dialog" id="customer-report-dialog">
   <div class="customer-report-dialog-header">
     <span class="eyebrow">LET US KNOW</span>
     <button type="button" class="customer-report-close" data-close-report aria-label="Close report form">×</button>

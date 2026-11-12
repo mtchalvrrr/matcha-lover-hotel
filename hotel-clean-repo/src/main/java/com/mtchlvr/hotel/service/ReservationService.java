@@ -64,6 +64,7 @@ public class ReservationService {
             // A cancellation request can still represent an unapproved pending booking.
             // Void it at check-in only when its saved pre-cancellation state was PENDING.
             .filter(r -> "PENDING".equals(r.getStatus()) ||
+                "PENCIL_PENDING_REVIEW".equals(r.getStatus()) ||
                 ("CANCELLATION_REQUESTED".equals(r.getStatus()) &&
                  "PENDING".equals(r.getStatusBeforeCancellation())))
             .filter(r -> !now.isBefore(start(r)))

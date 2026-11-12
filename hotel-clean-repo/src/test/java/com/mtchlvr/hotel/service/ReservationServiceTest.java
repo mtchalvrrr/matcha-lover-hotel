@@ -309,4 +309,40 @@ class ReservationServiceTest {
         assertTrue(error.getMessage().contains("expired"));
         verify(reservations, never()).save(any(Reservation.class));
     }
+
+
+    @Test
+    void doesNotVoidPencilBookingBeforeItsCheckInTime() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation pencil = mock(Reservation.class);
+
+        // The review period may have passed, but check-in is still in the future.
+        when(pencil.getStatus()).thenReturn("PENCIL_PENDING_REVIEW");
+        when(pencil.getCheckIn()).thenReturn(LocalDate.now(zone).plusDays(2));
+        when(pencil.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findAll()).thenReturn(List.of(pencil));
+
+        service.voidExpiredPendingReservations();
+
+        verify(pencil, never()).setStatus("VOID");
+        verify(reservations, never()).saveAll(anyList());
+    }
+
+    @Test
+    void automaticallyVoidsPencilBookingWhenCheckInTimeHasArrived() {
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        Reservation pencil = mock(Reservation.class);
+
+        when(pencil.getStatus()).thenReturn("PENCIL_PENDING_REVIEW");
+        when(pencil.getCheckIn()).thenReturn(LocalDate.now(zone).minusDays(1));
+        when(pencil.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(reservations.findAll()).thenReturn(List.of(pencil));
+
+        service.voidExpiredPendingReservations();
+
+        verify(pencil).setStatus("VOID");
+        verify(pencil).setStatusBeforeCancellation(null);
+        verify(reservations).saveAll(anyList());
+    }
+
 }

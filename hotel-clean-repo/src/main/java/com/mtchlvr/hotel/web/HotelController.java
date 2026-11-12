@@ -20,15 +20,29 @@ public class HotelController {
     private final RoomRepository rooms;
     private final UserRepository users;
     private final ReservationRepository reservations;
+    private final PaymentRepository payments;
     private final ReservationService reservationService;
+    private final PaymentService paymentService;
+    private final PencilBookingService pencilBookingService;
     private final CaptchaService captcha;
     private final PasswordEncoder encoder;
     private final ReportRepository reports;
 
     public HotelController(RoomRepository rooms, UserRepository users, ReservationRepository reservations,
-                           ReservationService reservationService, CaptchaService captcha, PasswordEncoder encoder, ReportRepository reports) {
-        this.rooms = rooms; this.users = users; this.reservations = reservations;
-        this.reservationService = reservationService; this.captcha = captcha; this.encoder = encoder; this.reports = reports;
+                           PaymentRepository payments,
+                           ReservationService reservationService, PaymentService paymentService,
+                           PencilBookingService pencilBookingService,
+                           CaptchaService captcha, PasswordEncoder encoder, ReportRepository reports) {
+        this.rooms = rooms;
+        this.users = users;
+        this.reservations = reservations;
+        this.payments = payments;
+        this.reservationService = reservationService;
+        this.paymentService = paymentService;
+        this.pencilBookingService = pencilBookingService;
+        this.captcha = captcha;
+        this.encoder = encoder;
+        this.reports = reports;
     }
 
     @GetMapping("/") public String home(Model model) {
@@ -105,6 +119,42 @@ public class HotelController {
                         .filter(r -> !"CANCELLED".equals(r.getStatus()))
                         .toList();
         model.addAttribute("reservations", customerReservations);
+
+        // Load payment history and calculate the amount paid for each reservation.
+        // Only PAID transactions count toward the customer's outstanding balance.
+        java.util.Map<Long, java.util.List<Payment>> paymentRecordsByReservation =
+                new java.util.HashMap<>();
+        java.util.Map<Long, java.math.BigDecimal> paidAmountsByReservation =
+                new java.util.HashMap<>();
+        java.util.Map<Long, java.math.BigDecimal> remainingBalancesByReservation =
+                new java.util.HashMap<>();
+
+        for (Reservation reservation : customerReservations) {
+            java.util.List<Payment> paymentRecords =
+                    payments.findAllByReservationIdOrderByPaidAtAsc(reservation.getId());
+
+            java.math.BigDecimal paidAmount = paymentRecords.stream()
+                    .filter(payment -> "PAID".equals(payment.getStatus()))
+                    .map(Payment::getAmount)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+            java.math.BigDecimal remainingBalance =
+                    reservation.getTotalCost().subtract(paidAmount);
+
+            // Prevent a negative displayed balance if a reservation has excess payments.
+            if (remainingBalance.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                remainingBalance = java.math.BigDecimal.ZERO;
+            }
+
+            paymentRecordsByReservation.put(reservation.getId(), paymentRecords);
+            paidAmountsByReservation.put(reservation.getId(), paidAmount);
+            remainingBalancesByReservation.put(reservation.getId(), remainingBalance);
+        }
+
+        model.addAttribute("paymentRecordsByReservation", paymentRecordsByReservation);
+        model.addAttribute("paidAmountsByReservation", paidAmountsByReservation);
+        model.addAttribute("remainingBalancesByReservation", remainingBalancesByReservation);
+
         java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
         LocalDate today = LocalDate.now(hotelZone);
         java.time.LocalDateTime now =
@@ -137,26 +187,87 @@ public class HotelController {
 
         return "my-reservations";
     }
-    @PostMapping("/customer/reservations") public String makeReservation(Authentication auth,
-            @RequestParam Long roomId, @RequestParam String checkIn, @RequestParam String checkOut,
+    @PostMapping("/customer/reservations")
+    public String makeReservation(Authentication auth,
+            @RequestParam Long roomId,
+            @RequestParam String checkIn,
+            @RequestParam String checkOut,
             @RequestParam(defaultValue = "14:00") String checkInTime,
             @RequestParam(defaultValue = "12:00") String checkOutTime,
+            @RequestParam(defaultValue = "REGULAR") String bookingType,
             RedirectAttributes flash) {
+
         try {
-            reservationService.reserve(auth.getName(), roomId,
-                    LocalDate.parse(checkIn), java.time.LocalTime.parse(checkInTime),
-                    LocalDate.parse(checkOut), java.time.LocalTime.parse(checkOutTime));
-            flash.addFlashAttribute("success", "Reservation request submitted.");
+            LocalDate arrivalDate = LocalDate.parse(checkIn);
+            java.time.LocalTime arrivalTime = java.time.LocalTime.parse(checkInTime);
+            LocalDate departureDate = LocalDate.parse(checkOut);
+            java.time.LocalTime departureTime = java.time.LocalTime.parse(checkOutTime);
+
+            if ("REGULAR".equalsIgnoreCase(bookingType)) {
+                paymentService.createRegularOnlineBooking(
+                        auth.getName(), roomId, arrivalDate, arrivalTime,
+                        departureDate, departureTime);
+
+                flash.addFlashAttribute(
+                        "success",
+                        "Full payment recorded. Your reservation request has been submitted for manager approval.");
+
+            } else if ("PENCIL".equalsIgnoreCase(bookingType)) {
+                paymentService.createPencilBooking(
+                        auth.getName(), roomId, arrivalDate, arrivalTime,
+                        departureDate, departureTime);
+
+                flash.addFlashAttribute(
+                        "success",
+                        "Your 50% Pencil Booking down payment has been recorded. Your booking is awaiting Online Manager review.");
+
+            } else {
+                throw new IllegalArgumentException("Invalid reservation payment option.");
+            }
+
         } catch (Exception ex) {
             flash.addFlashAttribute("error", ex.getMessage() == null
-                    ? "Could not create reservation." : ex.getMessage());
+                    ? "Could not create reservation or record payment."
+                    : ex.getMessage());
         }
+
         return "redirect:/customer/reservations";
     }
+    /**
+     * Records the remaining 50% payment for an approved Pencil Booking.
+     * PaymentService verifies reservation ownership, booking type, approval,
+     * check-in deadline, and whether the balance has already been paid.
+     */
+    @PostMapping("/customer/reservations/{id}/pay-balance")
+    public String payPencilBalance(
+            @PathVariable Long id,
+            Authentication auth,
+            RedirectAttributes flash) {
+
+        try {
+            Payment payment = paymentService.payPencilBalance(id, auth.getName());
+
+            flash.addFlashAttribute(
+                    "success",
+                    "Pencil Booking balance paid successfully. Transaction reference: "
+                            + payment.getTransactionReference());
+
+        } catch (IllegalArgumentException ex) {
+            flash.addFlashAttribute(
+                    "error",
+                    ex.getMessage() == null
+                            ? "Could not process the Pencil Booking balance payment."
+                            : ex.getMessage());
+        }
+
+        return "redirect:/customer/reservations";
+    }
+
     @PostMapping("/customer/reservations/{id}/cancel") public String cancel(@PathVariable Long id,
             Authentication auth, RedirectAttributes flash) {
         Reservation r = reservations.findById(id).orElse(null);
-        if (r == null || !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+        if (r == null || r.getCustomer() == null ||
+                !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
             flash.addFlashAttribute("error", "Reservation not found."); return "redirect:/customer/reservations";
         }
         if (!r.getStatus().equals("PENDING") && !r.getStatus().equals("APPROVED")) {
@@ -207,8 +318,12 @@ public class HotelController {
                 java.time.LocalTime outTime = r.getCheckOutTime() == null ? java.time.LocalTime.NOON : r.getCheckOutTime();
                 java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
                 if (!end.isAfter(now)) return false;
-                return java.util.List.of("PENDING", "APPROVED", "CANCELLATION_REQUESTED")
-                        .contains(r.getStatus());
+                return java.util.List.of(
+                        "PENDING",
+                        "PENCIL_PENDING_REVIEW",
+                        "APPROVED",
+                        "CANCELLATION_REQUESTED"
+                ).contains(r.getStatus());
             })
             .map(r -> {
                 java.time.LocalTime inTime = r.getCheckInTime() == null
@@ -253,6 +368,88 @@ public class HotelController {
         return "reservation-requests";
     }
 
+    /**
+     * Displays Pencil Bookings that are waiting for the Online Manager.
+     * The review deadline is calculated from the successful down payment.
+     */
+    @GetMapping("/manager/pencil-bookings")
+    public String managerPencilBookings(Model model) {
+        java.util.List<Reservation> pencilBookings =
+                reservations.findAllByOrderByCreatedAtDesc()
+                        .stream()
+                        .filter(r -> "PENCIL".equals(r.getBookingType()))
+                        .filter(r -> "PENCIL_PENDING_REVIEW".equals(r.getStatus()))
+                        .toList();
+
+        java.util.Map<Long, Payment> downPayments = new java.util.HashMap<>();
+        java.util.Map<Long, java.time.LocalDateTime> reviewDeadlines =
+                new java.util.HashMap<>();
+        java.util.Map<Long, Boolean> expiredReviews = new java.util.HashMap<>();
+
+        java.time.Instant now = java.time.Instant.now();
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+
+        for (Reservation reservation : pencilBookings) {
+            payments.findByReservationIdAndPaymentTypeAndStatus(
+                    reservation.getId(),
+                    "PENCIL_DOWN_PAYMENT",
+                    "PAID")
+                .ifPresent(payment -> {
+                    downPayments.put(reservation.getId(), payment);
+
+                    if (payment.getPaidAt() != null) {
+                        java.time.Instant deadline =
+                                payment.getPaidAt().plus(java.time.Duration.ofHours(72));
+
+                        reviewDeadlines.put(
+                                reservation.getId(),
+                                java.time.LocalDateTime.ofInstant(deadline, hotelZone));
+
+                        expiredReviews.put(
+                                reservation.getId(),
+                                !now.isBefore(deadline));
+                    }
+                });
+        }
+
+        model.addAttribute("pencilBookings", pencilBookings);
+        model.addAttribute("pencilDownPayments", downPayments);
+        model.addAttribute("pencilReviewDeadlines", reviewDeadlines);
+        model.addAttribute("pencilReviewExpired", expiredReviews);
+
+        return "pencil-bookings";
+    }
+
+    /**
+     * Sends an approval or rejection decision to the dedicated Pencil
+     * Booking service, which enforces the 72-hour review deadline.
+     */
+    @PostMapping("/manager/pencil-bookings/{id}/review")
+    public String reviewPencilBooking(
+            @PathVariable Long id,
+            @RequestParam String decision,
+            RedirectAttributes flash) {
+
+        try {
+            Reservation reviewed =
+                    pencilBookingService.reviewBooking(id, decision);
+
+            flash.addFlashAttribute(
+                    "success",
+                    "Pencil Booking " + reviewed.getId() + " was "
+                            + reviewed.getStatus().toLowerCase(java.util.Locale.ROOT) + ".");
+
+        } catch (IllegalArgumentException ex) {
+            flash.addFlashAttribute(
+                    "error",
+                    ex.getMessage() == null
+                            ? "Could not process this Pencil Booking decision."
+                            : ex.getMessage());
+        }
+
+        return "redirect:/manager/pencil-bookings";
+    }
+
     @GetMapping("/manager/history")
     public String managerHistory(
             @RequestParam(defaultValue = "") String q,
@@ -286,14 +483,9 @@ public class HotelController {
         java.util.List<Reservation> history = reservations.findAllByOrderByCreatedAtDesc().stream()
                 .filter(this::isProcessedHistory)
                 .filter(r -> from == null || (!r.getCheckIn().isBefore(from) && !r.getCheckIn().isAfter(to)))
-                .filter(r -> term.isBlank() ||
-                        String.valueOf(r.getId()).contains(term) ||
-                        r.getCustomer().getFullName().toLowerCase(java.util.Locale.ROOT).contains(term) ||
-                        r.getCustomer().getEmail().toLowerCase(java.util.Locale.ROOT).contains(term) ||
-                        (r.getCustomer().getCustomerCode() != null && r.getCustomer().getCustomerCode().toLowerCase(java.util.Locale.ROOT).contains(term)) ||
-                        r.getRoom().getType().toLowerCase(java.util.Locale.ROOT).contains(term) ||
-                        r.getRoom().getRoomNumber().toLowerCase(java.util.Locale.ROOT).contains(term) ||
-                        r.getStatus().toLowerCase(java.util.Locale.ROOT).contains(term))
+                // Search registered customers and walk-in guests without assuming
+                // that every reservation has an AppUser customer.
+                .filter(r -> term.isBlank() || matchesHistorySearch(r, term))
                 .toList();
         model.addAttribute("reservations", history);
         model.addAttribute("searchQuery", q == null ? "" : q);
@@ -456,8 +648,59 @@ public class HotelController {
     }
 
 
+    /**
+     * Checks whether a reservation matches the manager's history search.
+     *
+     * Registered online guests are searched through AppUser.
+     * Walk-in guests are searched through WalkInGuest.
+     * Shared reservation and room information is searchable for both.
+     */
+    private boolean matchesHistorySearch(Reservation r, String term) {
+        boolean matchesRegisteredCustomer = r.getCustomer() != null
+                && (
+                    r.getCustomer().getFullName() != null
+                        && r.getCustomer().getFullName().toLowerCase(java.util.Locale.ROOT).contains(term)
+                    || r.getCustomer().getEmail() != null
+                        && r.getCustomer().getEmail().toLowerCase(java.util.Locale.ROOT).contains(term)
+                    || r.getCustomer().getCustomerCode() != null
+                        && r.getCustomer().getCustomerCode().toLowerCase(java.util.Locale.ROOT).contains(term)
+                );
+
+        boolean matchesWalkInGuest = r.getWalkInGuest() != null
+                && (
+                    r.getWalkInGuest().getFullName() != null
+                        && r.getWalkInGuest().getFullName().toLowerCase(java.util.Locale.ROOT).contains(term)
+                    || r.getWalkInGuest().getEmail() != null
+                        && r.getWalkInGuest().getEmail().toLowerCase(java.util.Locale.ROOT).contains(term)
+                    || r.getWalkInGuest().getPhone() != null
+                        && r.getWalkInGuest().getPhone().toLowerCase(java.util.Locale.ROOT).contains(term)
+                );
+
+        return String.valueOf(r.getId()).contains(term)
+                || matchesRegisteredCustomer
+                || matchesWalkInGuest
+                || (r.getRoom().getType() != null
+                    && r.getRoom().getType().toLowerCase(java.util.Locale.ROOT).contains(term))
+                || (r.getRoom().getRoomNumber() != null
+                    && r.getRoom().getRoomNumber().toLowerCase(java.util.Locale.ROOT).contains(term))
+                || (r.getStatus() != null
+                    && r.getStatus().toLowerCase(java.util.Locale.ROOT).contains(term))
+                || (r.getBookingType() != null
+                    && r.getBookingType().toLowerCase(java.util.Locale.ROOT).contains(term));
+    }
+
+    /**
+     * Only completed or otherwise processed reservations belong in history.
+     * A Pencil Booking awaiting its Online Manager decision is still pending
+     * and must not be hidden or deleted as a processed history record.
+     */
     private boolean isProcessedHistory(Reservation r) {
-        return r.isHistoryVisible() && !java.util.List.of("PENDING", "CANCELLATION_REQUESTED").contains(r.getStatus());
+        return r.isHistoryVisible()
+                && !java.util.List.of(
+                    "PENDING",
+                    "PENCIL_PENDING_REVIEW",
+                    "CANCELLATION_REQUESTED"
+                ).contains(r.getStatus());
     }
 
     @PostMapping("/manager/history/{id}/delete")

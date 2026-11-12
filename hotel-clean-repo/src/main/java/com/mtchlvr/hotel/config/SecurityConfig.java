@@ -42,7 +42,20 @@ public class SecurityConfig {
                     "/", "/rooms", "/register", "/login",
                     "/css/**", "/js/**", "/images/**", "/error", "/favicon.ico"
                 ).permitAll()
-                .requestMatchers("/manager/**").hasRole("MANAGER")
+                // Online-only operations must be checked before the shared manager routes.
+                .requestMatchers(
+                    "/manager/reservation-requests",
+                    "/manager/reservations/*/status",
+                    "/manager/pencil-bookings/**"
+                ).hasAnyRole("MANAGER", "ONLINE_MANAGER")
+
+                // Walk-in booking and payment operations belong to the On-Site Manager.
+                .requestMatchers("/manager/walk-ins/**")
+                    .hasAnyRole("MANAGER", "ONSITE_MANAGER")
+
+                // Shared manager workspace. MANAGER remains supported for legacy accounts.
+                .requestMatchers("/manager/**")
+                    .hasAnyRole("MANAGER", "ONLINE_MANAGER", "ONSITE_MANAGER")
                 .requestMatchers(
                     "/customer/**", "/reservations/**"
                 ).hasRole("CUSTOMER")
@@ -54,7 +67,9 @@ public class SecurityConfig {
                 .successHandler((request, response, authentication) -> {
                     boolean manager = authentication.getAuthorities().stream()
                         .anyMatch(authority ->
-                            authority.getAuthority().equals("ROLE_MANAGER"));
+                            authority.getAuthority().equals("ROLE_MANAGER")
+                            || authority.getAuthority().equals("ROLE_ONLINE_MANAGER")
+                            || authority.getAuthority().equals("ROLE_ONSITE_MANAGER"));
                     String destination = manager ? "/manager" : "/customer/reservations";
                     response.sendRedirect(request.getContextPath() + destination);
                 })

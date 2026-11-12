@@ -40,12 +40,17 @@
                     </div>
                     <p class="muted">Only guests whose approved stays are currently in progress appear here.</p>
                     <div class="table-wrap"><table>
-                        <thead><tr><th>Room details</th><th>Occupant customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Room details</th><th>Occupant guest</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th></tr></thead>
                         <tbody>
                             <tr th:each="r : ${occupancyReservations}">
                                 <td><strong th:text="|${r.room.type} · ${r.room.roomNumber}|">Deluxe · 201</strong>
                                     <span class="cell-sub" th:text="|₱${#numbers.formatDecimal(r.room.nightlyRate,1,'COMMA',2,'POINT')} per night|">₱1,800.00 per night</span></td>
-                                <td th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</td>
+                                <td>
+                                    <strong th:if="${r.customer != null}" th:text="${r.customer.fullName}">Registered guest</strong>
+                                    <strong th:if="${r.walkInGuest != null}" th:text="${r.walkInGuest.fullName}">Walk-in guest</strong>
+                                    <small class="cell-sub" th:if="${r.customer != null}" th:text="${r.customer.customerCode}">Customer ID</small>
+                                    <small class="cell-sub" th:if="${r.walkInGuest != null}">WALK-IN</small>
+                                </td>
                                 <td th:text="${r.checkIn}">2026-10-14</td>
                                 <td th:text="${r.checkOut}">2026-10-16</td>
                                 <td th:text="${r.nights}">2</td>

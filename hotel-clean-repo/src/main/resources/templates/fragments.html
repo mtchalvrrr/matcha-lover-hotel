@@ -9,12 +9,16 @@
       <a class="customer-nav-action" href="/customer/reservations#report" data-open-report>Send a report</a>
     </th:block>
 
-    <th:block sec:authorize="hasRole('MANAGER')">
+    <th:block sec:authorize="hasAnyRole('MANAGER','ONLINE_MANAGER','ONSITE_MANAGER')">
       <a href="/manager">Dashboard</a>
-      <a href="/manager/reservation-requests">Reservation requests</a>
       <a href="/manager/room-management">Room management</a>
       <a href="/manager/history">Reservation history</a>
       <a href="/manager/reports">Guest reports</a>
+    </th:block>
+
+    <th:block sec:authorize="hasAnyRole('MANAGER','ONLINE_MANAGER')">
+      <a href="/manager/reservation-requests">Reservation requests</a>
+      <a href="/manager/pencil-bookings">Pencil Booking reviews</a>
     </th:block>
   </nav>
   <div class="nav-actions"><a class="text-button" href="/login" sec:authorize="isAnonymous()">Sign in</a><form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" data-confirm="Are you sure you want to log out?"><button class="text-button" type="submit">Log out </button></form></div>
@@ -100,6 +104,7 @@
           '/customer/reservations',
           '/manager',
           '/manager/reservation-requests',
+          '/manager/pencil-bookings',
           '/manager/room-management',
           '/manager/history',
           '/manager/reports'
