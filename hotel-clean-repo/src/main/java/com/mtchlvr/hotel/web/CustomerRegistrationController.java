@@ -63,8 +63,6 @@ public class CustomerRegistrationController {
 
     @GetMapping("/register")
     public String registration(Model model, HttpSession session) {
-        session.removeAttribute(DRAFT);
-        session.removeAttribute(OTP_VERIFIED);
         model.addAttribute("captchaSiteKey", "");
         return "register";
     }
