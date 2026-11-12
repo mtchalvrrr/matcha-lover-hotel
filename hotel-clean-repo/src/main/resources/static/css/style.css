@@ -2425,3 +2425,13 @@ body.registration-page {
     .registration-page .auth-card { padding: 18px 18px; }
     .registration-page .password-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* VA HOTEL campus background shared across all application pages. */
+html { min-height: 100%; }
+body {
+  background:
+    linear-gradient(rgba(10, 29, 49, .58), rgba(10, 29, 49, .58)),
+    url('/images/va-campus-background.svg') center center / cover fixed !important;
+  background-color: #12365a !important;
+}
