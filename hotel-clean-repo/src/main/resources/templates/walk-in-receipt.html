@@ -21,8 +21,8 @@
 <div class="receipt-row"><strong>Phone</strong><span th:text="${reservation.walkInGuest.phone == null ? '—' : reservation.walkInGuest.phone}">—</span></div>
 <h2>Stay details</h2>
 <div class="receipt-row"><strong>Room</strong><span th:text="| ${reservation.room.type} · Room ${reservation.room.roomNumber}|">Room</span></div>
-<div class="receipt-row"><strong>Check-in</strong><span th:text="| ${reservation.checkIn} · ${reservation.checkInTime}|">Check-in</span></div>
-<div class="receipt-row"><strong>Check-out</strong><span th:text="| ${reservation.checkOut} · ${reservation.checkOutTime}|">Check-out</span></div>
+<div class="receipt-row"><strong>Check-in</strong><span th:text="| ${reservation.checkIn} · 2:00 PM|">Check-in</span></div>
+<div class="receipt-row"><strong>Check-out</strong><span th:text="| ${reservation.checkOut} · 12:00 PM|">Check-out</span></div>
 <div class="receipt-row"><strong>Nights</strong><span th:text="${reservation.nights}">2</span></div>
 <div class="receipt-row"><strong>Reservation charge</strong><strong th:text="|₱${#numbers.formatDecimal(reservation.totalCost,1,'COMMA',2,'POINT')}|">₱0.00</strong></div>
 <h2>Payment record</h2>

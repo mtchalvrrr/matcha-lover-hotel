@@ -79,6 +79,11 @@ public class PencilBookingService {
             throw new IllegalArgumentException(
                     "This Pencil Booking is no longer awaiting review.");
         }
+        if (reservation.getCheckIn() == null || reservation.getCheckOut() == null ||
+                !reservation.getCheckOut().isAfter(reservation.getCheckIn())) {
+            throw new IllegalArgumentException(
+                    "This Pencil Booking has an invalid stay interval.");
+        }
 
         // A successful down payment is required before the review period
         // can be calculated or the reservation can be approved.

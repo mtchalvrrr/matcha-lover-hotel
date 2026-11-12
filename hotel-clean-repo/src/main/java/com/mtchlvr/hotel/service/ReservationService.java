@@ -43,7 +43,9 @@ public class ReservationService {
 
     private boolean occupiesInterval(LocalDateTime requestedStart, LocalDateTime requestedEnd,
                                      Reservation existing) {
-        if (NON_OCCUPYING.contains(existing.getStatus())) return false;
+        if (existing == null || existing.getCheckIn() == null || existing.getCheckOut() == null ||
+                existing.getStatus() == null || NON_OCCUPYING.contains(existing.getStatus()) ||
+                !end(existing).isAfter(start(existing))) return false;
 
         if (overlaps(requestedStart, requestedEnd, existing)) return true;
 
@@ -63,6 +65,7 @@ public class ReservationService {
         List<Reservation> expired = reservations.findAll().stream()
             // A cancellation request can still represent an unapproved pending booking.
             // Void it at check-in only when its saved pre-cancellation state was PENDING.
+            .filter(r -> r.getCheckIn() != null)
             .filter(r -> "PENDING".equals(r.getStatus()) ||
                 "PENCIL_PENDING_REVIEW".equals(r.getStatus()) ||
                 ("CANCELLATION_REQUESTED".equals(r.getStatus()) &&
@@ -179,6 +182,12 @@ public class ReservationService {
             }
 
             Room room = reservation.getRoom();
+            if (room == null || room.getId() == null || reservation.getCheckIn() == null ||
+                    reservation.getCheckOut() == null || !end(reservation).isAfter(start(reservation))) {
+                throw new IllegalArgumentException(
+                    "Cannot approve: this reservation has an invalid room or stay interval."
+                );
+            }
             LocalDateTime requestedStart = start(reservation);
             LocalDateTime requestedEnd = end(reservation);
 
@@ -217,6 +226,9 @@ public class ReservationService {
     @Transactional
     public Reservation reserve(String email, Long roomId, LocalDate in, LocalTime inTime,
                                LocalDate out, LocalTime outTime) {
+        // Reservation policy uses fixed hotel check-in/out times for every new booking.
+        inTime = DEFAULT_CHECK_IN;
+        outTime = DEFAULT_CHECK_OUT;
         java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
         LocalDateTime now = LocalDateTime.now(hotelZone).withNano(0);
         if (in == null || out == null || inTime == null || outTime == null ||

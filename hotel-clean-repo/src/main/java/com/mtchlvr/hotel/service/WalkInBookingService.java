@@ -97,11 +97,13 @@ public class WalkInBookingService {
             throw new IllegalArgumentException("Choose a room for the walk-in guest.");
         }
 
-        if (checkIn == null || checkOut == null ||
-                checkInTime == null || checkOutTime == null) {
+        if (checkIn == null || checkOut == null) {
             throw new IllegalArgumentException(
-                    "Enter valid check-in and check-out dates and times.");
+                    "Enter valid check-in and check-out dates.");
         }
+        // All new stays use the hotel's published 2 PM / noon schedule.
+        checkInTime = LocalTime.of(14, 0);
+        checkOutTime = LocalTime.NOON;
 
         // Retrieve the selected room. The shared availability service
         // checks whether it is active, available, and free for this interval.

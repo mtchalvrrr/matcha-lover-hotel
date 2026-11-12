@@ -70,7 +70,7 @@ public class ChatController {
 
             if (isRegistrationIntent(normalized)) {
                 return new ChatResponse(
-                        "Of course! You can create an mtchlvr Hotel account by visiting our registration page and following the registration steps.",
+                        "Of course! You can create an mtchlvr hotel account by visiting our registration page and following the registration steps.",
                         List.of(new ChatAction("navigate", "Create an account", "/register", false)));
             }
 
@@ -87,7 +87,7 @@ public class ChatController {
         // Logout is available to both authenticated roles.
         if (containsAny(normalized, "logout", "log out", "sign out", "signout")) {
             return new ChatResponse(
-                    "Would you like to log out of your mtchlvr Hotel account?",
+                    "Would you like to log out of your mtchlvr hotel account?",
                     List.of(new ChatAction("logout", "Confirm logout", "", true)));
         }
 

@@ -3,9 +3,11 @@ package com.mtchlvr.hotel.web;
 import com.mtchlvr.hotel.model.Payment;
 import com.mtchlvr.hotel.model.Reservation;
 import com.mtchlvr.hotel.model.Room;
+import com.mtchlvr.hotel.model.WalkInGuest;
 import com.mtchlvr.hotel.repo.PaymentRepository;
 import com.mtchlvr.hotel.repo.ReservationRepository;
 import com.mtchlvr.hotel.repo.RoomRepository;
+import com.mtchlvr.hotel.repo.WalkInGuestRepository;
 import com.mtchlvr.hotel.service.WalkInBookingService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -31,16 +33,19 @@ public class WalkInBookingController {
     private final RoomRepository rooms;
     private final ReservationRepository reservations;
     private final PaymentRepository payments;
+    private final WalkInGuestRepository walkInGuests;
 
     public WalkInBookingController(
             WalkInBookingService walkInBookingService,
             RoomRepository rooms,
             ReservationRepository reservations,
-            PaymentRepository payments) {
+            PaymentRepository payments,
+            WalkInGuestRepository walkInGuests) {
         this.walkInBookingService = walkInBookingService;
         this.rooms = rooms;
         this.reservations = reservations;
         this.payments = payments;
+        this.walkInGuests = walkInGuests;
     }
 
     @GetMapping("/manager/walk-ins/new")
@@ -51,6 +56,47 @@ public class WalkInBookingController {
         return "walk-in-booking";
     }
 
+    @GetMapping("/manager/walk-ins/guests")
+    public String walkInGuests(@RequestParam(defaultValue = "") String q, Model model) {
+        String term = q == null ? "" : q.trim().toLowerCase(java.util.Locale.ROOT);
+        List<WalkInGuest> guests = walkInGuests.findAll().stream()
+                .filter(g -> term.isBlank() || contains(g.getFullName(), term) || contains(g.getEmail(), term) || contains(g.getPhone(), term))
+                .toList();
+        java.util.Map<Long, List<Reservation>> reservationsByGuest = new java.util.HashMap<>();
+        for (Reservation reservation : reservations.findAllByOrderByCreatedAtDesc()) {
+            if (reservation.getWalkInGuest() != null && reservation.getWalkInGuest().getId() != null) {
+                reservationsByGuest.computeIfAbsent(reservation.getWalkInGuest().getId(), ignored -> new java.util.ArrayList<>()).add(reservation);
+            }
+        }
+        model.addAttribute("q", q == null ? "" : q);
+        model.addAttribute("guests", guests);
+        model.addAttribute("reservationsByGuest", reservationsByGuest);
+        return "walk-in-guests";
+    }
+
+    @PostMapping("/manager/walk-ins/guests/{id}")
+    public String updateWalkInGuest(@PathVariable Long id, @RequestParam String fullName,
+            @RequestParam(defaultValue = "") String email, @RequestParam(defaultValue = "") String phone,
+            RedirectAttributes flash) {
+        WalkInGuest guest = walkInGuests.findById(id).orElse(null);
+        String name = fullName == null ? "" : fullName.trim();
+        String cleanEmail = email == null ? "" : email.trim();
+        String cleanPhone = phone == null ? "" : phone.trim();
+        if (guest == null) flash.addFlashAttribute("error", "Walk-in guest not found.");
+        else if (name.isBlank() || name.length() > 150 || cleanEmail.length() > 160 ||
+                (!cleanEmail.isBlank() && !cleanEmail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) || cleanPhone.length() > 40) {
+            flash.addFlashAttribute("error", "Enter a valid guest name, email, and phone number within the allowed lengths.");
+        } else {
+            guest.setFullName(name); guest.setEmail(cleanEmail.isBlank() ? null : cleanEmail); guest.setPhone(cleanPhone.isBlank() ? null : cleanPhone);
+            walkInGuests.save(guest); flash.addFlashAttribute("success", "Walk-in guest details updated. Reservation history was kept.");
+        }
+        return "redirect:/manager/walk-ins/guests";
+    }
+
+    private boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(java.util.Locale.ROOT).contains(term);
+    }
+
     @PostMapping("/manager/walk-ins")
     public String createWalkInBooking(
             @RequestParam @NotBlank @Size(max = 150) String fullName,
@@ -58,14 +104,12 @@ public class WalkInBookingController {
             @RequestParam(required = false) @Size(max = 40) String phone,
             @RequestParam Long roomId,
             @RequestParam LocalDate checkIn,
-            @RequestParam LocalTime checkInTime,
             @RequestParam LocalDate checkOut,
-            @RequestParam LocalTime checkOutTime,
             RedirectAttributes flash) {
         try {
             Reservation saved = walkInBookingService.createWalkInBooking(
                     fullName, email, phone, roomId,
-                    checkIn, checkInTime, checkOut, checkOutTime);
+                    checkIn, LocalTime.of(14, 0), checkOut, LocalTime.NOON);
             flash.addFlashAttribute("success",
                     "Walk-in reservation #" + saved.getId()
                             + " was recorded and fully paid.");

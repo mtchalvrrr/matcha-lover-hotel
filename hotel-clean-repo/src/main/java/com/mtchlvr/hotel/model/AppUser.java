@@ -41,4 +41,7 @@ public class AppUser {
     public void setOtpHash(String v) { otpHash = v; }
     public void setOtpExpiresAt(Instant v) { otpExpiresAt = v; }
     public void setVerified(boolean v) { verified = v; }
+    public void setFullName(String v) { fullName = v; }
+    public void setPasswordHash(String v) { passwordHash = v; }
+    public void setRole(String v) { role = v; }
 }

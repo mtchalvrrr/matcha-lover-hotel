@@ -154,6 +154,9 @@ public class PaymentService {
         if (!"APPROVED".equals(reservation.getStatus())) {
             throw new IllegalArgumentException("The Pencil Booking must be approved before paying its balance.");
         }
+        if (reservation.getCheckIn() == null) {
+            throw new IllegalArgumentException("This reservation has no valid check-in date.");
+        }
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Manila")).withNano(0);
         java.time.LocalTime checkInTime = reservation.getCheckInTime() == null

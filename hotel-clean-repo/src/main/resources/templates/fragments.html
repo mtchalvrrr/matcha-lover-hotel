@@ -6,6 +6,7 @@
   <nav class="main-nav-links">
     <th:block sec:authorize="hasRole('CUSTOMER')">
       <a class="customer-nav-action" href="/rooms">Browse rooms</a>
+      <a class="customer-nav-action" href="/customer/profile">My profile</a>
       <a class="customer-nav-action" href="/customer/reservations#report" data-open-report>Send a report</a>
     </th:block>
 
@@ -13,12 +14,14 @@
       <a href="/manager">Dashboard</a>
       <a href="/manager/room-management">Room management</a>
       <a href="/manager/history">Reservation history</a>
+      <a href="/manager/revenue">Revenue reports</a>
       <a href="/manager/reports">Guest reports</a>
       <a href="/manager/refunds">Refund requests</a>
     </th:block>
 
     <th:block sec:authorize="hasAnyRole('MANAGER','ONSITE_MANAGER')">
       <a href="/manager/walk-ins/new">Record walk-in</a>
+      <a href="/manager/walk-ins/guests">Walk-in guests</a>
     </th:block>
 
     <th:block sec:authorize="hasAnyRole('MANAGER','ONLINE_MANAGER')">
@@ -39,7 +42,7 @@
 
   <section id="hotel-chat" hidden>
     <header class="chat-header">
-      <div><strong>mtchlvr concierge</strong><small>Here to help with your stay</small></div>
+      <div><strong>mtchlvr hotel concierge</strong><small>Here to help with your stay</small></div>
       <button id="chat-close" type="button" aria-label="Close chat">×</button>
     </header>
     <div id="chat-messages" aria-live="polite">

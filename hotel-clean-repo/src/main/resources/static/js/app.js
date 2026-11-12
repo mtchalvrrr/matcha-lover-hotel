@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const card = panel.closest(".room-card");
     const openButton = card?.querySelector(".room-availability-toggle");
     const closeButton = panel.querySelector(".availability-popup-close");
+    if (!message || !list) return;
 
     // Keep the original position so the popup can be restored after closing.
     const originalParent = panel.parentNode;
