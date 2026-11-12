@@ -685,6 +685,51 @@ public class HotelController {
                     && r.getBookingType().toLowerCase(java.util.Locale.ROOT).contains(term));
     }
 
+    /**
+     * Only completed or otherwise processed reservations belong in history.
+     * A Pencil Booking awaiting its Online Manager decision is still pending
+     * and must not be hidden or deleted as a processed history record.
+     */
+    private boolean isProcessedHistory(Reservation r) {
+        return r != null && r.isHistoryVisible()
+                && !java.util.List.of(
+                    "PENDING",
+                    "PENCIL_PENDING_REVIEW",
+                    "CANCELLATION_REQUESTED"
+                ).contains(r.getStatus());
+    }
+
+    /** Soft-delete one processed history record without deleting its reservation. */
+    @PostMapping("/manager/history/{id}/delete")
+    public String deleteHistoryRecord(@PathVariable Long id, RedirectAttributes flash) {
+        Reservation r = reservations.findById(id).orElse(null);
+        if (r == null || !isProcessedHistory(r)) {
+            flash.addFlashAttribute("error", "Processed history record not found.");
+        } else {
+            r.setHistoryVisible(false);
+            reservations.save(r);
+            flash.addFlashAttribute("success", "History record deleted.");
+        }
+        return "redirect:/manager/history";
+    }
+
+    /** Soft-delete all currently visible processed history records. */
+    @PostMapping("/manager/history/clear")
+    public String clearHistory(RedirectAttributes flash) {
+        java.util.List<Reservation> processed = reservations.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .filter(this::isProcessedHistory)
+                .toList();
+        if (processed.isEmpty()) {
+            flash.addFlashAttribute("error", "There are no processed history records to delete.");
+        } else {
+            processed.forEach(r -> r.setHistoryVisible(false));
+            reservations.saveAll(processed);
+            flash.addFlashAttribute("success", "Processed reservation history cleared.");
+        }
+        return "redirect:/manager/history";
+    }
+
     private boolean hasValidCustomerCode(AppUser customer) {
         return customer != null && customer.getCustomerCode() != null &&
                 customer.getCustomerCode().matches("mtchlvr-\\d{4}-5201314");
