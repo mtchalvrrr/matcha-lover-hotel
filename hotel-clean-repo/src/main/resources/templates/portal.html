@@ -6,24 +6,40 @@
   <title>VA HOTEL · Portal Launcher</title>
   <style>
     :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#172d43;background:#f3f6fa}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 8% 10%,#e4edf7 0,transparent 34%),radial-gradient(circle at 95% 90%,#fff0df 0,transparent 28%),#f5f7fa}
-    .shell{width:min(1120px,calc(100% - 40px));margin:0 auto;padding:34px 0 48px}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at 8% 10%,#e4edf7 0,transparent 34%),radial-gradient(circle at 95% 90%,#fff0df 0,transparent 28%),#f5f7fa}
+    .shell{width:min(1180px,calc(100% - 40px));margin:0 auto;padding:34px 0 48px}
     header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 0 30px}
-    .brand{display:flex;align-items:center;gap:12px;color:#12365a;font-weight:900;letter-spacing:.02em}.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#12365a;color:#fff;font-size:20px;box-shadow:0 8px 22px #12365a30}
+    .brand{display:flex;align-items:center;gap:12px;color:#12365a;font-weight:900;letter-spacing:.02em}
+    .mark{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#12365a;color:#fff;font-size:20px;box-shadow:0 8px 22px #12365a30}
     .brand small{display:block;margin-top:2px;color:#72849a;font-size:9px;letter-spacing:.22em}
     .secure{color:#60758b;font-size:12px;font-weight:700}
-    .intro{text-align:center;max-width:760px;margin:32px auto 38px}.eyebrow{color:#e17a24;font-size:11px;font-weight:900;letter-spacing:.2em}.intro h1{margin:12px 0 10px;color:#12365a;font-size:clamp(34px,5vw,54px);line-height:1.06;letter-spacing:-.045em}.intro p{margin:0;color:#687b8e;font-size:15px;line-height:1.7}
-    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-    .card{display:flex;flex-direction:column;min-height:310px;padding:26px;border:1px solid #dce5ef;border-radius:20px;background:#fff;box-shadow:0 14px 36px #183b5c0d;transition:transform .2s,box-shadow .2s,border-color .2s}
+    .intro{text-align:center;max-width:780px;margin:32px auto 38px}
+    .eyebrow{color:#e17a24;font-size:11px;font-weight:900;letter-spacing:.2em}
+    .intro h1{margin:12px 0 10px;color:#12365a;font-size:clamp(34px,5vw,54px);line-height:1.06;letter-spacing:-.045em}
+    .intro p{margin:0;color:#687b8e;font-size:15px;line-height:1.7}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+    .card{display:flex;flex-direction:column;min-height:320px;padding:24px;border:1px solid #dce5ef;border-radius:20px;background:#fff;box-shadow:0 14px 36px #183b5c0d;transition:transform .2s,box-shadow .2s,border-color .2s}
     .card:hover{transform:translateY(-5px);border-color:#f0b57e;box-shadow:0 20px 42px #183b5c18}
     .icon{display:grid;place-items:center;width:54px;height:54px;margin-bottom:22px;border-radius:16px;background:#edf3f9;color:#12365a;font-size:24px}
-    .card.manager .icon{background:#fff2e6;color:#d56d1b}.card.admin .icon{background:#edf0f6;color:#344967}
-    .card h2{margin:0 0 9px;color:#173b5e;font-size:20px}.card p{margin:0 0 24px;color:#6d7d8e;font-size:13px;line-height:1.65}
-    .launch{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:auto;min-height:46px;padding:0 16px;border-radius:10px;background:#12365a;color:#fff;font-size:13px;font-weight:800;text-decoration:none}
-    .manager .launch{background:#df7824}.admin .launch{background:#344967}.launch:hover{filter:brightness(1.08)}
+    .card.manager .icon{background:#fff2e6;color:#d56d1b}
+    .card.admin .icon{background:#edf0f6;color:#344967}
+    .card h2{margin:0 0 9px;color:#173b5e;font-size:19px;line-height:1.35}
+    .card p{margin:0 0 24px;color:#6d7d8e;font-size:13px;line-height:1.65}
+    .launch{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;min-height:46px;padding:0 12px;border-radius:10px;background:#12365a;color:#fff;font-size:12px;font-weight:800;text-decoration:none;text-align:center}
+    .manager .launch{background:#df7824}
+    .admin .launch{background:#344967}
+    .launch:hover{filter:brightness(1.08)}
     footer{margin-top:32px;text-align:center;color:#91a0af;font-size:11px}
-    @media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.card:last-child{grid-column:1/-1;min-height:260px}}
-    @media(max-width:580px){.shell{width:min(100% - 28px,480px);padding-top:20px}.grid{grid-template-columns:1fr}.card:last-child{grid-column:auto}.card{min-height:260px}.intro{margin:22px auto 28px}header{padding-bottom:18px}.secure{display:none}}
+    .locked{display:none;position:fixed;inset:0;z-index:10;place-items:center;padding:24px;background:#f5f7fa}
+    .locked-panel{max-width:480px;padding:36px;border:1px solid #dce5ef;border-radius:20px;background:#fff;text-align:center;box-shadow:0 20px 60px #183b5c18}
+    .locked-panel h1{margin:14px 0 8px;color:#12365a;font-size:26px}
+    .locked-panel p{color:#687b8e;font-size:14px;line-height:1.7}
+    .locked-mark{font-size:34px;color:#df7824}
+    body.launch-locked .shell{display:none}
+    body.launch-locked .locked{display:grid}
+    @media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:580px){.shell{width:min(100% - 28px,480px);padding-top:20px}.grid{grid-template-columns:1fr}.card{min-height:260px}.intro{margin:22px auto 28px}header{padding-bottom:18px}.secure{display:none}}
   </style>
 </head>
 <body>
@@ -36,7 +52,7 @@
       <section class="intro">
         <span class="eyebrow">WELCOME TO VA HOTEL</span>
         <h1>Choose your portal</h1>
-        <p>Select the workspace that matches your role. Each portal opens its own sign-in flow and checks your account permissions before access is granted.</p>
+        <p>Select the workspace assigned to your role. Each portal opens in a separate tab and verifies your account permissions before access is granted.</p>
       </section>
       <section class="grid" aria-label="Available portals">
         <article class="card">
@@ -46,10 +62,16 @@
           <a class="launch" href="/login?portal=customer" target="_blank" rel="noopener">Launch Customer Portal <span aria-hidden="true">→</span></a>
         </article>
         <article class="card manager">
-          <div class="icon" aria-hidden="true">▦</div>
-          <h2>Manager Portals</h2>
-          <p>Choose the manager workspace for online reservation approvals or on-site and walk-in operations.</p>
-          <a class="launch" href="/manager-portal" target="_blank" rel="noopener">Choose Manager Portal <span aria-hidden="true">→</span></a>
+          <div class="icon" aria-hidden="true">▤</div>
+          <h2>Online Reservation Manager</h2>
+          <p>Review online reservation requests and Pencil Bookings, and manage the shared hotel workspace.</p>
+          <a class="launch" href="/login?portal=online-manager" target="_blank" rel="noopener">Launch Online Manager <span aria-hidden="true">→</span></a>
+        </article>
+        <article class="card manager">
+          <div class="icon" aria-hidden="true">⌂</div>
+          <h2>On-Site Reservation Manager</h2>
+          <p>Record walk-in reservations and payments, and manage rooms, guests, and reports.</p>
+          <a class="launch" href="/login?portal=onsite-manager" target="_blank" rel="noopener">Launch On-Site Manager <span aria-hidden="true">→</span></a>
         </article>
         <article class="card admin">
           <div class="icon" aria-hidden="true">♜</div>
@@ -61,5 +83,38 @@
     </main>
     <footer>VA HOTEL · Secure portal selection</footer>
   </div>
+  <section class="locked" aria-live="polite">
+    <div class="locked-panel">
+      <div class="locked-mark" aria-hidden="true">✓</div>
+      <h1>Portal launched</h1>
+      <p>This launcher is now locked in this browser tab. Continue in the new tab that was opened for your selected portal.</p>
+      <p>Close this tab when you are finished.</p>
+    </div>
+  </section>
+  <script>
+    (function () {
+      var lockKey = "vaHotelPortalLauncherUsed";
+      function lockLauncher() {
+        document.body.classList.add("launch-locked");
+      }
+      try {
+        if (sessionStorage.getItem(lockKey) === "true") {
+          lockLauncher();
+        }
+      } catch (error) {
+        // The launcher still locks for the current page if browser storage is unavailable.
+      }
+      document.querySelectorAll(".launch").forEach(function (link) {
+        link.addEventListener("click", function () {
+          try {
+            sessionStorage.setItem(lockKey, "true");
+          } catch (error) {
+            // Continue with the visual lock even when session storage is unavailable.
+          }
+          lockLauncher();
+        });
+      });
+    }());
+  </script>
 </body>
 </html>
