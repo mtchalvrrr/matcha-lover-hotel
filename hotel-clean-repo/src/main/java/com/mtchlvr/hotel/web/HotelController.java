@@ -86,12 +86,6 @@ public class HotelController {
         return "login";
     }
 
-    /** Shows the two separate manager entry points before sign-in. */
-    @GetMapping("/manager-portal")
-    public String managerPortal() {
-        return "manager-portal";
-    }
-
     /** Role-protected landing page for the Super Admin portal. */
     @GetMapping("/super-admin")
     public String superAdminPortal() {
