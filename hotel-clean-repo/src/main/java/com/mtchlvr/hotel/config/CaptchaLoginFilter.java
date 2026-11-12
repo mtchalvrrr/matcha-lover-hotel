@@ -16,7 +16,13 @@ public class CaptchaLoginFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         if ("POST".equalsIgnoreCase(request.getMethod()) && "/login".equals(request.getServletPath())) {
             if (!captcha.verify(request.getParameter("g-recaptcha-response"), request.getRemoteAddr())) {
-                response.sendRedirect(request.getContextPath() + "/login?captchaError");
+                String portal = request.getParameter("portal");
+                String destination = request.getContextPath() + "/login?captchaError";
+                if (portal != null && !portal.isBlank()) {
+                    destination += "&portal=" + java.net.URLEncoder.encode(
+                        portal, java.nio.charset.StandardCharsets.UTF_8);
+                }
+                response.sendRedirect(destination);
                 return;
             }
         }

@@ -72,6 +72,21 @@ public class Reservation {
     }
 
     /**
+     * A reservation must belong to exactly one guest identity.
+     * Online bookings use AppUser; walk-ins use WalkInGuest.
+     */
+    @PrePersist
+    @PreUpdate
+    private void validateGuestRelationship() {
+        boolean hasCustomer = customer != null;
+        boolean hasWalkInGuest = walkInGuest != null;
+        if (hasCustomer == hasWalkInGuest) {
+            throw new IllegalStateException(
+                    "A reservation must have exactly one registered customer or walk-in guest.");
+        }
+    }
+
+    /**
      * Creates a reservation for a registered online customer.
      * Retained for compatibility with existing callers and tests.
      */

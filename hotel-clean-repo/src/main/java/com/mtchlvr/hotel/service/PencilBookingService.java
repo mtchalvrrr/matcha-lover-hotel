@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 
 /**
  * Handles the Online Manager's review of Pencil Bookings.
@@ -102,6 +105,20 @@ public class PencilBookingService {
         if (actualDownPayment.compareTo(expectedDownPayment) != 0) {
             throw new IllegalArgumentException(
                     "The Pencil Booking down payment does not match 50% of the reservation total.");
+        }
+
+        // A manager cannot approve or reject a booking once its scheduled
+        // check-in has arrived, even if the 60-second scheduler has not yet
+        // changed its status to VOID.
+        LocalTime scheduledCheckIn = reservation.getCheckInTime() == null
+                ? LocalTime.of(14, 0)
+                : reservation.getCheckInTime();
+        LocalDateTime checkInDateTime = reservation.getCheckIn().atTime(scheduledCheckIn);
+        LocalDateTime nowInHotelZone = LocalDateTime.now(ZoneId.of("Asia/Manila"))
+                .withNano(0);
+        if (!nowInHotelZone.isBefore(checkInDateTime)) {
+            throw new IllegalArgumentException(
+                    "This Pencil Booking can no longer be reviewed because its check-in time has arrived.");
         }
 
         // The 72-hour review period starts when the payment succeeded.

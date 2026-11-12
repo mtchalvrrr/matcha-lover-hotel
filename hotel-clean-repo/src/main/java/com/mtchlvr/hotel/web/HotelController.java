@@ -45,16 +45,58 @@ public class HotelController {
         this.reports = reports;
     }
 
-    @GetMapping("/") public String home(Model model) {
-        model.addAttribute("rooms", rooms.findByActiveTrueAndAvailableTrueOrderByTypeAscRoomNumberAsc());
+    /**
+     * The portal launcher is the first page visitors see.
+     * Room browsing remains available after entering the Customer Portal.
+     */
+    @GetMapping("/")
+    public String home() {
+        return "portal";
+    }
+    /** Customer-facing main page opened from the Customer Portal launcher. */
+    @GetMapping("/customer-portal")
+    public String customerPortalHome() {
         return "index";
     }
+
     @GetMapping("/rooms") public String browse(Model model) {
         // Customers should only see rooms that are both active and marked available.
         model.addAttribute("rooms", rooms.findByActiveTrueAndAvailableTrueOrderByTypeAscRoomNumberAsc());
         return "rooms";
     }
-    @GetMapping("/login") public String login(Model model) { return "login"; }
+    /**
+     * Opens the shared sign-in page and keeps the portal selected by the visitor.
+     * Portal selection is checked again by Spring Security after authentication.
+     */
+    @GetMapping("/login")
+    public String login(
+            @RequestParam(name = "portal", required = false) String requestedPortal,
+            @RequestParam(name = "roleError", required = false) String roleError,
+            Model model) {
+        String portal = requestedPortal == null ? "" : requestedPortal.trim().toLowerCase(java.util.Locale.ROOT);
+        String portalName = "VA HOTEL";
+        if ("customer".equals(portal)) {
+            portalName = "Customer Portal";
+        } else if ("online-manager".equals(portal)) {
+            portalName = "Online Reservation Manager Portal";
+        } else if ("onsite-manager".equals(portal)) {
+            portalName = "On-Site Reservation Manager Portal";
+        } else if ("super-admin".equals(portal)) {
+            portalName = "Super Admin Portal";
+        } else {
+            portal = "";
+        }
+        model.addAttribute("portal", portal);
+        model.addAttribute("portalName", portalName);
+        model.addAttribute("roleError", roleError != null);
+        return "login";
+    }
+
+    /** Role-protected landing page for the Super Admin portal. */
+    @GetMapping("/super-admin")
+    public String superAdminPortal() {
+        return "super-admin-portal";
+    }
 
     @GetMapping("/register") public String register(Model model, HttpSession session,
             jakarta.servlet.http.HttpServletResponse response) {
@@ -100,7 +142,7 @@ public class HotelController {
         request.setAttribute(
                 org.springframework.web.servlet.View.RESPONSE_STATUS_ATTRIBUTE,
                 org.springframework.http.HttpStatus.SEE_OTHER);
-        return "redirect:/";
+        return "redirect:/customer-portal";
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
         AppUser customer = users.findByEmailIgnoreCase(auth.getName()).orElseThrow();

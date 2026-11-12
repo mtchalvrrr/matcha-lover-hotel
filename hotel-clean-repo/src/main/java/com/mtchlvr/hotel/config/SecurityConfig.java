@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability", "/api/register/email-available").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat").permitAll()
                 .requestMatchers(
-                    "/", "/rooms", "/register", "/login",
+                    "/", "/customer-portal", "/rooms", "/register", "/login", "/manager-portal",
                     "/css/**", "/js/**", "/images/**", "/error", "/favicon.ico"
                 ).permitAll()
                 // Online-only operations must be checked before the shared manager routes.
@@ -50,12 +50,13 @@ public class SecurityConfig {
                 ).hasAnyRole("MANAGER", "ONLINE_MANAGER")
 
                 // Walk-in booking and payment operations belong to the On-Site Manager.
-                .requestMatchers("/manager/walk-ins/**")
+                .requestMatchers("/manager/walk-ins", "/manager/walk-ins/**")
                     .hasAnyRole("MANAGER", "ONSITE_MANAGER")
 
                 // Shared manager workspace. MANAGER remains supported for legacy accounts.
                 .requestMatchers("/manager/**")
                     .hasAnyRole("MANAGER", "ONLINE_MANAGER", "ONSITE_MANAGER")
+                .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
                 .requestMatchers(
                     "/customer/**", "/reservations/**"
                 ).hasRole("CUSTOMER")
@@ -65,13 +66,56 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler((request, response, authentication) -> {
-                    boolean manager = authentication.getAuthorities().stream()
-                        .anyMatch(authority ->
-                            authority.getAuthority().equals("ROLE_MANAGER")
-                            || authority.getAuthority().equals("ROLE_ONLINE_MANAGER")
-                            || authority.getAuthority().equals("ROLE_ONSITE_MANAGER"));
-                    String destination = manager ? "/manager" : "/customer/reservations";
+                    java.util.Set<String> roles = authentication.getAuthorities().stream()
+                        .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                        .collect(java.util.stream.Collectors.toSet());
+                    String portal = request.getParameter("portal");
+
+                    // A selected portal is not merely a visual choice: the authenticated
+                    // account must have the matching role before entering that workspace.
+                    if (portal != null && !portal.isBlank()) {
+                        boolean allowed = false;
+                        if ("customer".equals(portal)) {
+                            allowed = roles.contains("ROLE_CUSTOMER");
+                        } else if ("online-manager".equals(portal)) {
+                            allowed = roles.contains("ROLE_ONLINE_MANAGER") || roles.contains("ROLE_MANAGER");
+                        } else if ("onsite-manager".equals(portal)) {
+                            allowed = roles.contains("ROLE_ONSITE_MANAGER") || roles.contains("ROLE_MANAGER");
+                        } else if ("super-admin".equals(portal)) {
+                            allowed = roles.contains("ROLE_SUPER_ADMIN");
+                        }
+
+                        if (!allowed) {
+                            new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler()
+                                .logout(request, response, authentication);
+                            String safePortal = java.net.URLEncoder.encode(
+                                portal, java.nio.charset.StandardCharsets.UTF_8);
+                            response.sendRedirect(request.getContextPath()
+                                + "/login?portal=" + safePortal + "&roleError");
+                            return;
+                        }
+                    }
+
+                    String destination;
+                    if (roles.contains("ROLE_SUPER_ADMIN")) {
+                        destination = "/super-admin";
+                    } else if (roles.contains("ROLE_MANAGER")
+                            || roles.contains("ROLE_ONLINE_MANAGER")
+                            || roles.contains("ROLE_ONSITE_MANAGER")) {
+                        destination = "/manager";
+                    } else {
+                        destination = "/customer/reservations";
+                    }
                     response.sendRedirect(request.getContextPath() + destination);
+                })
+                .failureHandler((request, response, exception) -> {
+                    String portal = request.getParameter("portal");
+                    String destination = request.getContextPath() + "/login?error";
+                    if (portal != null && !portal.isBlank()) {
+                        destination += "&portal=" + java.net.URLEncoder.encode(
+                            portal, java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                    response.sendRedirect(destination);
                 })
                 .permitAll()
             )

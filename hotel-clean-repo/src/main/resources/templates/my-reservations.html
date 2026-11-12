@@ -41,6 +41,9 @@
           data-confirm="Pay the remaining Pencil Booking balance now?">
         <button class="table-action" type="submit">Pay Remaining Balance</button>
     </form>
+    <a th:if="${r.bookingType == 'PENCIL' and r.status == 'VOID'}"
+       class="table-action"
+       th:href="@{'/customer/reservations/' + ${r.id} + '/refund'}">Request Pencil Booking refund</a>
     <form th:if="${r.status == 'PENDING' or r.status == 'APPROVED'}"
           th:action="@{'/customer/reservations/' + ${r.id} + '/cancel'}"
           method="post"

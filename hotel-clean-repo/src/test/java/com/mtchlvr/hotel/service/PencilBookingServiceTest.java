@@ -38,6 +38,9 @@ class PencilBookingServiceTest {
         when(reservation.getBookingType()).thenReturn("PENCIL");
         when(reservation.getStatus()).thenReturn("PENCIL_PENDING_REVIEW");
         when(reservation.getTotalCost()).thenReturn(new BigDecimal("1000.00"));
+        when(reservation.getCheckIn()).thenReturn(
+                java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(5));
+        when(reservation.getCheckInTime()).thenReturn(java.time.LocalTime.of(14, 0));
 
         when(reservations.save(reservation)).thenReturn(reservation);
     }
@@ -98,6 +101,24 @@ class PencilBookingServiceTest {
         );
 
         assertTrue(error.getMessage().contains("deadline"));
+        verify(reservation, never()).setStatus(anyString());
+        verify(reservations, never()).save(any());
+    }
+
+    @Test
+    void refusesReviewWhenCheckInTimeHasArrivedEvenIfSchedulerHasNotRun() {
+        when(reservation.getCheckIn()).thenReturn(
+                java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila")).minusDays(1));
+        Payment payment = createDownPayment(1, "500.00");
+        when(payments.findByReservationIdAndPaymentTypeAndStatus(
+                1L, "PENCIL_DOWN_PAYMENT", "PAID"))
+                .thenReturn(Optional.of(payment));
+
+        IllegalArgumentException error = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.reviewBooking(1L, "APPROVED"));
+
+        assertTrue(error.getMessage().contains("check-in"));
         verify(reservation, never()).setStatus(anyString());
         verify(reservations, never()).save(any());
     }
