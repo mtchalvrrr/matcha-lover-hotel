@@ -45,9 +45,13 @@ public class HotelController {
         this.reports = reports;
     }
 
-    @GetMapping("/") public String home(Model model) {
-        model.addAttribute("rooms", rooms.findByActiveTrueAndAvailableTrueOrderByTypeAscRoomNumberAsc());
-        return "index";
+    /**
+     * The portal launcher is the first page visitors see.
+     * Room browsing remains available after entering the Customer Portal.
+     */
+    @GetMapping("/")
+    public String home() {
+        return "portal";
     }
     @GetMapping("/rooms") public String browse(Model model) {
         // Customers should only see rooms that are both active and marked available.
