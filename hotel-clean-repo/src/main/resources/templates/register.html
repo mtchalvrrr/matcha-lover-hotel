@@ -99,10 +99,14 @@
  document.querySelector('[data-next="2"]').addEventListener("click",()=>{
    const f=document.getElementById("step1form");
    if(!f.reportValidity())return;
-   document.getElementById("hiddenFirst").value=value("firstName");
-   document.getElementById("hiddenLast").value=value("lastName");
-   document.getElementById("hiddenEmail").value=value("email");
-   show(2);
+   fetch("/api/register/email-available?email="+encodeURIComponent(value("email")),{headers:{"Accept":"application/json"},cache:"no-store"})
+     .then(r=>r.json()).then(data=>{
+       if(!data.available){document.getElementById("email").focus();return;}
+       document.getElementById("hiddenFirst").value=value("firstName");
+       document.getElementById("hiddenLast").value=value("lastName");
+       document.getElementById("hiddenEmail").value=value("email");
+       show(2);
+     }).catch(()=>alert("We could not validate the email right now. Please try again."));
  });
  document.querySelector('[data-next="5"]').addEventListener("click",()=>{
    const f=document.getElementById("identityForm");
