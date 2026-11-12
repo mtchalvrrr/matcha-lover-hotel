@@ -108,6 +108,15 @@ public class SecurityConfig {
                     }
                     response.sendRedirect(request.getContextPath() + destination);
                 })
+                .failureHandler((request, response, exception) -> {
+                    String portal = request.getParameter("portal");
+                    String destination = request.getContextPath() + "/login?error";
+                    if (portal != null && !portal.isBlank()) {
+                        destination += "&portal=" + java.net.URLEncoder.encode(
+                            portal, java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                    response.sendRedirect(destination);
+                })
                 .permitAll()
             )
             .logout(logout -> logout
