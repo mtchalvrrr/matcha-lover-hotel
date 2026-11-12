@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability", "/api/register/email-available").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat").permitAll()
                 .requestMatchers(
-                    "/", "/customer-portal", "/rooms", "/register", "/login", "/manager-portal",
+                    "/", "/customer-portal", "/rooms", "/register", "/register/**", "/login", "/manager-portal",
                     "/css/**", "/js/**", "/images/**", "/error", "/favicon.ico"
                 ).permitAll()
                 // Online-only operations must be checked before the shared manager routes.
