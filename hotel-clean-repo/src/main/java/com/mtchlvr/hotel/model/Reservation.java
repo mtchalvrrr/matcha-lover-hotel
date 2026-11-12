@@ -58,6 +58,20 @@ public class Reservation {
     @Column(nullable = false)
     private String status = "PENDING";
 
+    // Snapshot the rate so later room price edits do not rewrite past bills.
+    @Column(name = "nightly_rate_at_booking", precision = 12, scale = 2)
+    private java.math.BigDecimal nightlyRateAtBooking;
+
+    @Column(name = "checked_out_at")
+    private Instant checkedOutAt;
+
+    @Column(name = "stay_request_type", length = 20)
+    private String stayRequestType;
+    @Column(name = "stay_request_date")
+    private LocalDate stayRequestDate;
+    @Column(name = "stay_request_status", length = 20)
+    private String stayRequestStatus;
+
     @Column(name = "status_before_cancellation")
     private String statusBeforeCancellation;
 
@@ -78,6 +92,7 @@ public class Reservation {
     @PrePersist
     @PreUpdate
     private void validateGuestRelationship() {
+        if (nightlyRateAtBooking == null && room != null) nightlyRateAtBooking = room.getNightlyRate();
         boolean hasCustomer = customer != null;
         boolean hasWalkInGuest = walkInGuest != null;
         if (hasCustomer == hasWalkInGuest) {
@@ -113,6 +128,7 @@ public class Reservation {
 
         this.customer = customer;
         this.room = room;
+        this.nightlyRateAtBooking = room == null ? null : room.getNightlyRate();
         this.checkIn = checkIn;
         this.checkOut = checkOut;
         this.checkInTime = checkInTime;
@@ -134,6 +150,7 @@ public class Reservation {
         this.walkInGuest = walkInGuest;
         this.bookingType = "WALK_IN";
         this.room = room;
+        this.nightlyRateAtBooking = room == null ? null : room.getNightlyRate();
         this.checkIn = checkIn;
         this.checkOut = checkOut;
         this.checkInTime = checkInTime;
@@ -208,9 +225,21 @@ public class Reservation {
     }
 
     public java.math.BigDecimal getTotalCost() {
-        return room.getNightlyRate()
+        java.math.BigDecimal rate = nightlyRateAtBooking == null ? room.getNightlyRate() : nightlyRateAtBooking;
+        return rate
                 .multiply(java.math.BigDecimal.valueOf(getNights()));
     }
+    public java.math.BigDecimal getNightlyRateAtBooking() {
+        return nightlyRateAtBooking == null ? room.getNightlyRate() : nightlyRateAtBooking;
+    }
+    public void setNightlyRateAtBooking(java.math.BigDecimal value) { nightlyRateAtBooking = value; }
+    public Instant getCheckedOutAt() { return checkedOutAt; }
+    public void setCheckedOutAt(Instant value) { checkedOutAt = value; }
+    public String getStayRequestType() { return stayRequestType; }
+    public LocalDate getStayRequestDate() { return stayRequestDate; }
+    public String getStayRequestStatus() { return stayRequestStatus; }
+    public void setStayRequest(String type, LocalDate date) { stayRequestType = type; stayRequestDate = date; stayRequestStatus = "PENDING"; }
+    public void setStayRequestStatus(String status) { stayRequestStatus = status; }
 
     public String getBookingType() {
         // Older records without this field are treated as regular online bookings.

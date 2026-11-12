@@ -53,7 +53,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    void acceptsSameDayReservationAndLeavesItPendingForManagerApproval() {
+    void appliesStandardCheckInAndCheckoutTimesAndLeavesReservationPending() {
         LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(1);
         AppUser customer = mock(AppUser.class);
         Room room = mock(Room.class);
@@ -70,12 +70,12 @@ class ReservationServiceTest {
 
         Reservation result = service.reserve(
             "guest@example.com", 1L, today, LocalTime.of(10, 0),
-            today, LocalTime.of(18, 0));
+            today.plusDays(2), LocalTime.of(18, 0));
 
         assertEquals(today, result.getCheckIn());
-        assertEquals(today, result.getCheckOut());
-        assertEquals(LocalTime.of(10, 0), result.getCheckInTime());
-        assertEquals(LocalTime.of(18, 0), result.getCheckOutTime());
+        assertEquals(today.plusDays(2), result.getCheckOut());
+        assertEquals(LocalTime.of(14, 0), result.getCheckInTime());
+        assertEquals(LocalTime.NOON, result.getCheckOutTime());
         assertEquals("PENDING", result.getStatus());
         verify(reservations).save(any(Reservation.class));
     }

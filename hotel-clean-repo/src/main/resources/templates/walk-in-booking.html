@@ -19,9 +19,9 @@
 <label>Room<select name="roomId" required><option value="">Choose an available room</option><option th:each="room : ${rooms}" th:value="${room.id}" th:text="|Room ${room.roomNumber} · ${room.type} · ₱${#numbers.formatDecimal(room.nightlyRate,1,'COMMA',2,'POINT')} / night|">Room</option></select></label>
 <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
 <label>Check-in date<input type="date" name="checkIn" required></label>
-<label>Check-in time<input type="time" name="checkInTime" value="14:00" required></label>
+<p class="stay-times">Check-in: <strong>2:00 PM</strong></p>
 <label>Check-out date<input type="date" name="checkOut" required></label>
-<label>Check-out time<input type="time" name="checkOutTime" value="12:00" required></label>
+<p class="stay-times">Check-out: <strong>12:00 PM</strong></p>
 </div>
 <p class="muted">The system checks room availability before saving. It records one full walk-in payment through the Nexus simulation; it does not charge a real payment method.</p>
 <div class="inline-form"><button class="button" type="submit">Save walk-in and record full payment</button><a class="button secondary" href="/manager">Cancel</a></div>

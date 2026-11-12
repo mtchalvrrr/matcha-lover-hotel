@@ -88,8 +88,8 @@ public class SuperAdminRegistrationController {
         users.save(customer);
         a.decide("APPROVED","Identity reviewed and approved.",auth.getName());
         applications.save(a);
-        notifyApplicant(a.getEmail(),"Your VA HOTEL account is approved",
-                "Your registration and identity document have been approved. You may now sign in to VA HOTEL.");
+        notifyApplicant(a.getEmail(),"Your mtchlvr hotel account is approved",
+                "Your registration and identity document have been approved. You may now sign in to mtchlvr hotel.");
         flash.addFlashAttribute("success","Customer account approved and activated.");
         return "redirect:/super-admin/registrations";
     }
@@ -106,7 +106,7 @@ public class SuperAdminRegistrationController {
         }
         a.decide("REJECTED",clean,auth.getName());
         applications.save(a);
-        notifyApplicant(a.getEmail(),"VA HOTEL registration update",
+        notifyApplicant(a.getEmail(),"mtchlvr hotel registration update",
                 "Your registration was not approved. Reason: "+clean+" If you believe this is an error, contact the hotel administrator.");
         flash.addFlashAttribute("success","Registration rejected. The applicant has been notified.");
         return "redirect:/super-admin/registrations";

@@ -40,6 +40,8 @@ class PencilBookingServiceTest {
         when(reservation.getTotalCost()).thenReturn(new BigDecimal("1000.00"));
         when(reservation.getCheckIn()).thenReturn(
                 java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(5));
+        when(reservation.getCheckOut()).thenReturn(
+                java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila")).plusDays(7));
         when(reservation.getCheckInTime()).thenReturn(java.time.LocalTime.of(14, 0));
 
         when(reservations.save(reservation)).thenReturn(reservation);

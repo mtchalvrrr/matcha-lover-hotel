@@ -109,7 +109,7 @@ body{font-weight:500}p,li,label,input,select,textarea,td{font-weight:600}.eyebro
 .manager-content .page-title{margin-top:0}
 @media(max-width:900px){.manager-layout{grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:22px}.manager-side-panel{position:static;top:auto;flex-direction:column;flex-wrap:nowrap;gap:14px;padding:18px}.manager-side-panel-header{flex:0 0 auto;border-bottom:1px solid var(--line);padding-bottom:12px}.manager-side-nav{flex-direction:column;flex-wrap:nowrap;gap:8px;flex:0 0 auto}.manager-side-link{width:100%;flex:0 0 auto;font-size:12px;padding:11px 12px}.manager-side-note{flex:0 0 auto}}
 
-/* Room reservation schedule popup — mtchlvr hotel theme */
+/* Room reservation schedule popup — Matcha Lover Hotel theme */
 .room-availability-toggle {
   width: 100%;
   margin: 0 0 18px;
@@ -472,13 +472,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--forest); outlin
 .hero-actions { flex-wrap: wrap; gap: 12px; }
 .auth-body {
   background: linear-gradient(135deg, rgba(18,38,20,.62), rgba(20,38,22,.38)),
-    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+    url("/images/va-campus-background-hd.jpg") center/cover fixed;
 }
 .auth-brand { color: #fff; text-shadow: 0 2px 12px #10201080; }
 .auth-card { background: rgba(255,255,250,.96); backdrop-filter: blur(8px); }
 body:has(.manager-page), body.customer-body {
   background: linear-gradient(135deg, rgba(18,38,20,.55), rgba(20,38,22,.32)),
-    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+    url("/images/va-campus-background-hd.jpg") center/cover fixed;
 }
 .manager-page .manager-section, .manager-page .stat-card, .manager-page .table-wrap,
 .manager-page .manager-side-panel, .manager-page .empty-state, .customer-body .stat-card,
@@ -852,7 +852,7 @@ body:has(.room-card)::before {
   inset: -12px;
   z-index: -1;
   pointer-events: none;
-  background: url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center / cover no-repeat;
+  background: url("/images/va-campus-background-hd.jpg") center / cover no-repeat;
   filter: none;
   transform: none;
 }
@@ -916,13 +916,13 @@ body:has(.room-card) .room-card {
 .hero-actions { flex-wrap: wrap; gap: 12px; }
 .auth-body {
   background: linear-gradient(135deg, rgba(18,38,20,.62), rgba(20,38,22,.38)),
-    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+    url("/images/va-campus-background-hd.jpg") center/cover fixed;
 }
 .auth-brand { color: #fff; text-shadow: 0 2px 12px #10201080; }
 .auth-card { background: rgba(255,255,250,.96); backdrop-filter: blur(8px); }
 body:has(.manager-page), body.customer-body {
   background: linear-gradient(135deg, rgba(18,38,20,.55), rgba(20,38,22,.32)),
-    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1800&h=1200&fit=crop") center/cover fixed;
+    url("/images/va-campus-background-hd.jpg") center/cover fixed;
 }
 .manager-page .manager-section, .manager-page .stat-card, .manager-page .table-wrap,
 .manager-page .manager-side-panel, .manager-page .empty-state, .customer-body .stat-card,
@@ -1411,7 +1411,7 @@ body {
   min-height: 100vh;
   background:
     linear-gradient(rgba(20, 35, 24, .58), rgba(20, 35, 24, .64)),
-    url("https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg?auto=compress&cs=tinysrgb&w=1400&h=1000&fit=crop")
+    url("/images/va-campus-background-hd.jpg")
     center center / cover fixed !important;
 }
 
@@ -2347,7 +2347,7 @@ body:has(.hero-city) footer {
 
 
 
-/* Registration page: keep the two-step form inside the viewport without page scrolling. */
+/* Registration wizard: keep long steps scrollable inside the card. */
 html:has(body.registration-page), body.registration-page {
     height: 100%;
     min-height: 100%;
@@ -2360,20 +2360,19 @@ body.registration-page {
     justify-content: center;
     gap: 8px;
 }
-.registration-page .auth-brand {
-    flex: 0 0 auto;
-    margin: 0 auto 4px;
-    align-self: center;
+.registration-page .registration-card > .brand {
+    margin-bottom: 12px;
 }
-.registration-page .auth-card {
+.registration-page .registration-card {
     flex: 0 1 auto;
-    width: min(100%, 460px);
-    max-height: calc(100dvh - 72px);
-    overflow: hidden;
+    width: min(100%, 680px);
+    max-height: calc(100dvh - 30px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     margin: 0 auto;
     padding: 22px 28px;
 }
-.registration-page .auth-card h1 {
+.registration-page .registration-card h1 {
     font-size: clamp(29px, 4vh, 36px);
     margin: 4px 0 12px;
 }
@@ -2401,10 +2400,10 @@ body.registration-page {
     font-size: 10px;
     gap: 6px;
 }
-.registration-page .auth-switch {
+.registration-page .hint {
     margin: 12px 0 0;
 }
-.registration-page .registration-progress {
+.registration-page .steps {
     gap: 5px;
     margin: 0 0 10px;
 }
@@ -2413,25 +2412,78 @@ body.registration-page {
 }
 @media (max-height: 720px) {
     body.registration-page { padding: 6px 12px; gap: 4px; }
-    .registration-page .auth-card { padding: 14px 22px; max-height: calc(100dvh - 54px); }
-    .registration-page .auth-card h1 { font-size: 28px; margin: 2px 0 8px; }
+    .registration-page .registration-card { padding: 14px 22px; max-height: calc(100dvh - 54px); }
+    .registration-page .registration-card h1 { font-size: 28px; margin: 2px 0 8px; }
     .registration-page .stack-form { gap: 7px; }
     .registration-page .stack-form input { padding: 7px 9px; }
     .registration-page .password-rules { gap: 3px 8px; margin-top: 4px; }
-    .registration-page .registration-progress { margin-bottom: 7px; }
-    .registration-page .auth-switch { margin-top: 7px; }
+    .registration-page .steps { margin-bottom: 7px; }
+    .registration-page .hint { margin-top: 7px; }
 }
 @media (max-width: 480px) {
-    .registration-page .auth-card { padding: 18px 18px; }
+    .registration-page .registration-card { padding: 18px 18px; }
     .registration-page .password-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 
-/* VA HOTEL campus background shared across all application pages. */
+/* Keep the original hotel photograph consistent across the public site and workspaces. */
 html { min-height: 100%; }
 body {
   background:
-    linear-gradient(rgba(10, 29, 49, .58), rgba(10, 29, 49, .58)),
-    url('/images/va-campus-background.svg') center center / cover fixed !important;
-  background-color: #12365a !important;
+    linear-gradient(rgba(24, 54, 32, .58), rgba(24, 54, 32, .58)),
+    url('/images/va-campus-background-hd.jpg') center center / cover fixed !important;
+  background-color: #315b3b !important;
 }
+
+/* Matcha Lover Hotel matcha-green palette. */
+:root {
+  --forest: #315b3b;
+  --forest-2: #244b30;
+  --leaf: #82a96f;
+  --sage: #e6efe0;
+  --cream: #f7f8f1;
+  --sand: #e6dfc8;
+  --ink: #26392a;
+  --muted: #667568;
+  --line: #dce7d5;
+  --white: #fff;
+  --shadow: 0 18px 48px rgba(49, 91, 59, .12);
+}
+
+body { color: var(--ink); }
+.brand small { color: var(--leaf); }
+.hero-city .eyebrow { color: #d6e8c9; }
+.hero-city .hero-copy h1 em { color: #d6e8c9; }
+.hero-city .photo-overlay {
+  background: linear-gradient(90deg, rgba(24, 54, 32, .82) 0%, rgba(24, 54, 32, .52) 48%, rgba(24, 54, 32, .12) 100%),
+              linear-gradient(0deg, rgba(24, 54, 32, .25), transparent 55%);
+}
+.hero-city .button { background: var(--leaf); color: #fff; border-color: var(--leaf); }
+.hero-city .button:hover { background: #244b30; border-color: #244b30; }
+.room-photo-carousel { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.room-photo-carousel .carousel-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s ease; }
+.room-photo-carousel .carousel-photo.is-active { opacity: 1; }
+.carousel-arrow { position: absolute; z-index: 3; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; border-radius: 50%; color: white; background: rgba(28, 55, 34, .78); font-size: 25px; line-height: 1; cursor: pointer; }
+.carousel-prev { left: 10px; }
+.carousel-next { right: 10px; }
+.carousel-count { position: absolute; z-index: 3; right: 10px; bottom: 10px; padding: 4px 8px; border-radius: 20px; background: rgba(28, 55, 34, .8); color: white; font-size: 12px; }
+.stay-times { margin: 0; align-self: center; }
+.room-photo-carousel .carousel-arrow { z-index: 4; }
+.room-gallery-dialog { width: min(1000px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 48px 72px 38px; border: 1px solid var(--line); border-radius: 18px; background: #162a1d; color: white; overflow: hidden; }
+.room-gallery-dialog::backdrop { background: rgba(8, 18, 10, .82); }
+.gallery-view { display: block; width: 100%; height: min(70vh, 700px); object-fit: contain; }
+.gallery-close, .gallery-step { position: absolute; z-index: 2; border: 0; border-radius: 50%; color: white; background: rgba(255,255,255,.18); cursor: pointer; }
+.gallery-close { top: 12px; right: 14px; width: 38px; height: 38px; font-size: 28px; }
+.gallery-step { top: 48%; width: 44px; height: 44px; font-size: 32px; }
+.gallery-step-prev { left: 14px; }
+.gallery-step-next { right: 14px; }
+.gallery-caption { margin: 12px 0 0; text-align: center; }
+.gallery-index { display: block; text-align: center; color: #c4d5bc; font-size: 12px; }
+.room-signin-action { display:flex; flex-wrap:wrap; gap:10px; padding:0 18px 18px; }
+@media (max-width: 600px) { .room-gallery-dialog { padding: 48px 48px 30px; } .gallery-view { height: 58vh; } }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline-color: var(--leaf);
+}
+
+.room-card { cursor: pointer; }
+.room-card:focus-visible { outline: 3px solid var(--leaf); outline-offset: 3px; }

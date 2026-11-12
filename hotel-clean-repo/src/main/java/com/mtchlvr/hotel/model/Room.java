@@ -21,6 +21,13 @@ public class Room {
     private boolean available = true;
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
+    @Column(length = 2000)
+    private String description;
+    @Column(name = "photo_1", length = 255) private String photo1;
+    @Column(name = "photo_2", length = 255) private String photo2;
+    @Column(name = "photo_3", length = 255) private String photo3;
+    @Column(name = "photo_4", length = 255) private String photo4;
+    @Column(name = "photo_5", length = 255) private String photo5;
 
     protected Room() {}
     public Room(String roomNumber, String type, BigDecimal nightlyRate, int capacity) {
@@ -33,10 +40,19 @@ public class Room {
     public int getCapacity() { return capacity; }
     public boolean isAvailable() { return available; }
     public boolean isActive() { return active; }
+    public String getDescription() { return description; }
+    public java.util.List<String> getPhotos() { return java.util.stream.Stream.of(photo1, photo2, photo3, photo4, photo5).filter(java.util.Objects::nonNull).filter(s -> !s.isBlank()).toList(); }
     public void setRoomNumber(String v) { roomNumber = v; }
     public void setType(String v) { type = v; }
     public void setNightlyRate(BigDecimal v) { nightlyRate = v; }
     public void setCapacity(int v) { capacity = v; }
     public void setAvailable(boolean v) { available = v; }
     public void setActive(boolean v) { active = v; }
+    public void setDescription(String v) { description = v; }
+    public void setPhotos(java.util.List<String> photos) {
+        java.util.List<String> safe = photos == null ? java.util.List.of() : photos.stream().limit(5).toList();
+        photo1 = safe.size() > 0 ? safe.get(0) : null; photo2 = safe.size() > 1 ? safe.get(1) : null;
+        photo3 = safe.size() > 2 ? safe.get(2) : null; photo4 = safe.size() > 3 ? safe.get(3) : null;
+        photo5 = safe.size() > 4 ? safe.get(4) : null;
+    }
 }

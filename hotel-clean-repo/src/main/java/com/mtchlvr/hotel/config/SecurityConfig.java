@@ -36,11 +36,11 @@ public class SecurityConfig {
             HttpSecurity http, CaptchaService captcha) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability", "/api/register/email-available").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/rooms/*/availability").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat").permitAll()
                 .requestMatchers(
                     "/", "/customer-portal", "/rooms", "/register", "/register/**", "/login", "/manager-portal",
-                    "/css/**", "/js/**", "/images/**", "/error", "/favicon.ico"
+                    "/css/**", "/js/**", "/images/**", "/room-photos/**", "/error", "/favicon.ico"
                 ).permitAll()
                 // Online-only operations must be checked before the shared manager routes.
                 .requestMatchers(

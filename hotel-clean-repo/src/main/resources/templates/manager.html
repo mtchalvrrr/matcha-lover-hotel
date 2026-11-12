@@ -40,7 +40,7 @@
                     </div>
                     <p class="muted">Only guests whose approved stays are currently in progress appear here.</p>
                     <div class="table-wrap"><table>
-                        <thead><tr><th>Room details</th><th>Occupant guest</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Room details</th><th>Occupant guest</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody>
                             <tr th:each="r : ${occupancyReservations}">
                                 <td><strong th:text="|${r.room.type} · ${r.room.roomNumber}|">Deluxe · 201</strong>
@@ -55,9 +55,9 @@
                                 <td th:text="${r.checkOut}">2026-10-16</td>
                                 <td th:text="${r.nights}">2</td>
                                 <td th:text="|₱${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}|">₱3,600.00</td>
-                                <td><span class="status" th:text="'CHECKED IN'" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
+                                <td><span class="status" th:text="'CHECKED IN'" th:classappend="${r.status.toLowerCase()}">PENDING</span></td><td><form th:action="@{'/manager/reservations/' + ${r.id} + '/checkout'}" method="post" data-confirm="Process checkout now? This finalizes the stay and releases the room."><button class="button tiny" type="submit">Process checkout</button></form> <a class="button tiny secondary" th:href="@{'/manager/reservations/' + ${r.id} + '/receipt'}">Receipt</a></td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(occupancyReservations)}"><td colspan="7" class="muted">No active reservation dates to display.</td></tr>
+                            <tr th:if="${#lists.isEmpty(occupancyReservations)}"><td colspan="8" class="muted">No active reservation dates to display.</td></tr>
                         </tbody>
                     </table></div>
                 </section>

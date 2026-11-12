@@ -21,3 +21,5 @@ test-results/
 
 # Private identity verification documents (never commit applicant IDs)
 private-uploads/
+uploads/rooms/
+local-secrets.properties
